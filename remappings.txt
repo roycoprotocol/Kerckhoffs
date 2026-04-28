@@ -1,0 +1,10 @@
+forge-std/=lib/forge-std/src/
+@openzeppelin/contracts/=lib/royco-dawn/lib/openzeppelin-contracts/contracts/
+@openzeppelin/contracts-upgradeable/=lib/royco-dawn/lib/openzeppelin-contracts-upgradeable/contracts/
+@openzeppelin-contracts/=lib/royco-dawn/lib/openzeppelin-contracts/contracts/
+@openzeppelin-upgradeable/=lib/royco-dawn/lib/openzeppelin-contracts-upgradeable/contracts/
+solady/=lib/royco-dawn/lib/solady/
+royco-dawn/=lib/royco-dawn/
+concrete-earn/=lib/concrete-earn-v2-bug-bounty/
+makina-strategy/=lib/royco-vault-makina-strategy/
+makina-core/=lib/royco-vault-makina-strategy/lib/makina-core/

@@ -1,0 +1,15 @@
+[submodule "lib/forge-std"]
+	path = lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
+[submodule "lib/royco-dawn"]
+	path = lib/royco-dawn
+	url = https://github.com/roycoprotocol/royco-dawn
+[submodule "lib/concrete-earn-v2-bug-bounty"]
+	path = lib/concrete-earn-v2-bug-bounty
+	url = https://github.com/Blueprint-Finance/concrete-earn-v2-bug-bounty
+[submodule "lib/royco-vault-makina-strategy"]
+	path = lib/royco-vault-makina-strategy
+	url = https://github.com/roycoprotocol/royco-vault-makina-strategy
+[submodule "lib/makina-core"]
+	path = lib/makina-core
+	url = https://github.com/MakinaHQ/makina-core
