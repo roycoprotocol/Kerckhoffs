@@ -23,6 +23,9 @@ abstract contract Roles {
     uint32 internal constant DELAY_IMMEDIATE = 0;
     uint32 internal constant DELAY_STANDARD = 1 days;
     uint32 internal constant DELAY_CRITICAL = 2 days;
+    /// @dev Root tier — reserved for `ADMIN_ROLE` itself, which gates every other role
+    ///      assignment + delay change. Strictly slower than every other privileged path.
+    uint32 internal constant DELAY_ROOT = 7 days;
 
     // ═══════════════════════════════════════════════════════════════════════════
     // ACCESS MANAGER BUILT-INS

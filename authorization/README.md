@@ -31,7 +31,7 @@ Define a single, system-wide security model covering three surfaces, with a shar
 - A uniform cancel/veto path (`GUARDIAN_ROLE`) that works the same regardless of which contract the target action lives on.
 - One control plane to harden rather than N bespoke role systems.
 
-**Timelock the admin role itself.** `ADMIN_ROLE` (the root role that grants/revokes every other role and reconfigures delays) runs at Critical (48h). This is what closes problem #1: a compromised FNDN can't shorten delays, reassign roles, or swap out the guardian as a fast operation — any change to the authorization configuration itself is delayed and cancellable by WAY. The only ways to act without a delay are the specific roles that explicitly hold Immediate execution (LP ops, pause, sync, allocator, guardian cancel), and those are narrowly scoped by design.
+**Timelock the admin role itself.** `ADMIN_ROLE` (the root role that grants/revokes every other role and reconfigures delays) runs at Root (7d) — strictly slower than every other privileged path. This is what closes problem #1: a compromised FNDN can't shorten delays, reassign roles, or swap out the guardian as a fast operation — any change to the authorization configuration itself is delayed and cancellable by WAY. The only ways to act without a delay are the specific roles that explicitly hold Immediate execution (LP ops, pause, sync, allocator, guardian cancel), and those are narrowly scoped by design.
 
 Exceptions (things that stay on-chain instead of going through AM):
 - Caliber `_allowedInstrRoot` on-chain timelock — already has real scheduling with a veto path; no reason to move it.
@@ -41,10 +41,11 @@ Exceptions (things that stay on-chain instead of going through AM):
 | Level | Duration | When to use |
 |---|---|---|
 | **Immediate** | 0 | User-facing ops (LP deposit/redeem), pause, guardian cancel, accounting sync, allocator/withdrawal operations — anything where a delay would make the action useless or harm UX. |
-| **Standard** | 24h | Parameter changes, role grants/revokes, oracle config, operational admins — meaningful changes that warrant monitoring but aren't catastrophic. |
-| **Critical** | 48h | Root admin, contract upgrades, changes to the timelock configuration itself — highest blast radius, longest time to notice and respond. |
+| **Standard** | 24h | Operational admins that warrant monitoring but aren't catastrophic — `DEPLOYER_ROLE_ADMIN_ROLE`, `ADMIN_UNPAUSER_ROLE`. |
+| **Critical** | 48h | Parameter changes, oracle config, contract upgrades, concrete-vault admins — highest blast radius short of the root admin. |
+| **Root** | 7d | `ADMIN_ROLE` itself. Strictly slower than every other privileged path so attacking the meta-timelock is the slowest possible attack. |
 
-Exception: strategy rescue keeps its existing **30d on-chain timelock**. It's an explicit guarantee to depositors that funds can't be extracted quickly and doesn't fit the three tiers above.
+Exception: strategy rescue keeps its existing **30d on-chain timelock**. It's an explicit guarantee to depositors that funds can't be extracted quickly and doesn't fit the four tiers above.
 
 ### 1. Royco Dawn Markets — roles and delays
 
@@ -52,18 +53,18 @@ Dawn Markets already uses a role model with `ADMIN_ROLE` / `GUARDIAN_ROLE` admin
 
 | Role | Description | Admin Role | Guardian Role | Assignee | Delay |
 |---|---|---|---|---|---|
-| `ADMIN_ROLE` (0) | Root admin — grants/revokes all roles | `ADMIN_ROLE` (self) | `ADMIN_ROLE` (self) | FNDN | Critical (48h) |
-| `ADMIN_PAUSER_ROLE` | Pause all protocol contracts | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN** | Immediate |
+| `ADMIN_ROLE` (0) | Root admin — grants/revokes all roles | `ADMIN_ROLE` (self) | `ADMIN_ROLE` (self) | FNDN | Root (7d) |
+| `ADMIN_PAUSER_ROLE` | Pause all protocol contracts | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN, WAY | Immediate |
 | `ADMIN_UNPAUSER_ROLE` | Unpause all protocol contracts | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Standard (24h) |
 | `ADMIN_UPGRADER_ROLE` | Upgrade protocol contracts (UUPS) | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Critical (48h) |
 | `ST_LP_ROLE` | LP ops (deposit/redeem) on senior tranche | `LP_ROLE_ADMIN_ROLE` | `GUARDIAN_ROLE` | Any LP | Immediate |
 | `JT_LP_ROLE` | LP ops (deposit/redeem) on junior tranche | `LP_ROLE_ADMIN_ROLE` | `GUARDIAN_ROLE` | Any LP | Immediate |
-| `LP_ROLE_ADMIN_ROLE` | Grants/revokes LP roles | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Immediate |
-| `SYNC_ROLE` | Triggers accounting sync on kernel | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Immediate |
-| `ADMIN_KERNEL_ROLE` | Configure kernel (fee recipient, redemption delay) | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Standard (24h) |
-| `ADMIN_ACCOUNTANT_ROLE` | Configure accountant (YDM, coverage, beta, LLTV) | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Standard (24h) |
-| `ADMIN_PROTOCOL_FEE_SETTER_ROLE` | Set protocol fee % on ST/JT yields | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Standard (24h) |
-| `ADMIN_ORACLE_QUOTER_ROLE` | Oracle/quoter settings (conversion rate, oracle addr) | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Immediate |
+| `LP_ROLE_ADMIN_ROLE` | Grants/revokes LP roles | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN, WAY | Immediate |
+| `SYNC_ROLE` | Triggers accounting sync on kernel | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN, WAY | Immediate |
+| `ADMIN_KERNEL_ROLE` | Configure kernel (fee recipient, redemption delay) | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN, WAY | Critical (48h) |
+| `ADMIN_ACCOUNTANT_ROLE` | Configure accountant (YDM, coverage, beta, LLTV) | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN, WAY | Critical (48h) |
+| `ADMIN_PROTOCOL_FEE_SETTER_ROLE` | Set protocol fee % on ST/JT yields | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN, WAY | Critical (48h) |
+| `ADMIN_ORACLE_QUOTER_ROLE` | Oracle/quoter settings (conversion rate, oracle addr) | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Critical (48h) |
 | `GUARDIAN_ROLE` | Cancels delayed operations for other roles | `ADMIN_ROLE` | `ADMIN_ROLE` | WAY | Immediate |
 | `DEPLOYER_ROLE` | Deploys new Royco markets via factory | `DEPLOYER_ROLE_ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Immediate |
 | `DEPLOYER_ROLE_ADMIN_ROLE` | Grants/revokes `DEPLOYER_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Standard (24h) |
@@ -74,29 +75,35 @@ Notes:
 
 #### Entry Point — roles and selectors
 
-The Royco Entry Point (one per chain — Ethereum/Avalanche/Arbitrum, all at `0x63dA1229be88Fb4D20210147954a1a3e05f2581B`) handles asynchronous deposit/redemption flows on top of the tranches. Two new roles, plus existing ones bound to specific selectors. Mirrors the configuration applied by `lib/royco-dawn/script/independent/DeployEntryPoint.s.sol:128-173`.
+The Royco Entry Point handles asynchronous deposit/redemption flows on top of the tranches. One per chain (Ethereum / Avalanche / Arbitrum) — same address on every chain via CREATE3: `0x63dA1229be88Fb4D20210147954a1a3e05f2581B`. The migration mirrors the role config originally applied by `lib/royco-dawn/script/independent/DeployEntryPoint.s.sol:128-173`.
+
+**Two new roles** introduced specifically for the entry point:
 
 | Role | Description | Admin Role | Guardian Role | Assignee | Delay |
 |---|---|---|---|---|---|
-| `ADMIN_ENTRY_POINT_ROLE` | Configure entry point per-tranche params (`modifyTrancheConfigs`) | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Standard (24h) |
-| `ADMIN_ENTRY_POINT_ROLE` | Same role, immediate variant for ops | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | Immediate |
+| `ADMIN_ENTRY_POINT_ROLE` | Configure per-tranche params (`modifyTrancheConfigs`) | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Critical (48h) |
 | `ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE` | Collect accumulated protocol fees (`collectProtocolFees`) | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Immediate |
 
-Selector → role bindings on the entry point target:
+**Selector → role bindings on the entry point target:**
 
-| Function | Role |
-|---|---|
-| `requestDeposit`, `executeDeposit`, `executeDeposits`, `cancelDepositRequest`, `cancelDepositRequests`, `requestRedemption`, `executeRedemption`, `executeRedemptions`, `cancelRedemptionRequest`, `cancelRedemptionRequests` | `PUBLIC_ROLE` (open at AM; tranches still gate on `ST_LP_ROLE` / `JT_LP_ROLE`) |
-| `modifyTrancheConfigs` | `ADMIN_ENTRY_POINT_ROLE` |
-| `collectProtocolFees` | `ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE` |
-| `pause` | `ADMIN_PAUSER_ROLE` |
-| `unpause` | `ADMIN_UNPAUSER_ROLE` |
-| `upgradeToAndCall` | `ADMIN_UPGRADER_ROLE` |
+| Function | Role | Effective Delay | Why |
+|---|---|---|---|
+| `requestDeposit`, `executeDeposit`, `executeDeposits`, `cancelDepositRequest`, `cancelDepositRequests`, `requestRedemption`, `executeRedemption`, `executeRedemptions`, `cancelRedemptionRequest`, `cancelRedemptionRequests` | `PUBLIC_ROLE` | Immediate | LP ops — open at AM; tranches still gate on `ST_LP_ROLE` / `JT_LP_ROLE` |
+| `modifyTrancheConfigs` | `ADMIN_ENTRY_POINT_ROLE` | Critical 48h (FNDN) | Per-tranche entry-point params |
+| `collectProtocolFees` | `ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE` | Immediate (FNDN) | Fee collection |
+| `pause` | `ADMIN_PAUSER_ROLE` | Immediate (FNDN, WAY) | Protocol-wide pause |
+| `unpause` | `ADMIN_UNPAUSER_ROLE` | Standard 24h (FNDN) | Protocol-wide unpause — can't rush an unpause to clear an attacker's pause |
+| `upgradeToAndCall` | `ADMIN_UPGRADER_ROLE` | Critical 48h (FNDN) | UUPS impl upgrade |
 
-The entry point contract itself must be granted `ST_LP_ROLE`, `JT_LP_ROLE`, and `BURNER_ROLE` (all Immediate) so it can call `deposit`/`redeem` on the underlying tranches and forfeit yield via the burner path.
+**Self-grants on the entry point contract** (the entry point itself must hold these so it can call into the tranches when relaying user ops):
 
-Notes:
-- WAY holds `ADMIN_ENTRY_POINT_ROLE` at delay 0 for fast-path tranche-config updates; FNDN holds the same role at the Standard 24h delay so any FNDN-proposed change is monitorable and cancellable.
+| Role | Holder | Delay |
+|---|---|---|
+| `ST_LP_ROLE` | EntryPoint (`0x63dA…81B`) | Immediate |
+| `JT_LP_ROLE` | EntryPoint (`0x63dA…81B`) | Immediate |
+| `BURNER_ROLE` | EntryPoint (`0x63dA…81B`) | Immediate |
+
+`ST_LP_ROLE` / `JT_LP_ROLE` let the entry point call `deposit` / `redeem` on the senior/junior tranche; `BURNER_ROLE` is required for the yield-forfeiture path on redemption.
 
 ### 2. Vaults — roles and access manager
 
@@ -119,12 +126,12 @@ Only roles that need a non-zero delay are remapped to AM. `ALLOCATOR` / `WITHDRA
 
 | Concrete Role | Mapped AM Role | Admin Role | Guardian Role | Assignee | Delay |
 |---|---|---|---|---|---|
-| Vault Manager Admin | `ADMIN_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Standard (24h) |
-| Vault Manager | `VAULT_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Standard (24h) |
-| Strategy Manager Admin | `ADMIN_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Standard (24h) |
-| Strategy Manager | `STRATEGY_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Standard (24h) |
-| Hook Manager Admin | `ADMIN_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Standard (24h) |
-| Hook Manager | `HOOK_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Standard (24h) |
+| Vault Manager Admin | `ADMIN_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Critical (48h) |
+| Vault Manager | `VAULT_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Critical (48h) |
+| Strategy Manager Admin | `ADMIN_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Critical (48h) |
+| Strategy Manager | `STRATEGY_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Critical (48h) |
+| Hook Manager Admin | `ADMIN_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Critical (48h) |
+| Hook Manager | `HOOK_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Critical (48h) |
 
 **Strategy contract roles:**
 
@@ -157,22 +164,24 @@ Caliber has two different delay mechanisms today;
 
 **Moves to AccessManager:**
 
-Caliber setters map to two per-vault roles: `<Vault>_RISK_MANAGER` for routine risk parameters (Standard), and `<Vault>_TIMELOCK_MANAGER` for `setTimelockDuration` only (Critical). Splitting the meta-timelock into its own role is load-bearing — see note below.
+Caliber setters map to two per-vault roles, both at **Critical (48h)**: `<Vault>_RISK_MANAGER` for routine risk parameters and `<Vault>_TIMELOCK_MANAGER` for `setTimelockDuration` only. They share the same delay tier today but stay separate roles — splitting the meta-timelock means it can be reassigned / locked down independently if we ever need to.
 
 | Operation | Function | Mapped AM Role | Admin Role | Guardian Role | Assignee | Delay |
 |---|---|---|---|---|---|---|
-| Set position stale threshold | `setPositionStaleThreshold` (Caliber.sol:510) | `<Vault>_RISK_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Standard (24h) |
-| Set timelock duration | `setTimelockDuration` (Caliber.sol:517) | `<Vault>_TIMELOCK_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | **Critical (48h)** |
-| Set max position increase loss bps | `setMaxPositionIncreaseLossBps` (Caliber.sol:557) | `<Vault>_RISK_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Standard (24h) |
-| Set max position decrease loss bps | `setMaxPositionDecreaseLossBps` (Caliber.sol:568) | `<Vault>_RISK_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Standard (24h) |
-| Set max swap loss bps | `setMaxSwapLossBps` (Caliber.sol:579) | `<Vault>_RISK_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Standard (24h) |
-| Set cooldown duration | `setCooldownDuration` (Caliber.sol:586) | `<Vault>_RISK_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Standard (24h) |
-| Add base token | `addBaseToken` (Caliber.sol:298) | `<Vault>_RISK_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Standard (24h) |
-| Remove base token | `removeBaseToken` (Caliber.sol:303) | `<Vault>_RISK_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Standard (24h) |
+| Set position stale threshold | `setPositionStaleThreshold` (Caliber.sol:510) | `<Vault>_RISK_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Critical (48h) |
+| Set timelock duration | `setTimelockDuration` (Caliber.sol:517) | `<Vault>_TIMELOCK_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Critical (48h) |
+| Set max position increase loss bps | `setMaxPositionIncreaseLossBps` (Caliber.sol:557) | `<Vault>_RISK_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Critical (48h) |
+| Set max position decrease loss bps | `setMaxPositionDecreaseLossBps` (Caliber.sol:568) | `<Vault>_RISK_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Critical (48h) |
+| Set max swap loss bps | `setMaxSwapLossBps` (Caliber.sol:579) | `<Vault>_RISK_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Critical (48h) |
+| Set cooldown duration | `setCooldownDuration` (Caliber.sol:586) | `<Vault>_RISK_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Critical (48h) |
+| Add base token | `addBaseToken` (Caliber.sol:298) | `<Vault>_RISK_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Critical (48h) |
+| Remove base token | `removeBaseToken` (Caliber.sol:303) | `<Vault>_RISK_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Critical (48h) |
+
+The corresponding Machine setters (`setCaliberStaleThreshold`, `setMaxFixedFeeAccrualRate`, `setMaxPerfFeeAccrualRate`, `setFeeMintCooldown`, `setMaxSharePriceChangeRate`, `setOutTransferEnabled`, `setMaxBridgeLossBps`) are gated by the same Caliber-side `onlyRiskManagerTimelock` chain and are bound to `<Vault>_RISK_MANAGER` (also Critical 48h).
 
 Notes:
 - After migration, the `onlyRiskManagerTimelock` modifier becomes a plain `restricted` (AM) check; the Risk Manager role on the contract is granted to the AccessManager.
-- `setTimelockDuration` is the meta-timelock — it governs `_allowedInstrRoot`'s on-chain delay. If it were Standard (24h), a compromised FNDN could shorten the on-chain timelock after 48h, collapsing the 30d guarantee. Giving it its own role at Critical (48h) means attacking the meta-timelock is strictly slower than several other privileged paths.
+- `setTimelockDuration` (the meta-timelock that governs `_allowedInstrRoot`'s on-chain delay) is split into its own role so it can be locked down independently if ever needed; both roles run at Critical (48h) today.
 
 ### 3. Multisig structure
 

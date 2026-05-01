@@ -35,7 +35,7 @@ import { MigrationBase } from "../../src/migration/MigrationBase.sol";
  *        - `modifyTrancheConfigs` → `ADMIN_ENTRY_POINT_ROLE`
  *        - `collectProtocolFees` → `ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE`
  *        - `pause` / `unpause` / `upgradeToAndCall` → `ADMIN_PAUSER_ROLE` / `ADMIN_UNPAUSER_ROLE` / `ADMIN_UPGRADER_ROLE`
- *        - Grant `ADMIN_ENTRY_POINT_ROLE` to FNDN (Standard) and WAY (Immediate)
+ *        - Grant `ADMIN_ENTRY_POINT_ROLE` to FNDN (Critical 48h)
  *        - Grant `ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE` to FNDN (Immediate)
  *        - Self-grant `ST_LP_ROLE` / `JT_LP_ROLE` / `BURNER_ROLE` to the entry point itself
  *
@@ -44,8 +44,8 @@ import { MigrationBase } from "../../src/migration/MigrationBase.sol";
  *        - For every pausable target (kernel/accountant/ST/JT per market + syncer + entry point),
  *          re-bind the `unpause()` selector from `ADMIN_PAUSER_ROLE` → `ADMIN_UNPAUSER_ROLE`.
  *
- *   4. **Critical (48h) execution delay on `ADMIN_ROLE`** (LAST). After this every role-0-gated
- *      call requires schedule + 48h + execute.
+ *   4. **Root (7d) execution delay on `ADMIN_ROLE`** (LAST). After this every role-0-gated
+ *      call requires schedule + 7d + execute.
  *
  * Output: `output/migrate/dawn/{chainId}_apply_security_migration.json` (one per chain).
  */
@@ -98,22 +98,34 @@ contract MigrateDawn is MigrationBase, Script {
     ///      ever push `DEPLOYER_ROLE_ADMIN_ROLE` to Standard delay before granting `DEPLOYER_ROLE`,
     ///      the latter grant would need schedule+execute. So when both are pending, immediate-tier
     ///      grants run first. Already-correct grants are skipped.
+    /// @dev Several roles are co-held by FNDN and WAY at the same delay so WAY can also
+    ///      schedule/execute the corresponding ops. The complete dual-holder set:
+    ///        Immediate:    ADMIN_PAUSER_ROLE, LP_ROLE_ADMIN_ROLE, SYNC_ROLE
+    ///        Critical 48h: ADMIN_KERNEL_ROLE, ADMIN_ACCOUNTANT_ROLE, ADMIN_PROTOCOL_FEE_SETTER_ROLE
+    ///      WAY also holds GUARDIAN_ROLE solo (Immediate) — that grant is here too.
     function _diffFNDNRoleGrants(SafeTransaction[] memory _buf, uint256 _n, IAccessManager _am) internal view returns (uint256) {
         // Immediate (0) — granted first so their delay-zero ordering is irrelevant for the rest
         _n = _maybeGrantRole(_buf, _n, _am, DEPLOYER_ROLE, FNDN, DELAY_IMMEDIATE);
         _n = _maybeGrantRole(_buf, _n, _am, ADMIN_PAUSER_ROLE, FNDN, DELAY_IMMEDIATE);
+        _n = _maybeGrantRole(_buf, _n, _am, ADMIN_PAUSER_ROLE, WAY, DELAY_IMMEDIATE);
         _n = _maybeGrantRole(_buf, _n, _am, LP_ROLE_ADMIN_ROLE, FNDN, DELAY_IMMEDIATE);
+        _n = _maybeGrantRole(_buf, _n, _am, LP_ROLE_ADMIN_ROLE, WAY, DELAY_IMMEDIATE);
         _n = _maybeGrantRole(_buf, _n, _am, SYNC_ROLE, FNDN, DELAY_IMMEDIATE);
-        _n = _maybeGrantRole(_buf, _n, _am, ADMIN_ORACLE_QUOTER_ROLE, FNDN, DELAY_IMMEDIATE);
+        _n = _maybeGrantRole(_buf, _n, _am, SYNC_ROLE, WAY, DELAY_IMMEDIATE);
         _n = _maybeGrantRole(_buf, _n, _am, GUARDIAN_ROLE, WAY, DELAY_IMMEDIATE);
         // Standard (24h)
-        _n = _maybeGrantRole(_buf, _n, _am, ADMIN_KERNEL_ROLE, FNDN, DELAY_STANDARD);
-        _n = _maybeGrantRole(_buf, _n, _am, ADMIN_ACCOUNTANT_ROLE, FNDN, DELAY_STANDARD);
-        _n = _maybeGrantRole(_buf, _n, _am, ADMIN_PROTOCOL_FEE_SETTER_ROLE, FNDN, DELAY_STANDARD);
         _n = _maybeGrantRole(_buf, _n, _am, DEPLOYER_ROLE_ADMIN_ROLE, FNDN, DELAY_STANDARD);
         _n = _maybeGrantRole(_buf, _n, _am, ADMIN_UNPAUSER_ROLE, FNDN, DELAY_STANDARD);
-        // Critical (48h) — non-admin role; ADMIN_ROLE delay is set last in step 4
+        // Critical (48h)
+        _n = _maybeGrantRole(_buf, _n, _am, ADMIN_ORACLE_QUOTER_ROLE, FNDN, DELAY_CRITICAL);
+        _n = _maybeGrantRole(_buf, _n, _am, ADMIN_KERNEL_ROLE, FNDN, DELAY_CRITICAL);
+        _n = _maybeGrantRole(_buf, _n, _am, ADMIN_KERNEL_ROLE, WAY, DELAY_CRITICAL);
+        _n = _maybeGrantRole(_buf, _n, _am, ADMIN_ACCOUNTANT_ROLE, FNDN, DELAY_CRITICAL);
+        _n = _maybeGrantRole(_buf, _n, _am, ADMIN_ACCOUNTANT_ROLE, WAY, DELAY_CRITICAL);
+        _n = _maybeGrantRole(_buf, _n, _am, ADMIN_PROTOCOL_FEE_SETTER_ROLE, FNDN, DELAY_CRITICAL);
+        _n = _maybeGrantRole(_buf, _n, _am, ADMIN_PROTOCOL_FEE_SETTER_ROLE, WAY, DELAY_CRITICAL);
         _n = _maybeGrantRole(_buf, _n, _am, ADMIN_UPGRADER_ROLE, FNDN, DELAY_CRITICAL);
+        // Root (7d) for ADMIN_ROLE is set last in step 4
         return _n;
     }
 
@@ -132,9 +144,8 @@ contract MigrateDawn is MigrationBase, Script {
         _n = _maybeSetTargetFunctionRole(_buf, _n, _am, ep, _one(UUPSUpgradeable.upgradeToAndCall.selector), ADMIN_UPGRADER_ROLE);
 
         // Grants
-        _n = _maybeGrantRole(_buf, _n, _am, ADMIN_ENTRY_POINT_ROLE, FNDN, DELAY_STANDARD);
+        _n = _maybeGrantRole(_buf, _n, _am, ADMIN_ENTRY_POINT_ROLE, FNDN, DELAY_CRITICAL);
         _n = _maybeGrantRole(_buf, _n, _am, ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE, FNDN, DELAY_IMMEDIATE);
-        _n = _maybeGrantRole(_buf, _n, _am, ADMIN_ENTRY_POINT_ROLE, WAY, DELAY_IMMEDIATE);
         // Entry-point self-grants — required so the entry point can call deposit/redeem on tranches
         // and forfeit yield via the burner role.
         _n = _maybeGrantRole(_buf, _n, _am, ST_LP_ROLE, ep, DELAY_IMMEDIATE);
@@ -181,9 +192,9 @@ contract MigrateDawn is MigrationBase, Script {
 
     // ── Step 4 ────────────────────────────────────────────────────────────────
 
-    /// @dev grantRole(ADMIN_ROLE, FNDN, CRITICAL) — LAST. Closes the timelock-the-timelock gap.
+    /// @dev grantRole(ADMIN_ROLE, FNDN, ROOT 7d) — LAST. Closes the timelock-the-timelock gap.
     function _diffAdminRoleCriticalDelay(SafeTransaction[] memory _buf, uint256 _n, IAccessManager _am) internal view returns (uint256) {
-        return _maybeGrantRole(_buf, _n, _am, ADMIN_ROLE, FNDN, DELAY_CRITICAL);
+        return _maybeGrantRole(_buf, _n, _am, ADMIN_ROLE, FNDN, DELAY_ROOT);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -269,24 +280,30 @@ contract MigrateDawn is MigrationBase, Script {
         IAccessManager am = IAccessManager(ROYCO_FACTORY);
 
         // FNDN role delays
-        _assertRoleDelay(am, ADMIN_KERNEL_ROLE, FNDN, DELAY_STANDARD, "ADMIN_KERNEL_ROLE");
-        _assertRoleDelay(am, ADMIN_ACCOUNTANT_ROLE, FNDN, DELAY_STANDARD, "ADMIN_ACCOUNTANT_ROLE");
-        _assertRoleDelay(am, ADMIN_PROTOCOL_FEE_SETTER_ROLE, FNDN, DELAY_STANDARD, "ADMIN_PROTOCOL_FEE_SETTER_ROLE");
-        _assertRoleDelay(am, DEPLOYER_ROLE_ADMIN_ROLE, FNDN, DELAY_STANDARD, "DEPLOYER_ROLE_ADMIN_ROLE");
-        _assertRoleDelay(am, ADMIN_UNPAUSER_ROLE, FNDN, DELAY_STANDARD, "ADMIN_UNPAUSER_ROLE");
-        _assertRoleDelay(am, ADMIN_UPGRADER_ROLE, FNDN, DELAY_CRITICAL, "ADMIN_UPGRADER_ROLE");
-        _assertRoleDelay(am, ADMIN_PAUSER_ROLE, FNDN, DELAY_IMMEDIATE, "ADMIN_PAUSER_ROLE");
-        _assertRoleDelay(am, LP_ROLE_ADMIN_ROLE, FNDN, DELAY_IMMEDIATE, "LP_ROLE_ADMIN_ROLE");
-        _assertRoleDelay(am, SYNC_ROLE, FNDN, DELAY_IMMEDIATE, "SYNC_ROLE");
-        _assertRoleDelay(am, ADMIN_ORACLE_QUOTER_ROLE, FNDN, DELAY_IMMEDIATE, "ADMIN_ORACLE_QUOTER_ROLE");
-        _assertRoleDelay(am, DEPLOYER_ROLE, FNDN, DELAY_IMMEDIATE, "DEPLOYER_ROLE");
-        _assertRoleDelay(am, GUARDIAN_ROLE, WAY, DELAY_IMMEDIATE, "GUARDIAN_ROLE");
+        _assertRoleDelay(am, ADMIN_KERNEL_ROLE, FNDN, DELAY_CRITICAL, "ADMIN_KERNEL_ROLE @ FNDN");
+        _assertRoleDelay(am, ADMIN_ACCOUNTANT_ROLE, FNDN, DELAY_CRITICAL, "ADMIN_ACCOUNTANT_ROLE @ FNDN");
+        _assertRoleDelay(am, ADMIN_PROTOCOL_FEE_SETTER_ROLE, FNDN, DELAY_CRITICAL, "ADMIN_PROTOCOL_FEE_SETTER_ROLE @ FNDN");
+        _assertRoleDelay(am, ADMIN_ORACLE_QUOTER_ROLE, FNDN, DELAY_CRITICAL, "ADMIN_ORACLE_QUOTER_ROLE @ FNDN");
+        _assertRoleDelay(am, ADMIN_UPGRADER_ROLE, FNDN, DELAY_CRITICAL, "ADMIN_UPGRADER_ROLE @ FNDN");
+        _assertRoleDelay(am, DEPLOYER_ROLE_ADMIN_ROLE, FNDN, DELAY_STANDARD, "DEPLOYER_ROLE_ADMIN_ROLE @ FNDN");
+        _assertRoleDelay(am, ADMIN_UNPAUSER_ROLE, FNDN, DELAY_STANDARD, "ADMIN_UNPAUSER_ROLE @ FNDN");
+        _assertRoleDelay(am, ADMIN_PAUSER_ROLE, FNDN, DELAY_IMMEDIATE, "ADMIN_PAUSER_ROLE @ FNDN");
+        _assertRoleDelay(am, LP_ROLE_ADMIN_ROLE, FNDN, DELAY_IMMEDIATE, "LP_ROLE_ADMIN_ROLE @ FNDN");
+        _assertRoleDelay(am, SYNC_ROLE, FNDN, DELAY_IMMEDIATE, "SYNC_ROLE @ FNDN");
+        _assertRoleDelay(am, DEPLOYER_ROLE, FNDN, DELAY_IMMEDIATE, "DEPLOYER_ROLE @ FNDN");
+        // WAY co-holders (matching delays)
+        _assertRoleDelay(am, GUARDIAN_ROLE, WAY, DELAY_IMMEDIATE, "GUARDIAN_ROLE @ WAY");
+        _assertRoleDelay(am, ADMIN_PAUSER_ROLE, WAY, DELAY_IMMEDIATE, "ADMIN_PAUSER_ROLE @ WAY");
+        _assertRoleDelay(am, LP_ROLE_ADMIN_ROLE, WAY, DELAY_IMMEDIATE, "LP_ROLE_ADMIN_ROLE @ WAY");
+        _assertRoleDelay(am, SYNC_ROLE, WAY, DELAY_IMMEDIATE, "SYNC_ROLE @ WAY");
+        _assertRoleDelay(am, ADMIN_KERNEL_ROLE, WAY, DELAY_CRITICAL, "ADMIN_KERNEL_ROLE @ WAY");
+        _assertRoleDelay(am, ADMIN_ACCOUNTANT_ROLE, WAY, DELAY_CRITICAL, "ADMIN_ACCOUNTANT_ROLE @ WAY");
+        _assertRoleDelay(am, ADMIN_PROTOCOL_FEE_SETTER_ROLE, WAY, DELAY_CRITICAL, "ADMIN_PROTOCOL_FEE_SETTER_ROLE @ WAY");
 
         // Entry point
         address ep = entryPoint(_chainId);
         if (ep != address(0)) {
-            _assertRoleDelay(am, ADMIN_ENTRY_POINT_ROLE, FNDN, DELAY_STANDARD, "ADMIN_ENTRY_POINT_ROLE @ FNDN");
-            _assertRoleDelay(am, ADMIN_ENTRY_POINT_ROLE, WAY, DELAY_IMMEDIATE, "ADMIN_ENTRY_POINT_ROLE @ WAY");
+            _assertRoleDelay(am, ADMIN_ENTRY_POINT_ROLE, FNDN, DELAY_CRITICAL, "ADMIN_ENTRY_POINT_ROLE @ FNDN");
             _assertRoleDelay(am, ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE, FNDN, DELAY_IMMEDIATE, "ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE");
             _assertRoleDelay(am, ST_LP_ROLE, ep, DELAY_IMMEDIATE, "ST_LP_ROLE @ entryPoint");
             _assertRoleDelay(am, JT_LP_ROLE, ep, DELAY_IMMEDIATE, "JT_LP_ROLE @ entryPoint");
@@ -316,8 +333,8 @@ contract MigrateDawn is MigrationBase, Script {
             require(am.getTargetFunctionRole(targets[i], IRoycoAuth.unpause.selector) == ADMIN_UNPAUSER_ROLE, "unpause role mismatch");
         }
 
-        // ADMIN_ROLE on Critical delay — closes timelock-the-timelock
-        _assertRoleDelay(am, ADMIN_ROLE, FNDN, DELAY_CRITICAL, "ADMIN_ROLE");
+        // ADMIN_ROLE on Root (7d) delay — closes timelock-the-timelock
+        _assertRoleDelay(am, ADMIN_ROLE, FNDN, DELAY_ROOT, "ADMIN_ROLE");
     }
 
     function _assertRoleDelay(IAccessManager _am, uint64 _role, address _holder, uint32 _expectedDelay, string memory _label) internal view {

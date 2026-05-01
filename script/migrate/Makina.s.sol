@@ -20,7 +20,7 @@ import { MigrationBase } from "../../src/migration/MigrationBase.sol";
  * (everything currently gated by the on-chain `onlyRiskManagerTimelock` modifier) to two new
  * per-vault AM roles and grants those roles to FNDN with the model's delays:
  *
- *   `<VAULT>_RISK_MANAGER`     (Standard 24h) — routine risk parameters + base token mgmt + Machine fee/cooldown setters
+ *   `<VAULT>_RISK_MANAGER`     (Critical 48h) — routine risk parameters + base token mgmt + Machine fee/cooldown setters
  *   `<VAULT>_TIMELOCK_MANAGER` (Critical 48h) — `setTimelockDuration` only (meta-timelock on the Caliber)
  *
  * The Caliber's on-chain `_allowedInstrRoot` timelock is left untouched (see README §2 notes).
@@ -70,7 +70,7 @@ contract MigrateMakina is MigrationBase, Script {
     {
         name = "Royco Makina/Caliber AccessManager wiring";
         description =
-            "Bind Caliber setters to per-vault RISK_MANAGER (Standard) and TIMELOCK_MANAGER (Critical) roles. Grant both to FNDN. The on-chain _allowedInstrRoot timelock is unchanged.";
+            "Bind Caliber + Machine setters to per-vault RISK_MANAGER (Critical 48h) and TIMELOCK_MANAGER (Critical 48h) roles. Grant both to FNDN. The on-chain _allowedInstrRoot timelock is unchanged.";
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -101,7 +101,7 @@ contract MigrateMakina is MigrationBase, Script {
             // Machine: risk-manager-gated setters (all `onlyRiskManagerTimelock`)
             txs[t++] = buildSetTargetFunctionRole(ROYCO_FACTORY, s.machine, Selectors.machineRiskManagerSelectors(), riskRole);
 
-            txs[t++] = buildGrantRole(ROYCO_FACTORY, riskRole, FNDN, DELAY_STANDARD);
+            txs[t++] = buildGrantRole(ROYCO_FACTORY, riskRole, FNDN, DELAY_CRITICAL);
             txs[t++] = buildGrantRole(ROYCO_FACTORY, tlRole, FNDN, DELAY_CRITICAL);
         }
 
@@ -113,30 +113,39 @@ contract MigrateMakina is MigrationBase, Script {
     // PRE-SIMULATION (Makina-governance prerequisite, NOT in the emitted JSON)
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// @dev Re-points `_riskManagerTimelock` on each Machine to `ROYCO_FACTORY` so that the
-    ///      on-chain `onlyRiskManagerTimelock` modifier on both Machine *and* Caliber accepts
-    ///      calls relayed via the Royco AM.
+    /// @dev Two simulation-only prerequisites that depend on Makina governance and so are NOT
+    ///      included in the emitted Safe JSON:
     ///
-    ///      Caliber does not inherit `MakinaGovernable` — its `onlyRiskManagerTimelock` modifier
-    ///      delegates to the Machine's slot
-    ///      (`Caliber.sol:115-119`: `msg.sender != IMakinaGovernable(_hubMachineEndpoint).riskManagerTimelock()`).
-    ///      So a single Machine update covers both.
+    ///      1. **Re-point `_riskManagerTimelock` on each Machine to `ROYCO_FACTORY`** so the
+    ///         on-chain `onlyRiskManagerTimelock` modifier on both Machine and Caliber accepts
+    ///         calls relayed via the Royco AM. Caliber doesn't inherit `MakinaGovernable` — its
+    ///         modifier delegates to the Machine's slot (`Caliber.sol:115-119`), so a single
+    ///         Machine update covers both. Mocked via `vm.store`.
+    ///      2. **Add WAY as an `instrRootGuardian` on each Caliber** so WAY can call
+    ///         `cancelAllowedInstrRootUpdate` during the on-chain timelock window. This requires
+    ///         `Caliber.addInstrRootGuardian(WAY)`, which is `restricted` (Makina AM). Mocked
+    ///         here via `vm.mockCall(caliber, isInstrRootGuardian(WAY), true)`.
     ///
-    ///      `setRiskManagerTimelock` is `restricted` — gated by the *Makina* AM, on which Royco
-    ///      currently holds no role. Calling through the AM (`execute`) would require that role,
-    ///      and pranking the AM address itself fails because OZ's `canCall` requires an active
-    ///      `_isExecuting` context. So we mock the slot directly via `vm.store`. This is
-    ///      simulation-only; the Safe JSON does NOT include this call. Tracking the real change
-    ///      with Makina governance is a separate workstream.
+    ///      Both ops require Makina governance to actually execute. Tracking is a separate workstream.
     function _preSimulate(uint256 _chainId) internal override {
         console2.log("");
-        console2.log(">>> Pre-simulating Makina governance: Machine.setRiskManagerTimelock(ROYCO_FACTORY) via vm.store");
+        console2.log(">>> Pre-simulating Makina governance prerequisites:");
 
         string[] memory vaults = vaultNames(_chainId);
         for (uint256 i = 0; i < vaults.length; i++) {
             StrategyStack memory s = getStrategyStack(_chainId, vaults[i]);
             _writeMachineRiskManagerTimelock(s.machine, ROYCO_FACTORY, string.concat(vaults[i], " machine"));
+            _mockCaliberInstrRootGuardian(s.caliber, WAY, string.concat(vaults[i], " caliber"));
         }
+    }
+
+    function _mockCaliberInstrRootGuardian(address _caliber, address _guardian, string memory _label) internal {
+        vm.mockCall(_caliber, abi.encodeWithSignature("isInstrRootGuardian(address)", _guardian), abi.encode(true));
+        require(
+            ICaliber(_caliber).isInstrRootGuardian(_guardian),
+            string.concat(_label, ": isInstrRootGuardian mock did not stick")
+        );
+        console2.log(string.concat("    [OK] ", _label, " WAY recognised as instrRootGuardian (cancelAllowedInstrRootUpdate)"));
     }
 
     /// @dev MakinaGovernableStorage layout (`MakinaGovernable.sol:14-22`):
@@ -184,7 +193,7 @@ contract MigrateMakina is MigrationBase, Script {
             // FNDN role delays
             (bool riskMember, uint32 riskDelay) = am.hasRole(riskRole, FNDN);
             require(riskMember, string.concat(vaults[i], ": RISK_MANAGER member missing"));
-            require(riskDelay == DELAY_STANDARD, string.concat(vaults[i], ": RISK_MANAGER delay wrong"));
+            require(riskDelay == DELAY_CRITICAL, string.concat(vaults[i], ": RISK_MANAGER delay wrong"));
 
             (bool tlMember, uint32 tlDelay) = am.hasRole(tlRole, FNDN);
             require(tlMember, string.concat(vaults[i], ": TIMELOCK_MANAGER member missing"));

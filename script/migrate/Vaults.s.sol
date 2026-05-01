@@ -5,6 +5,10 @@ import { IAccessManager } from "@openzeppelin/contracts/access/manager/IAccessMa
 import { Script } from "forge-std/Script.sol";
 import { console2 } from "forge-std/console2.sol";
 
+import { IRoycoAuth } from "royco-dawn/src/interfaces/IRoycoAuth.sol";
+
+import { IStrategyTemplate } from "makina-strategy/lib/concrete-earn-v2-bug-bounty/src/interface/IStrategyTemplate.sol";
+
 import { AccessManagerDumper } from "../../src/access/AccessManagerDumper.sol";
 import { Selectors } from "../../src/access/Selectors.sol";
 import { SafeSimulator } from "../../src/safe/SafeSimulator.sol";
@@ -82,8 +86,9 @@ contract MigrateVaults is AccessManagerDumper, SafeSimulator, Script {
         console2.log("  address:", v.vault);
         console2.log("================================================================================");
 
+        StrategyStack memory s = getStrategyStack(_chainId, _vaultName);
         SafeTransaction[] memory phase1 = _buildPhase1Native(v.vault);
-        SafeTransaction[] memory phase2 = _buildPhase2AM(v.vault, _vaultName);
+        SafeTransaction[] memory phase2 = _buildPhase2AM(v.vault, s.strategy, _vaultName);
 
         SafeTransaction[][] memory both = new SafeTransaction[][](2);
         both[0] = phase1;
@@ -102,7 +107,7 @@ contract MigrateVaults is AccessManagerDumper, SafeSimulator, Script {
         _replayBatch(FNDN, phase2);
         vm.warp(vm.getBlockTimestamp() + 1 days + 1);
 
-        _assertVaultTargetState(v.vault, _vaultName);
+        _assertVaultTargetState(v.vault, s.strategy, _vaultName);
         console2.log("  [OK] Vault target state verified");
 
         // Write the three JSONs.
@@ -242,37 +247,78 @@ contract MigrateVaults is AccessManagerDumper, SafeSimulator, Script {
     // PHASE 2 — ACCESS MANAGER
     // ═══════════════════════════════════════════════════════════════════════════
 
-    function _buildPhase2AM(address _vault, string memory _vaultName) internal pure returns (SafeTransaction[] memory) {
-        // Three labelRole + three setTargetFunctionRole + three FNDN grantRole = 9 txs.
-        // Only roles that need a delay are migrated to AM — `ALLOCATOR` / `WITHDRAWAL_MANAGER`
-        // (Immediate, held by DIAL) stay native.
-        SafeTransaction[] memory txs = new SafeTransaction[](9);
+    /// @dev Phase 2 covers two surfaces:
+    ///   (a) **Vault-level** AM-side wiring for `VAULT_MANAGER` / `STRATEGY_MANAGER` / `HOOK_MANAGER`
+    ///       (Critical 48h, FNDN). `ALLOCATOR` / `WITHDRAWAL_MANAGER` stay native (Immediate, DIAL).
+    ///   (b) **Strategy-level** wiring for the makina-strategy adapter sitting under each vault.
+    ///       The strategy is `AccessManaged` against the Royco factory, so AM-relayed calls work
+    ///       without any Makina-governance prerequisite. Per `authorization/README.md` §2:
+    ///         - `STRATEGY_PAUSER` → FNDN @ Immediate, WAY @ Immediate
+    ///         - `STRATEGY_UNPAUSER` → FNDN @ Standard (24h)
+    ///         - `STRATEGY_RESCUE` → FNDN @ Immediate (the on-chain rescue timelock is the actual gate)
+    ///         - `STRATEGY_ALLOCATOR` → DIAL @ Immediate
+    function _buildPhase2AM(address _vault, address _strategy, string memory _vaultName) internal view returns (SafeTransaction[] memory) {
+        bool dialKnown = DIAL != address(0);
+
+        // Vault: 3 labels + 3 setTargetFunctionRole + 3 FNDN grants = 9
+        // Strategy: 4 labels + 4 setTargetFunctionRole + 4 FNDN grants (pauser, unpauser, rescue) + 1 WAY grant (pauser) (+ 1 DIAL grant if known) = 13 or 14
+        uint256 strategyTxs = 4 + 4 + 4 + 1 + (dialKnown ? 1 : 0);
+        SafeTransaction[] memory txs = new SafeTransaction[](9 + strategyTxs);
         uint256 t;
 
-        // Label roles
+        // ── Vault labels ─────────────────────────────────────────────────────
         txs[t++] = buildLabelRole(ROYCO_FACTORY, VAULT_MANAGER, string.concat(_vaultName, "_VAULT_MANAGER"));
         txs[t++] = buildLabelRole(ROYCO_FACTORY, STRATEGY_MANAGER, string.concat(_vaultName, "_STRATEGY_MANAGER"));
         txs[t++] = buildLabelRole(ROYCO_FACTORY, HOOK_MANAGER, string.concat(_vaultName, "_HOOK_MANAGER"));
 
-        // Bind selectors → roles
+        // ── Vault selector bindings ──────────────────────────────────────────
         txs[t++] = buildSetTargetFunctionRole(ROYCO_FACTORY, _vault, Selectors.vaultManagerSelectors(), VAULT_MANAGER);
         txs[t++] = buildSetTargetFunctionRole(ROYCO_FACTORY, _vault, Selectors.strategyManagerSelectors(), STRATEGY_MANAGER);
         txs[t++] = buildSetTargetFunctionRole(ROYCO_FACTORY, _vault, Selectors.hookManagerSelectors(), HOOK_MANAGER);
 
-        // FNDN grants
-        txs[t++] = buildGrantRole(ROYCO_FACTORY, VAULT_MANAGER, FNDN, DELAY_STANDARD);
-        txs[t++] = buildGrantRole(ROYCO_FACTORY, STRATEGY_MANAGER, FNDN, DELAY_STANDARD);
-        txs[t++] = buildGrantRole(ROYCO_FACTORY, HOOK_MANAGER, FNDN, DELAY_STANDARD);
+        // ── Vault FNDN grants — Critical (48h) ───────────────────────────────
+        txs[t++] = buildGrantRole(ROYCO_FACTORY, VAULT_MANAGER, FNDN, DELAY_CRITICAL);
+        txs[t++] = buildGrantRole(ROYCO_FACTORY, STRATEGY_MANAGER, FNDN, DELAY_CRITICAL);
+        txs[t++] = buildGrantRole(ROYCO_FACTORY, HOOK_MANAGER, FNDN, DELAY_CRITICAL);
+
+        // ── Strategy labels ──────────────────────────────────────────────────
+        txs[t++] = buildLabelRole(ROYCO_FACTORY, STRATEGY_PAUSER, string.concat(_vaultName, "_STRATEGY_PAUSER"));
+        txs[t++] = buildLabelRole(ROYCO_FACTORY, STRATEGY_UNPAUSER, string.concat(_vaultName, "_STRATEGY_UNPAUSER"));
+        txs[t++] = buildLabelRole(ROYCO_FACTORY, STRATEGY_RESCUE, string.concat(_vaultName, "_STRATEGY_RESCUE"));
+        txs[t++] = buildLabelRole(ROYCO_FACTORY, STRATEGY_ALLOCATOR, string.concat(_vaultName, "_STRATEGY_ALLOCATOR"));
+
+        // ── Strategy selector bindings ───────────────────────────────────────
+        txs[t++] = buildSetTargetFunctionRole(ROYCO_FACTORY, _strategy, _one(IRoycoAuth.pause.selector), STRATEGY_PAUSER);
+        txs[t++] = buildSetTargetFunctionRole(ROYCO_FACTORY, _strategy, _one(IRoycoAuth.unpause.selector), STRATEGY_UNPAUSER);
+        txs[t++] = buildSetTargetFunctionRole(ROYCO_FACTORY, _strategy, _one(IStrategyTemplate.rescueToken.selector), STRATEGY_RESCUE);
+        txs[t++] = buildSetTargetFunctionRole(ROYCO_FACTORY, _strategy, Selectors.strategyAllocatorSelectors(), STRATEGY_ALLOCATOR);
+
+        // ── Strategy grants ──────────────────────────────────────────────────
+        txs[t++] = buildGrantRole(ROYCO_FACTORY, STRATEGY_PAUSER, FNDN, DELAY_IMMEDIATE);
+        txs[t++] = buildGrantRole(ROYCO_FACTORY, STRATEGY_PAUSER, WAY, DELAY_IMMEDIATE);
+        txs[t++] = buildGrantRole(ROYCO_FACTORY, STRATEGY_UNPAUSER, FNDN, DELAY_STANDARD);
+        txs[t++] = buildGrantRole(ROYCO_FACTORY, STRATEGY_RESCUE, FNDN, DELAY_IMMEDIATE);
+        if (dialKnown) {
+            txs[t++] = buildGrantRole(ROYCO_FACTORY, STRATEGY_ALLOCATOR, DIAL, DELAY_IMMEDIATE);
+        } else {
+            console2.log("  [WARN] DIAL multisig is unset - STRATEGY_ALLOCATOR not granted.");
+        }
 
         require(t == txs.length, "phase2 tx count mismatch");
         return txs;
+    }
+
+    /// @dev Tiny helper: wrap a single selector in a `bytes4[1]`.
+    function _one(bytes4 _sel) internal pure returns (bytes4[] memory s) {
+        s = new bytes4[](1);
+        s[0] = _sel;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
     // ASSERTIONS
     // ═══════════════════════════════════════════════════════════════════════════
 
-    function _assertVaultTargetState(address _vault, string memory _vaultName) internal view {
+    function _assertVaultTargetState(address _vault, address _strategy, string memory _vaultName) internal view {
         IAccessManager am = IAccessManager(ROYCO_FACTORY);
         IConcreteVault vault = IConcreteVault(_vault);
 
@@ -282,12 +328,12 @@ contract MigrateVaults is AccessManagerDumper, SafeSimulator, Script {
             require(vault.hasRole(native[i], ROYCO_FACTORY), string.concat(_vaultName, ": AM is not a native role member"));
         }
 
-        // FNDN AM-side role delays.
-        _assertRoleDelay(am, VAULT_MANAGER, FNDN, DELAY_STANDARD, string.concat(_vaultName, " VAULT_MANAGER"));
-        _assertRoleDelay(am, STRATEGY_MANAGER, FNDN, DELAY_STANDARD, string.concat(_vaultName, " STRATEGY_MANAGER"));
-        _assertRoleDelay(am, HOOK_MANAGER, FNDN, DELAY_STANDARD, string.concat(_vaultName, " HOOK_MANAGER"));
+        // FNDN AM-side vault role delays — concrete admin roles run at Critical (48h).
+        _assertRoleDelay(am, VAULT_MANAGER, FNDN, DELAY_CRITICAL, string.concat(_vaultName, " VAULT_MANAGER"));
+        _assertRoleDelay(am, STRATEGY_MANAGER, FNDN, DELAY_CRITICAL, string.concat(_vaultName, " STRATEGY_MANAGER"));
+        _assertRoleDelay(am, HOOK_MANAGER, FNDN, DELAY_CRITICAL, string.concat(_vaultName, " HOOK_MANAGER"));
 
-        // Selector bindings.
+        // Vault selector bindings.
         bytes4[] memory mgrSel = Selectors.vaultManagerSelectors();
         for (uint256 i = 0; i < mgrSel.length; i++) {
             require(am.getTargetFunctionRole(_vault, mgrSel[i]) == VAULT_MANAGER, "VAULT_MANAGER selector mismatch");
@@ -299,6 +345,26 @@ contract MigrateVaults is AccessManagerDumper, SafeSimulator, Script {
         bytes4[] memory hookSel = Selectors.hookManagerSelectors();
         for (uint256 i = 0; i < hookSel.length; i++) {
             require(am.getTargetFunctionRole(_vault, hookSel[i]) == HOOK_MANAGER, "HOOK_MANAGER selector mismatch");
+        }
+
+        // Strategy selector bindings.
+        require(am.getTargetFunctionRole(_strategy, IRoycoAuth.pause.selector) == STRATEGY_PAUSER, "Strategy pause role mismatch");
+        require(am.getTargetFunctionRole(_strategy, IRoycoAuth.unpause.selector) == STRATEGY_UNPAUSER, "Strategy unpause role mismatch");
+        require(
+            am.getTargetFunctionRole(_strategy, IStrategyTemplate.rescueToken.selector) == STRATEGY_RESCUE, "Strategy rescueToken role mismatch"
+        );
+        bytes4[] memory allocSel = Selectors.strategyAllocatorSelectors();
+        for (uint256 i = 0; i < allocSel.length; i++) {
+            require(am.getTargetFunctionRole(_strategy, allocSel[i]) == STRATEGY_ALLOCATOR, "Strategy allocator selector mismatch");
+        }
+
+        // Strategy AM-side grants.
+        _assertRoleDelay(am, STRATEGY_PAUSER, FNDN, DELAY_IMMEDIATE, string.concat(_vaultName, " STRATEGY_PAUSER @ FNDN"));
+        _assertRoleDelay(am, STRATEGY_PAUSER, WAY, DELAY_IMMEDIATE, string.concat(_vaultName, " STRATEGY_PAUSER @ WAY"));
+        _assertRoleDelay(am, STRATEGY_UNPAUSER, FNDN, DELAY_STANDARD, string.concat(_vaultName, " STRATEGY_UNPAUSER @ FNDN"));
+        _assertRoleDelay(am, STRATEGY_RESCUE, FNDN, DELAY_IMMEDIATE, string.concat(_vaultName, " STRATEGY_RESCUE @ FNDN"));
+        if (DIAL != address(0)) {
+            _assertRoleDelay(am, STRATEGY_ALLOCATOR, DIAL, DELAY_IMMEDIATE, string.concat(_vaultName, " STRATEGY_ALLOCATOR @ DIAL"));
         }
     }
 
