@@ -13,3 +13,6 @@
 [submodule "lib/makina-core"]
 	path = lib/makina-core
 	url = https://github.com/MakinaHQ/makina-core
+[submodule "lib/openzeppelin-contracts"]
+	path = lib/openzeppelin-contracts
+	url = https://github.com/openzeppelin/openzeppelin-contracts
