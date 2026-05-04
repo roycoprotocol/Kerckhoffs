@@ -170,7 +170,11 @@ abstract contract AccessManagerDumper is Roles, Multisigs, Markets, Vaults, Stra
         if (names.length == 0) return;
 
         console2.log("");
-        console2.log("--- Concrete Vaults - target config ---------------------------------------------");
+        console2.log("--- Concrete Vaults - target config + selector role bindings --------------------");
+
+        bytes4[] memory mgrSel = Selectors.vaultManagerSelectors();
+        bytes4[] memory stratSel = Selectors.strategyManagerSelectors();
+        bytes4[] memory hookSel = Selectors.hookManagerSelectors();
 
         for (uint256 i = 0; i < names.length; i++) {
             VaultAddresses memory v = getVaultAddresses(_chainId, names[i]);
@@ -180,6 +184,17 @@ abstract contract AccessManagerDumper is Roles, Multisigs, Markets, Vaults, Stra
             AccessManagerReader.TargetConfig memory cfg = _am.getTargetConfig(v.vault);
             console2.log("    target closed?", cfg.isClosed);
             console2.log("    target admin delay:", cfg.adminDelay);
+
+            // Vault management selectors all collapse onto ADMIN_MANAGER post-migration.
+            for (uint256 j = 0; j < mgrSel.length; j++) {
+                _logSelectorRole(_am, v.vault, "vault-mgr   ", mgrSel[j]);
+            }
+            for (uint256 j = 0; j < stratSel.length; j++) {
+                _logSelectorRole(_am, v.vault, "strategy-mgr", stratSel[j]);
+            }
+            for (uint256 j = 0; j < hookSel.length; j++) {
+                _logSelectorRole(_am, v.vault, "hook-mgr    ", hookSel[j]);
+            }
         }
     }
 
@@ -285,12 +300,16 @@ abstract contract AccessManagerDumper is Roles, Multisigs, Markets, Vaults, Stra
 
     /// @dev The full curated list of roles to dump, with human-readable labels.
     function _allRoles() internal pure returns (uint64[] memory roles, string[] memory labels) {
-        roles = new uint64[](30);
-        labels = new string[](30);
+        roles = new uint64[](28);
+        labels = new string[](28);
 
         // Built-ins
         roles[0] = ADMIN_ROLE;
         labels[0] = "ADMIN_ROLE";
+
+        // Royco admin manager
+        roles[27] = ADMIN_MANAGER;
+        labels[27] = "ADMIN_MANAGER";
 
         // Dawn
         roles[1] = ADMIN_PAUSER_ROLE;
@@ -330,32 +349,24 @@ abstract contract AccessManagerDumper is Roles, Multisigs, Markets, Vaults, Stra
         roles[18] = GUARDIAN_ROLE;
         labels[18] = "GUARDIAN_ROLE";
 
-        // Vaults (ALLOCATOR / WITHDRAWAL_MANAGER stay native and are not remapped to AM)
-        roles[19] = VAULT_MANAGER;
-        labels[19] = "VAULT_MANAGER";
-        roles[20] = STRATEGY_MANAGER;
-        labels[20] = "STRATEGY_MANAGER";
-        roles[21] = HOOK_MANAGER;
-        labels[21] = "HOOK_MANAGER";
-
-        // Strategy
-        roles[22] = STRATEGY_PAUSER;
-        labels[22] = "STRATEGY_PAUSER";
-        roles[23] = STRATEGY_UNPAUSER;
-        labels[23] = "STRATEGY_UNPAUSER";
-        roles[24] = STRATEGY_RESCUE;
-        labels[24] = "STRATEGY_RESCUE";
-        roles[25] = STRATEGY_ALLOCATOR;
-        labels[25] = "STRATEGY_ALLOCATOR";
+        // Strategy (vault-level management collapsed onto ADMIN_MANAGER, no separate roles)
+        roles[19] = STRATEGY_PAUSER;
+        labels[19] = "STRATEGY_PAUSER";
+        roles[20] = STRATEGY_UNPAUSER;
+        labels[20] = "STRATEGY_UNPAUSER";
+        roles[21] = STRATEGY_RESCUE;
+        labels[21] = "STRATEGY_RESCUE";
+        roles[22] = STRATEGY_ALLOCATOR;
+        labels[22] = "STRATEGY_ALLOCATOR";
 
         // Makina (per-vault)
-        roles[26] = SRROYUSDC_RISK_MANAGER;
-        labels[26] = "SRROYUSDC_RISK_MANAGER";
-        roles[27] = SRROYUSDC_TIMELOCK_MANAGER;
-        labels[27] = "SRROYUSDC_TIMELOCK_MANAGER";
-        roles[28] = ROYWSTETH_RISK_MANAGER;
-        labels[28] = "ROYWSTETH_RISK_MANAGER";
-        roles[29] = ROYWSTETH_TIMELOCK_MANAGER;
-        labels[29] = "ROYWSTETH_TIMELOCK_MANAGER";
+        roles[23] = SRROYUSDC_RISK_MANAGER;
+        labels[23] = "SRROYUSDC_RISK_MANAGER";
+        roles[24] = SRROYUSDC_TIMELOCK_MANAGER;
+        labels[24] = "SRROYUSDC_TIMELOCK_MANAGER";
+        roles[25] = ROYWSTETH_RISK_MANAGER;
+        labels[25] = "ROYWSTETH_RISK_MANAGER";
+        roles[26] = ROYWSTETH_TIMELOCK_MANAGER;
+        labels[26] = "ROYWSTETH_TIMELOCK_MANAGER";
     }
 }

@@ -1,16 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.28;
 
-import { IRoycoEntryPoint } from "royco-dawn/src/interfaces/IRoycoEntryPoint.sol";
-
+import { IAccessManager } from "@openzeppelin/contracts/access/manager/IAccessManager.sol";
+import { IConcreteStandardVaultImpl } from "concrete-earn/src/interface/IConcreteStandardVaultImpl.sol";
+import { ConcreteV2RolesLib } from "concrete-earn/src/lib/Roles.sol";
 import { IBridgeController } from "makina-core/src/interfaces/IBridgeController.sol";
 import { ICaliber } from "makina-core/src/interfaces/ICaliber.sol";
-
 import { IStrategyTemplate } from "makina-strategy/lib/concrete-earn-v2-bug-bounty/src/interface/IStrategyTemplate.sol";
-
-import { ConcreteV2RolesLib } from "concrete-earn/src/lib/Roles.sol";
-
-import { IConcreteStandardVaultImpl } from "concrete-earn/src/interface/IConcreteStandardVaultImpl.sol";
+import { IRoycoEntryPoint } from "royco-dawn/src/interfaces/IRoycoEntryPoint.sol";
 
 /// @dev Minimal local interface for the Machine setters we bind via AM. Avoids importing
 ///      IMachine directly (which transitively pulls in the wormhole SDK).
@@ -30,6 +27,30 @@ interface IMachineRiskManagerTimelock {
  *         through a wrapper here.
  */
 library Selectors {
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ACCESS MANAGER — admin selectors (gated by ADMIN_ROLE / role-admin in OZ AM)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// @dev Every admin selector on the AccessManager itself. Used as the cancel-gate target
+    ///      list: `setTargetFunctionRole(AM, these, ADMIN_MANAGER)` makes WAY (guardian of
+    ///      ADMIN_MANAGER) the cancel authority for every scheduled AM-self admin op. The
+    ///      call-gate for these selectors stays as OZ AM hardcodes it (ADMIN_ROLE for most;
+    ///      `getRoleAdmin(roleId)` for grant/revoke) — this only changes the cancel path,
+    ///      which reads `getTargetFunctionRole(target, selector)` storage independently.
+    function accessManagerAdminSelectors() internal pure returns (bytes4[] memory s) {
+        s = new bytes4[](10);
+        s[0] = IAccessManager.labelRole.selector;
+        s[1] = IAccessManager.setRoleAdmin.selector;
+        s[2] = IAccessManager.setRoleGuardian.selector;
+        s[3] = IAccessManager.setGrantDelay.selector;
+        s[4] = IAccessManager.setTargetAdminDelay.selector;
+        s[5] = IAccessManager.setTargetClosed.selector;
+        s[6] = IAccessManager.setTargetFunctionRole.selector;
+        s[7] = IAccessManager.updateAuthority.selector;
+        s[8] = IAccessManager.grantRole.selector;
+        s[9] = IAccessManager.revokeRole.selector;
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════
     // ENTRY POINT — derived from IRoycoEntryPoint
     // ═══════════════════════════════════════════════════════════════════════════

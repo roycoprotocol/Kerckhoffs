@@ -42,9 +42,6 @@ abstract contract MigrationBase is AccessManagerDumper, SafeSimulator {
     /// @notice Builds the ordered Safe transaction batch for `chainId`.
     function _buildBatch(uint256 chainId) internal virtual returns (SafeTransaction[] memory);
 
-    /// @notice Spot-check the AccessManager state after the batch is replayed.
-    function _assertTargetState(uint256 chainId) internal view virtual;
-
     /// @notice Returns the output JSON path (relative to project root, no extension).
     function _outputPath(uint256 chainId) internal view virtual returns (string memory);
 
@@ -98,10 +95,6 @@ abstract contract MigrationBase is AccessManagerDumper, SafeSimulator {
         _replayBatch(_safeFor(_chainId), txs);
         vm.warp(vm.getBlockTimestamp() + _MIGRATION_WARP_SECONDS);
 
-        // ── Assert target state ──────────────────────────────────────────────
-        _assertTargetState(_chainId);
-        console2.log("  [OK] Target state verified");
-
         // ── Post-state ───────────────────────────────────────────────────────
         console2.log("");
         console2.log(">>> Post-state");
@@ -115,5 +108,17 @@ abstract contract MigrationBase is AccessManagerDumper, SafeSimulator {
         console2.log("");
         console2.log("  Output:", path);
         console2.log("  Done.");
+    }
+
+    /// @notice Test-only entry point: applies the migration to a forked chain without writing
+    ///         JSON or dumping state. Tests forking multiple migrations chain together via this.
+    function applyToFork(uint256 _chainId) public {
+        if (block.chainid != _chainId) {
+            vm.createSelectFork(_getRpcUrl(_chainId));
+        }
+        SafeTransaction[] memory txs = _buildBatch(_chainId);
+        _preSimulate(_chainId);
+        _replayBatch(_safeFor(_chainId), txs);
+        vm.warp(vm.getBlockTimestamp() + _MIGRATION_WARP_SECONDS);
     }
 }
