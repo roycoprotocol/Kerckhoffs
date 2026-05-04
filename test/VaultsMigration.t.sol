@@ -115,6 +115,40 @@ contract VaultsMigrationTest is RoleBehaviorBase, MigrateVaults {
         }
     }
 
+    /// @dev Phase 1 not only grants AM the native roles but also revokes them from prior
+    ///      non-AM holders so the AM is the unique admin pathway. Verify both halves.
+    function test_PostState_srRoyUSDC_NoNonAMNativeHolders() public view {
+        _assertOnlyAMHoldsNativeRoles(SRROYUSDC);
+    }
+
+    function test_PostState_roywstETH_NoNonAMNativeHolders() public view {
+        _assertOnlyAMHoldsNativeRoles(ROYWSTETH);
+    }
+
+    function _assertOnlyAMHoldsNativeRoles(string memory _vaultName) internal view {
+        VaultAddresses memory v = getVaultAddresses(MAINNET, _vaultName);
+        IConcreteVault vault = IConcreteVault(v.vault);
+        bytes32[] memory native = _nativeRoles();
+        for (uint256 i = 0; i < native.length; i++) {
+            uint256 count = vault.getRoleMemberCount(native[i]);
+            for (uint256 j = 0; j < count; j++) {
+                address holder = vault.getRoleMember(native[i], j);
+                require(holder == ROYCO_FACTORY, "non-AM holder still has native role");
+            }
+        }
+    }
+
+    function test_PostState_Phase2_FixedShape() public {
+        VaultAddresses memory v = getVaultAddresses(MAINNET, SRROYUSDC);
+        StrategyStack memory s = getStrategyStack(MAINNET, SRROYUSDC);
+        // Phase 2 builder is non-diff (re-emits the full set every time). Verify it produces
+        // the documented fixed shape: 4 vault binds + 4 strategy labels + 4 strategy binds +
+        // 2 setRoleGuardian + 5 grants = 19. (Re-executing post-Dawn-lockdown isn't realistic
+        // since FNDN's ADMIN_ROLE is now 48h; that's the expected operational shape.)
+        SafeTransaction[] memory phase2 = _buildPhase2AM(v.vault, s.strategy, SRROYUSDC);
+        require(phase2.length == 19, "Vaults phase 2 should be exactly 19 txs");
+    }
+
     function _assertStrategyRoleConfig(string memory _vaultName) internal view {
         _assertMembership(STRATEGY_PAUSER, FNDN, DELAY_IMMEDIATE, string.concat(_vaultName, " STRATEGY_PAUSER @ FNDN"));
         _assertMembership(STRATEGY_PAUSER, WAY, DELAY_IMMEDIATE, string.concat(_vaultName, " STRATEGY_PAUSER @ WAY"));

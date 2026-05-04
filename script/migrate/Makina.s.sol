@@ -3,7 +3,6 @@ pragma solidity ^0.8.28;
 
 import { Selectors } from "../../src/access/Selectors.sol";
 import { MigrationBase } from "../../src/migration/MigrationBase.sol";
-import { IAccessManager } from "@openzeppelin/contracts/access/manager/IAccessManager.sol";
 import { Script } from "forge-std/Script.sol";
 import { console2 } from "forge-std/console2.sol";
 import { ICaliber } from "makina-core/src/interfaces/ICaliber.sol";
@@ -78,59 +77,36 @@ contract MigrateMakina is MigrationBase, Script {
     function _buildBatch(uint256 _chainId) internal view override returns (SafeTransaction[] memory) {
         string[] memory vaults = vaultNames(_chainId);
 
-        // Per vault: 2 labelRole + 3 setTargetFunctionRole + 2 setRoleGuardian + 2 grantRole = 9 base
-        //            + 1 conditional setTimelockDuration (only if Caliber's current value != 48h)
-        // Buffer + trim to handle the conditional cleanly.
-        SafeTransaction[] memory buf = new SafeTransaction[](10 * vaults.length);
+        // Per vault: 2 labelRole + 3 setTargetFunctionRole + 2 setRoleGuardian + 2 grantRole = 9 txs
+        SafeTransaction[] memory txs = new SafeTransaction[](9 * vaults.length);
         uint256 t;
 
         for (uint256 i = 0; i < vaults.length; i++) {
             (uint64 riskRole, uint64 tlRole, string memory riskLabel, string memory tlLabel) = _vaultRoleIds(vaults[i]);
             StrategyStack memory s = getStrategyStack(_chainId, vaults[i]);
 
-            buf[t++] = buildLabelRole(ROYCO_FACTORY, riskRole, riskLabel);
-            buf[t++] = buildLabelRole(ROYCO_FACTORY, tlRole, tlLabel);
+            txs[t++] = buildLabelRole(ROYCO_FACTORY, riskRole, riskLabel);
+            txs[t++] = buildLabelRole(ROYCO_FACTORY, tlRole, tlLabel);
 
-            // Caliber: risk-manager-gated setters (NOT setTimelockDuration yet — see below).
-            buf[t++] = buildSetTargetFunctionRole(ROYCO_FACTORY, s.caliber, Selectors.caliberRiskManagerSelectors(), riskRole);
+            // Caliber: risk-manager-gated setters + meta-timelock setter
+            txs[t++] = buildSetTargetFunctionRole(ROYCO_FACTORY, s.caliber, Selectors.caliberRiskManagerSelectors(), riskRole);
+            bytes4[] memory tlSel = new bytes4[](1);
+            tlSel[0] = ICaliber.setTimelockDuration.selector;
+            txs[t++] = buildSetTargetFunctionRole(ROYCO_FACTORY, s.caliber, tlSel, tlRole);
 
             // Machine: risk-manager-gated setters (all `onlyRiskManagerTimelock`)
-            buf[t++] = buildSetTargetFunctionRole(ROYCO_FACTORY, s.machine, Selectors.machineRiskManagerSelectors(), riskRole);
+            txs[t++] = buildSetTargetFunctionRole(ROYCO_FACTORY, s.machine, Selectors.machineRiskManagerSelectors(), riskRole);
 
             // Guardian wiring — required for WAY to cancel the 48h-delayed risk/timelock manager ops.
             // Without this, getRoleGuardian defaults to ADMIN_ROLE and only an admin can cancel.
-            buf[t++] = buildSetRoleGuardian(ROYCO_FACTORY, riskRole, GUARDIAN_ROLE);
-            buf[t++] = buildSetRoleGuardian(ROYCO_FACTORY, tlRole, GUARDIAN_ROLE);
+            txs[t++] = buildSetRoleGuardian(ROYCO_FACTORY, riskRole, GUARDIAN_ROLE);
+            txs[t++] = buildSetRoleGuardian(ROYCO_FACTORY, tlRole, GUARDIAN_ROLE);
 
-            // Conditional: bring Caliber's on-chain `timelockDuration` to Critical (48h) if it
-            // isn't already. The call goes through `am.execute` so the AM's authority check
-            // applies; at this point in the batch `setTimelockDuration` is NOT yet bound to
-            // `tlRole`, so the AM falls through to the default (`ADMIN_ROLE`), and FNDN can
-            // execute it immediately via its existing ADMIN_ROLE @ 0 (Dawn lockdown happens
-            // last, after Makina). This must run BEFORE the `setTargetFunctionRole(... , tlRole)`
-            // binding below; otherwise FNDN would need TIMELOCK_MANAGER (not yet held) to call.
-            if (ICaliber(s.caliber).timelockDuration() != DELAY_CRITICAL) {
-                buf[t++] = SafeTransaction({
-                    to: ROYCO_FACTORY,
-                    value: 0,
-                    data: abi.encodeCall(IAccessManager.execute, (s.caliber, abi.encodeCall(ICaliber.setTimelockDuration, (DELAY_CRITICAL))))
-                });
-            }
-
-            // Now bind setTimelockDuration to tlRole for ongoing operations.
-            bytes4[] memory tlSel = new bytes4[](1);
-            tlSel[0] = ICaliber.setTimelockDuration.selector;
-            buf[t++] = buildSetTargetFunctionRole(ROYCO_FACTORY, s.caliber, tlSel, tlRole);
-
-            buf[t++] = buildGrantRole(ROYCO_FACTORY, riskRole, FNDN, DELAY_CRITICAL);
-            buf[t++] = buildGrantRole(ROYCO_FACTORY, tlRole, FNDN, DELAY_CRITICAL);
+            txs[t++] = buildGrantRole(ROYCO_FACTORY, riskRole, FNDN, DELAY_CRITICAL);
+            txs[t++] = buildGrantRole(ROYCO_FACTORY, tlRole, FNDN, DELAY_CRITICAL);
         }
 
-        // Trim
-        SafeTransaction[] memory txs = new SafeTransaction[](t);
-        for (uint256 i = 0; i < t; i++) {
-            txs[i] = buf[i];
-        }
+        require(t == txs.length, "Makina tx count mismatch");
         return txs;
     }
 

@@ -258,7 +258,7 @@ contract MigrateVaults is AccessManagerDumper, SafeSimulator, Script {
     ///       Guardian explicitly set to `GUARDIAN_ROLE` for the two delayed roles
     ///       (`STRATEGY_UNPAUSER`, `STRATEGY_RESCUE`) so their scheduled ops are
     ///       WAY-cancellable. Immediate-tier roles have nothing to cancel.
-    function _buildPhase2AM(address _vault, address _strategy, string memory _vaultName) internal view returns (SafeTransaction[] memory) {
+    function _buildPhase2AM(address _vault, address _strategy, string memory _vaultName) internal pure returns (SafeTransaction[] memory) {
         require(DIAL != address(0), "DIAL multisig must be set before applying vault migration");
 
         // Vault: 4 setTargetFunctionRole (all → ADMIN_MANAGER) = 4

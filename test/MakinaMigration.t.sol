@@ -45,6 +45,13 @@ contract MakinaMigrationTest is RoleBehaviorBase, MigrateMakina {
         _assertCaliberMachineWiring(ROYWSTETH, ROYWSTETH_RISK_MANAGER, ROYWSTETH_TIMELOCK_MANAGER);
     }
 
+    /// @dev Makina migration is non-diff (re-emits the full set every time). Verify it produces
+    ///      the documented fixed shape: 9 txs per vault.
+    function test_PostState_FixedShape() public view {
+        SafeTransaction[] memory rerun = _buildBatch(MAINNET);
+        require(rerun.length == 9 * vaultNames(MAINNET).length, "Makina migration should emit 9 txs per vault");
+    }
+
     function _assertCaliberMachineWiring(string memory _vaultName, uint64 _riskRole, uint64 _tlRole) internal view {
         StrategyStack memory s = getStrategyStack(MAINNET, _vaultName);
 
@@ -68,9 +75,6 @@ contract MakinaMigrationTest is RoleBehaviorBase, MigrateMakina {
 
         // Pre-simulated Makina governance step: Machine.riskManagerTimelock should be ROYCO_FACTORY.
         require(IMakinaGovernable(s.machine).riskManagerTimelock() == ROYCO_FACTORY, "Machine riskManagerTimelock not ROYCO_FACTORY");
-
-        // Caliber's on-chain timelock duration normalized to 48h.
-        require(ICaliber(s.caliber).timelockDuration() == DELAY_CRITICAL, "Caliber timelockDuration not 48h");
     }
 
     // ═══════════════════════════════════════════════════════════════════════════

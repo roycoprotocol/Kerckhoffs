@@ -165,6 +165,49 @@ contract DawnMigrationTest is RoleBehaviorBase, MigrateDawn {
         _assertMembership(ADMIN_ROLE, FNDN, DELAY_CRITICAL, "ADMIN_ROLE @ FNDN");
     }
 
+    /// @dev Re-applying the migration after it's already in the canonical post-state should
+    ///      produce a zero-tx batch — diff-based logic must converge.
+    function test_PostState_Idempotency() public {
+        SafeTransaction[] memory rerun = _buildBatch(MAINNET);
+        require(rerun.length == 0, "re-applying migration should produce 0 txs (diff converged)");
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // NEGATIVE CASES — random addresses cannot bypass the gate
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    function test_Negative_RandomAccountCannotScheduleAdminOp() public {
+        bytes memory data = abi.encodeCall(IAccessManager.grantRole, (ADMIN_PAUSER_ROLE, address(0xA11CE), 0));
+        vm.prank(address(0xCAFE));
+        vm.expectRevert();
+        am.schedule(address(am), data, 0);
+    }
+
+    function test_Negative_RandomAccountCannotCancelOthersScheduledOp() public {
+        bytes memory data = abi.encodeCall(IAccessManager.grantRole, (ADMIN_PAUSER_ROLE, address(0xA11CE), 0));
+        vm.prank(FNDN);
+        am.schedule(address(am), data, 0);
+        // Random EOA tries to cancel
+        vm.prank(address(0xCAFE));
+        vm.expectRevert();
+        am.cancel(FNDN, address(am), data);
+    }
+
+    function test_Negative_WAYCannotExecuteAdminOp() public {
+        // WAY holds GUARDIAN_ROLE but NOT ADMIN_MANAGER → cannot schedule grantRole.
+        bytes memory data = abi.encodeCall(IAccessManager.grantRole, (ADMIN_PAUSER_ROLE, address(0xA11CE), 0));
+        vm.prank(WAY);
+        vm.expectRevert();
+        am.schedule(address(am), data, 0);
+    }
+
+    function test_Negative_RandomAccountCannotPause() public {
+        bytes memory data = abi.encodeCall(IRoycoAuth.pause, ());
+        vm.prank(address(0xCAFE));
+        vm.expectRevert();
+        am.execute(ep, data);
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════
     // ROLE BEHAVIOR — Immediate roles
     // ═══════════════════════════════════════════════════════════════════════════
