@@ -9,11 +9,22 @@ pragma solidity ^0.8.28;
  * by `lib/royco-dawn/src/factory/RolesConfiguration.sol`. Re-deriving here (rather than importing)
  * keeps this repo independent of the dawn solc/optimizer settings.
  *
- * Delays follow the three-tier taxonomy in `authorization/README.md`:
- *   Immediate (0s), Standard (24h), Critical (48h).
+ * Delays follow:
+ *   Immediate (0s) — user-facing / pause / cancel / sync
+ *   Standard (24h) — operational tuning that warrants monitoring
+ *   Critical (48h) — parameter changes
+ *   Root (7d)      — `ADMIN_ROLE` itself + UUPS upgrades
+ *   Rescue (30d)   — strategy rescue, on top of the on-chain 30d timelock
  *
- * `PUBLIC_ROLE` is the OZ AccessManager open role (every address auto-member). Used to leave
- * specific selectors unrestricted at the AM layer.
+ * Authority topology:
+ *   FNDN — `ADMIN_ROLE` (7d), `GUARDIAN_ROLE`, `ADMIN_UNPAUSER_ROLE`,
+ *          `ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE`. Only FNDN can cancel ops, and only FNDN can
+ *          grant/revoke roles (call-gate hardcoded to ADMIN_ROLE in OZ AM). FNDN's admin ops
+ *          run at 7d and are intentionally non-cancellable by any other party.
+ *   WAY  — every parameter-update role (`ADMIN_KERNEL_ROLE`, `ADMIN_ACCOUNTANT_ROLE`, etc.),
+ *          plus `ADMIN_PAUSER_ROLE` (Immediate) and `ADMIN_UPGRADER_ROLE` (Root 7d). Every
+ *          delayed WAY op is FNDN-cancellable via `GUARDIAN_ROLE`.
+ *   DIAL — strategy `STRATEGY_ALLOCATOR` + native vault `ALLOCATOR` / `WITHDRAWAL_MANAGER`.
  */
 abstract contract Roles {
     // ═══════════════════════════════════════════════════════════════════════════
@@ -23,32 +34,24 @@ abstract contract Roles {
     uint32 internal constant DELAY_IMMEDIATE = 0;
     uint32 internal constant DELAY_STANDARD = 1 days;
     uint32 internal constant DELAY_CRITICAL = 2 days;
-    /// @dev Reserved for `STRATEGY_RESCUE`. Sits on top of (and matches) the strategy's
-    ///      non-upgradable on-chain 30d rescue timelock — so a scheduled rescue is gated by
-    ///      both the AM (30d, WAY-cancellable) and the on-chain timelock (30d) in series.
-    ///      Outside the four standard tiers because no other role uses it.
+    /// @dev Used by `ADMIN_ROLE` (FNDN role-management) and `ADMIN_UPGRADER_ROLE` (UUPS upgrades).
+    uint32 internal constant DELAY_ROOT = 7 days;
+    /// @dev Reserved for `STRATEGY_RESCUE`. The Royco strategy's `rescueToken` is `restricted`
+    ///      with no internal timelock — this AM execution delay is the only gate; FNDN-cancellable
+    ///      via `GUARDIAN_ROLE` during the 30d window.
     uint32 internal constant DELAY_RESCUE = 30 days;
 
     // ═══════════════════════════════════════════════════════════════════════════
     // ACCESS MANAGER BUILT-INS
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// @dev OZ AccessManager root admin role
+    /// @dev OZ AccessManager root admin role. Default admin of every other role
+    ///      (`getRoleAdmin(R) = ADMIN_ROLE`), so `grantRole`/`revokeRole` for any operational
+    ///      role goes through ADMIN_ROLE. FNDN holds this at Root (7d).
     uint64 internal constant ADMIN_ROLE = 0;
 
     /// @dev OZ AccessManager open role (every address is auto-member)
     uint64 internal constant PUBLIC_ROLE = type(uint64).max;
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // ROYCO ADMIN MANAGER
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    /// @dev Holds the admin authority for every operational role (replaces ADMIN_ROLE as
-    ///      `getRoleAdmin(R)`). Granted to FNDN at Critical (48h). Its guardian is
-    ///      `GUARDIAN_ROLE` (WAY) — combined with cancel-gate writes for the AM-self admin
-    ///      selectors, this makes every grant/revoke/setRoleAdmin/etc. cancellable by WAY
-    ///      during the 48h window. See `authorization/README.md` for the full design.
-    uint64 internal constant ADMIN_MANAGER = uint64(uint256(keccak256(abi.encode("ROYCO_ADMIN_MANAGER"))));
 
     // ═══════════════════════════════════════════════════════════════════════════
     // DAWN ROLES (mirror lib/royco-dawn/src/factory/RolesConfiguration.sol)
@@ -82,15 +85,22 @@ abstract contract Roles {
     uint64 internal constant GUARDIAN_ROLE = uint64(uint256(keccak256(abi.encode("ROYCO_GUARDIAN_ROLE"))));
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // STRATEGY ROLES (per authorization/README.md §2 strategy table)
+    // CONCRETE VAULT ROLES — one AM role per migrated concrete role
     // ═══════════════════════════════════════════════════════════════════════════
     //
-    // Vault-level concrete management functions (`updateManagementFee`,
-    // `updatePerformanceFee`, `setDeposit/WithdrawLimits`, `addStrategy`/`removeStrategy`/
-    // `toggleStrategyStatus`, `setHooks`) are not assigned a separate role — their selectors
-    // bind directly to `ADMIN_MANAGER`. All would be FNDN-only @ Critical 48h, identical to
-    // ADMIN_MANAGER's profile, and ADMIN_MANAGER's guardian (`GUARDIAN_ROLE`) gives WAY the
-    // cancel path automatically.
+    // `ALLOCATOR` / `WITHDRAWAL_MANAGER` are NOT mapped — those stay native (DIAL holds
+    // them on the vault directly) and aren't gated by any AM role.
+
+    /// @dev Mirrors concrete `VAULT_MANAGER`. WAY @ Critical (48h), guardian = GUARDIAN_ROLE.
+    uint64 internal constant VAULT_MANAGER = uint64(uint256(keccak256(abi.encode("ROYCO_VAULT_MANAGER"))));
+    /// @dev Mirrors concrete `STRATEGY_MANAGER`. WAY @ Critical (48h), guardian = GUARDIAN_ROLE.
+    uint64 internal constant STRATEGY_MANAGER = uint64(uint256(keccak256(abi.encode("ROYCO_STRATEGY_MANAGER"))));
+    /// @dev Mirrors concrete `HOOK_MANAGER`. WAY @ Critical (48h), guardian = GUARDIAN_ROLE.
+    uint64 internal constant HOOK_MANAGER = uint64(uint256(keccak256(abi.encode("ROYCO_HOOK_MANAGER"))));
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // STRATEGY ROLES (per concrete-vault strategy adapter)
+    // ═══════════════════════════════════════════════════════════════════════════
 
     uint64 internal constant STRATEGY_PAUSER = uint64(uint256(keccak256(abi.encode("ROYCO_STRATEGY_PAUSER"))));
     uint64 internal constant STRATEGY_UNPAUSER = uint64(uint256(keccak256(abi.encode("ROYCO_STRATEGY_UNPAUSER"))));
@@ -98,7 +108,7 @@ abstract contract Roles {
     uint64 internal constant STRATEGY_ALLOCATOR = uint64(uint256(keccak256(abi.encode("ROYCO_STRATEGY_ALLOCATOR"))));
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // MAKINA / CALIBER ROLES (per-vault, per authorization/README.md §2 makina table)
+    // MAKINA / CALIBER ROLES (per-vault)
     // ═══════════════════════════════════════════════════════════════════════════
 
     uint64 internal constant SRROYUSDC_RISK_MANAGER = uint64(uint256(keccak256(abi.encode("ROYCO_SRROYUSDC_RISK_MANAGER"))));

@@ -102,8 +102,9 @@ contract MigrateMakina is MigrationBase, Script {
             txs[t++] = buildSetRoleGuardian(ROYCO_FACTORY, riskRole, GUARDIAN_ROLE);
             txs[t++] = buildSetRoleGuardian(ROYCO_FACTORY, tlRole, GUARDIAN_ROLE);
 
-            txs[t++] = buildGrantRole(ROYCO_FACTORY, riskRole, FNDN, DELAY_CRITICAL);
-            txs[t++] = buildGrantRole(ROYCO_FACTORY, tlRole, FNDN, DELAY_CRITICAL);
+            // Held by WAY (parameter-update authority). FNDN cancels via GUARDIAN_ROLE.
+            txs[t++] = buildGrantRole(ROYCO_FACTORY, riskRole, WAY, DELAY_CRITICAL);
+            txs[t++] = buildGrantRole(ROYCO_FACTORY, tlRole, WAY, DELAY_CRITICAL);
         }
 
         require(t == txs.length, "Makina tx count mismatch");
@@ -122,10 +123,10 @@ contract MigrateMakina is MigrationBase, Script {
     ///         calls relayed via the Royco AM. Caliber doesn't inherit `MakinaGovernable` — its
     ///         modifier delegates to the Machine's slot (`Caliber.sol:115-119`), so a single
     ///         Machine update covers both. Mocked via `vm.store`.
-    ///      2. **Add WAY as an `instrRootGuardian` on each Caliber** so WAY can call
+    ///      2. **Add FNDN as an `instrRootGuardian` on each Caliber** so FNDN can call
     ///         `cancelAllowedInstrRootUpdate` during the on-chain timelock window. This requires
-    ///         `Caliber.addInstrRootGuardian(WAY)`, which is `restricted` (Makina AM). Mocked
-    ///         here via `vm.mockCall(caliber, isInstrRootGuardian(WAY), true)`.
+    ///         `Caliber.addInstrRootGuardian(FNDN)`, which is `restricted` (Makina AM). Mocked
+    ///         here via `vm.mockCall(caliber, isInstrRootGuardian(FNDN), true)`.
     ///
     ///      Both ops require Makina governance to actually execute. Tracking is a separate workstream.
     function _preSimulate(uint256 _chainId) internal override {
@@ -135,15 +136,16 @@ contract MigrateMakina is MigrationBase, Script {
         string[] memory vaults = vaultNames(_chainId);
         for (uint256 i = 0; i < vaults.length; i++) {
             StrategyStack memory s = getStrategyStack(_chainId, vaults[i]);
-            _writeMachineRiskManagerTimelock(s.machine, ROYCO_FACTORY, string.concat(vaults[i], " machine"));
-            _mockCaliberInstrRootGuardian(s.caliber, WAY, string.concat(vaults[i], " caliber"));
+            _writeMachineGovernableSlot(s.machine, _SLOT_RISK_MANAGER, ROYCO_FACTORY, string.concat(vaults[i], " machine.riskManager"));
+            _writeMachineGovernableSlot(s.machine, _SLOT_RISK_MANAGER_TIMELOCK, ROYCO_FACTORY, string.concat(vaults[i], " machine.riskManagerTimelock"));
+            _mockCaliberInstrRootGuardian(s.caliber, FNDN, string.concat(vaults[i], " caliber"));
         }
     }
 
     function _mockCaliberInstrRootGuardian(address _caliber, address _guardian, string memory _label) internal {
         vm.mockCall(_caliber, abi.encodeWithSignature("isInstrRootGuardian(address)", _guardian), abi.encode(true));
         require(ICaliber(_caliber).isInstrRootGuardian(_guardian), string.concat(_label, ": isInstrRootGuardian mock did not stick"));
-        console2.log(string.concat("    [OK] ", _label, " WAY recognised as instrRootGuardian (cancelAllowedInstrRootUpdate)"));
+        console2.log(string.concat("    [OK] ", _label, " FNDN recognised as instrRootGuardian (cancelAllowedInstrRootUpdate)"));
     }
 
     /// @dev MakinaGovernableStorage layout (`MakinaGovernable.sol:14-22`):
@@ -152,15 +154,17 @@ contract MigrateMakina is MigrationBase, Script {
     ///      `keccak256(abi.encode(uint256(keccak256("makina.storage.MakinaGovernable")) - 1)) & ~bytes32(uint256(0xff))`
     ///      = 0x7e702089668346e906996be6de3dfc0cb2b0c125fc09b3c0391871825913e000
     bytes32 private constant _MAKINA_GOVERNABLE_STORAGE_BASE = 0x7e702089668346e906996be6de3dfc0cb2b0c125fc09b3c0391871825913e000;
+    uint256 private constant _SLOT_RISK_MANAGER = 2;
+    uint256 private constant _SLOT_RISK_MANAGER_TIMELOCK = 3;
 
-    function _writeMachineRiskManagerTimelock(address _machine, address _newTimelock, string memory _label) internal {
-        bytes32 slot = bytes32(uint256(_MAKINA_GOVERNABLE_STORAGE_BASE) + 3);
-        vm.store(_machine, slot, bytes32(uint256(uint160(_newTimelock))));
-        require(
-            IMakinaGovernable(_machine).riskManagerTimelock() == _newTimelock,
-            string.concat(_label, ": riskManagerTimelock store did not stick (storage layout drifted?)")
-        );
-        console2.log(string.concat("    [OK] ", _label, " riskManagerTimelock -> ROYCO_FACTORY"));
+    /// @dev Writes either the riskManager (offset 2) or riskManagerTimelock (offset 3) slot
+    ///      and verifies the corresponding view returns the new value.
+    function _writeMachineGovernableSlot(address _machine, uint256 _offset, address _newAddr, string memory _label) internal {
+        bytes32 slot = bytes32(uint256(_MAKINA_GOVERNABLE_STORAGE_BASE) + _offset);
+        vm.store(_machine, slot, bytes32(uint256(uint160(_newAddr))));
+        address actual = _offset == _SLOT_RISK_MANAGER ? IMakinaGovernable(_machine).riskManager() : IMakinaGovernable(_machine).riskManagerTimelock();
+        require(actual == _newAddr, string.concat(_label, ": store did not stick (storage layout drifted?)"));
+        console2.log(string.concat("    [OK] ", _label, " -> ROYCO_FACTORY"));
     }
 
     function _vaultRoleIds(string memory _vault) internal pure returns (uint64 riskRole, uint64 tlRole, string memory riskLabel, string memory tlLabel) {

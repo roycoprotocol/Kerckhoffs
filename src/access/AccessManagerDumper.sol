@@ -185,7 +185,7 @@ abstract contract AccessManagerDumper is Roles, Multisigs, Markets, Vaults, Stra
             console2.log("    target closed?", cfg.isClosed);
             console2.log("    target admin delay:", cfg.adminDelay);
 
-            // Vault management selectors all collapse onto ADMIN_MANAGER post-migration.
+            // Vault management selectors all bind to VAULT_MANAGER post-migration.
             for (uint256 j = 0; j < mgrSel.length; j++) {
                 _logSelectorRole(_am, v.vault, "vault-mgr   ", mgrSel[j]);
             }
@@ -300,16 +300,20 @@ abstract contract AccessManagerDumper is Roles, Multisigs, Markets, Vaults, Stra
 
     /// @dev The full curated list of roles to dump, with human-readable labels.
     function _allRoles() internal pure returns (uint64[] memory roles, string[] memory labels) {
-        roles = new uint64[](28);
-        labels = new string[](28);
+        roles = new uint64[](30);
+        labels = new string[](30);
 
         // Built-ins
         roles[0] = ADMIN_ROLE;
         labels[0] = "ADMIN_ROLE";
 
-        // Royco admin manager
-        roles[27] = ADMIN_MANAGER;
-        labels[27] = "ADMIN_MANAGER";
+        // Concrete vault management roles
+        roles[27] = VAULT_MANAGER;
+        labels[27] = "VAULT_MANAGER";
+        roles[28] = STRATEGY_MANAGER;
+        labels[28] = "STRATEGY_MANAGER";
+        roles[29] = HOOK_MANAGER;
+        labels[29] = "HOOK_MANAGER";
 
         // Dawn
         roles[1] = ADMIN_PAUSER_ROLE;
@@ -349,7 +353,7 @@ abstract contract AccessManagerDumper is Roles, Multisigs, Markets, Vaults, Stra
         roles[18] = GUARDIAN_ROLE;
         labels[18] = "GUARDIAN_ROLE";
 
-        // Strategy (vault-level management collapsed onto ADMIN_MANAGER, no separate roles)
+        // Strategy
         roles[19] = STRATEGY_PAUSER;
         labels[19] = "STRATEGY_PAUSER";
         roles[20] = STRATEGY_UNPAUSER;

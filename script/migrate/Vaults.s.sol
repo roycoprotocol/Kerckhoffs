@@ -242,45 +242,49 @@ contract MigrateVaults is AccessManagerDumper, SafeSimulator, Script {
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// @dev Phase 2 covers two surfaces:
-    ///   (a) **Vault-level**: vault management selectors bind directly to `ADMIN_MANAGER`
-    ///       (FNDN @ Critical 48h, guarded by `GUARDIAN_ROLE` so WAY can cancel). No
-    ///       per-vault role split — every vault management op routes through the same
-    ///       admin-manager role since FNDN is the only intended holder. `ALLOCATOR` /
-    ///       `WITHDRAWAL_MANAGER` stay native (Immediate, DIAL).
-    ///   (b) **Strategy-level** wiring for the makina-strategy adapter sitting under each vault.
-    ///       The strategy is `AccessManaged` against the Royco factory, so AM-relayed calls work
-    ///       without any Makina-governance prerequisite. Per `authorization/README.md` §2:
-    ///         - `STRATEGY_PAUSER` → FNDN @ Immediate, WAY @ Immediate (kept distinct: WAY co-holder)
-    ///         - `STRATEGY_UNPAUSER` → FNDN @ Standard (24h) (kept distinct: 24h delay)
-    ///         - `STRATEGY_RESCUE` → FNDN @ 30d (kept distinct: 30d delay; AM and on-chain
-    ///           timelock run in series, both WAY-cancellable)
-    ///         - `STRATEGY_ALLOCATOR` → DIAL @ Immediate (kept distinct: DIAL holder)
-    ///       Guardian explicitly set to `GUARDIAN_ROLE` for the two delayed roles
-    ///       (`STRATEGY_UNPAUSER`, `STRATEGY_RESCUE`) so their scheduled ops are
-    ///       WAY-cancellable. Immediate-tier roles have nothing to cancel.
+    ///   (a) **Vault-level**: each migrated concrete role gets its own AM role:
+    ///         - `VAULT_MANAGER` ← `vaultManagerSelectors`
+    ///         - `STRATEGY_MANAGER` ← `strategyManagerSelectors`
+    ///         - `HOOK_MANAGER` ← `hookManagerSelectors`
+    ///       All three held by WAY at Critical (48h), guardian = `GUARDIAN_ROLE` (FNDN-cancellable).
+    ///       The native `vault.grantRole` / `vault.revokeRole` paths are not bound to any
+    ///       specific AM role and fall through to the default (`ADMIN_ROLE`), so adding new
+    ///       holders to a native vault role requires FNDN's 7d ADMIN_ROLE flow.
+    ///       `ALLOCATOR` / `WITHDRAWAL_MANAGER` stay native (Immediate, DIAL).
+    ///   (b) **Strategy-level** wiring for the makina-strategy adapter:
+    ///         - `STRATEGY_PAUSER` → WAY @ Immediate
+    ///         - `STRATEGY_UNPAUSER` → FNDN @ Immediate
+    ///         - `STRATEGY_RESCUE` → FNDN @ 30d (single AM-side delay; `rescueToken` is
+    ///           `restricted` with no internal timelock, so this is the only gate)
+    ///         - `STRATEGY_ALLOCATOR` → DIAL @ Immediate
+    ///       Guardian explicitly set to `GUARDIAN_ROLE` for the only delayed strategy role
+    ///       (`STRATEGY_RESCUE`) so its scheduled op is FNDN-cancellable.
     function _buildPhase2AM(address _vault, address _strategy, string memory _vaultName) internal pure returns (SafeTransaction[] memory) {
         require(DIAL != address(0), "DIAL multisig must be set before applying vault migration");
 
-        // Vault: 4 setTargetFunctionRole (all → ADMIN_MANAGER) = 4
-        // Strategy: 4 labels + 4 setTargetFunctionRole + 2 setRoleGuardian (UNPAUSER, RESCUE)
-        //           + 5 grants (3 FNDN: pauser/unpauser/rescue + 1 WAY: pauser + 1 DIAL: allocator) = 15
-        uint256 strategyTxs = 4 + 4 + 2 + 5;
-        SafeTransaction[] memory txs = new SafeTransaction[](4 + strategyTxs);
+        // Vault: 3 labels + 3 setTargetFunctionRole + 3 setRoleGuardian + 3 grants = 12
+        // Strategy: 4 labels + 4 setTargetFunctionRole + 1 setRoleGuardian (RESCUE) + 4 grants = 13
+        uint256 vaultTxs = 12;
+        uint256 strategyTxs = 4 + 4 + 1 + 4;
+        SafeTransaction[] memory txs = new SafeTransaction[](vaultTxs + strategyTxs);
         uint256 t;
 
-        // ── Vault selector bindings (collapsed onto ADMIN_MANAGER) ────────────
-        txs[t++] = buildSetTargetFunctionRole(ROYCO_FACTORY, _vault, Selectors.vaultManagerSelectors(), ADMIN_MANAGER);
-        txs[t++] = buildSetTargetFunctionRole(ROYCO_FACTORY, _vault, Selectors.strategyManagerSelectors(), ADMIN_MANAGER);
-        txs[t++] = buildSetTargetFunctionRole(ROYCO_FACTORY, _vault, Selectors.hookManagerSelectors(), ADMIN_MANAGER);
-        // Native AccessControl admin functions on the vault (the AM holds every *_ADMIN slot, so
-        // these are the only path to grant/revoke native vault roles). Binding them here routes
-        // the cancel-path through ADMIN_MANAGER's guardian (= GUARDIAN_ROLE), letting WAY veto a
-        // sneaky re-grant of a vault-native role to an attacker address. Call-gate is unchanged
-        // (FNDN @ 48h via ADMIN_MANAGER membership, same delay as the prior ADMIN_ROLE default).
-        bytes4[] memory nativeAdminSel = new bytes4[](2);
-        nativeAdminSel[0] = IConcreteVault.grantRole.selector;
-        nativeAdminSel[1] = IConcreteVault.revokeRole.selector;
-        txs[t++] = buildSetTargetFunctionRole(ROYCO_FACTORY, _vault, nativeAdminSel, ADMIN_MANAGER);
+        // ── Vault: per-concrete-role AM setup ─────────────────────────────────
+        txs[t++] = buildLabelRole(ROYCO_FACTORY, VAULT_MANAGER, string.concat(_vaultName, "_VAULT_MANAGER"));
+        txs[t++] = buildLabelRole(ROYCO_FACTORY, STRATEGY_MANAGER, string.concat(_vaultName, "_STRATEGY_MANAGER"));
+        txs[t++] = buildLabelRole(ROYCO_FACTORY, HOOK_MANAGER, string.concat(_vaultName, "_HOOK_MANAGER"));
+
+        txs[t++] = buildSetTargetFunctionRole(ROYCO_FACTORY, _vault, Selectors.vaultManagerSelectors(), VAULT_MANAGER);
+        txs[t++] = buildSetTargetFunctionRole(ROYCO_FACTORY, _vault, Selectors.strategyManagerSelectors(), STRATEGY_MANAGER);
+        txs[t++] = buildSetTargetFunctionRole(ROYCO_FACTORY, _vault, Selectors.hookManagerSelectors(), HOOK_MANAGER);
+
+        txs[t++] = buildSetRoleGuardian(ROYCO_FACTORY, VAULT_MANAGER, GUARDIAN_ROLE);
+        txs[t++] = buildSetRoleGuardian(ROYCO_FACTORY, STRATEGY_MANAGER, GUARDIAN_ROLE);
+        txs[t++] = buildSetRoleGuardian(ROYCO_FACTORY, HOOK_MANAGER, GUARDIAN_ROLE);
+
+        txs[t++] = buildGrantRole(ROYCO_FACTORY, VAULT_MANAGER, WAY, DELAY_CRITICAL);
+        txs[t++] = buildGrantRole(ROYCO_FACTORY, STRATEGY_MANAGER, WAY, DELAY_CRITICAL);
+        txs[t++] = buildGrantRole(ROYCO_FACTORY, HOOK_MANAGER, WAY, DELAY_CRITICAL);
 
         // ── Strategy labels ──────────────────────────────────────────────────
         txs[t++] = buildLabelRole(ROYCO_FACTORY, STRATEGY_PAUSER, string.concat(_vaultName, "_STRATEGY_PAUSER"));
@@ -294,15 +298,14 @@ contract MigrateVaults is AccessManagerDumper, SafeSimulator, Script {
         txs[t++] = buildSetTargetFunctionRole(ROYCO_FACTORY, _strategy, _one(IStrategyTemplate.rescueToken.selector), STRATEGY_RESCUE);
         txs[t++] = buildSetTargetFunctionRole(ROYCO_FACTORY, _strategy, Selectors.strategyAllocatorSelectors(), STRATEGY_ALLOCATOR);
 
-        // ── Strategy guardian wiring (delayed roles only) ─────────────────────
-        // STRATEGY_PAUSER and STRATEGY_ALLOCATOR are Immediate, no scheduling, no cancel needed.
-        txs[t++] = buildSetRoleGuardian(ROYCO_FACTORY, STRATEGY_UNPAUSER, GUARDIAN_ROLE);
+        // ── Strategy guardian wiring (delayed role only) ──────────────────────
+        // STRATEGY_PAUSER, STRATEGY_UNPAUSER, STRATEGY_ALLOCATOR are all Immediate; only
+        // STRATEGY_RESCUE has a delay (30d) so only it needs cancel-gate wiring.
         txs[t++] = buildSetRoleGuardian(ROYCO_FACTORY, STRATEGY_RESCUE, GUARDIAN_ROLE);
 
         // ── Strategy grants ──────────────────────────────────────────────────
-        txs[t++] = buildGrantRole(ROYCO_FACTORY, STRATEGY_PAUSER, FNDN, DELAY_IMMEDIATE);
         txs[t++] = buildGrantRole(ROYCO_FACTORY, STRATEGY_PAUSER, WAY, DELAY_IMMEDIATE);
-        txs[t++] = buildGrantRole(ROYCO_FACTORY, STRATEGY_UNPAUSER, FNDN, DELAY_STANDARD);
+        txs[t++] = buildGrantRole(ROYCO_FACTORY, STRATEGY_UNPAUSER, FNDN, DELAY_IMMEDIATE);
         txs[t++] = buildGrantRole(ROYCO_FACTORY, STRATEGY_RESCUE, FNDN, DELAY_RESCUE);
         txs[t++] = buildGrantRole(ROYCO_FACTORY, STRATEGY_ALLOCATOR, DIAL, DELAY_IMMEDIATE);
 

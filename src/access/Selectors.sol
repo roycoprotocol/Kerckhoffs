@@ -10,13 +10,17 @@ import { IStrategyTemplate } from "makina-strategy/lib/concrete-earn-v2-bug-boun
 import { IRoycoEntryPoint } from "royco-dawn/src/interfaces/IRoycoEntryPoint.sol";
 
 /// @dev Minimal local interface for the Machine setters we bind via AM. Avoids importing
-///      IMachine directly (which transitively pulls in the wormhole SDK).
-interface IMachineRiskManagerTimelock {
-    function setCaliberStaleThreshold(uint256 newCaliberStaleThreshold) external;
-    function setMaxFixedFeeAccrualRate(uint256 newMaxAccrualRate) external;
-    function setMaxPerfFeeAccrualRate(uint256 newMaxAccrualRate) external;
-    function setFeeMintCooldown(uint256 newFeeMintCooldown) external;
-    function setMaxSharePriceChangeRate(uint256 newMaxSharePriceChangeRate) external;
+///      IMachine directly (which transitively pulls in the wormhole SDK). Includes both
+///      `onlyRiskManager` (`setShareLimit`) and `onlyRiskManagerTimelock` setters — both
+///      gate through the same `Machine.riskManager*` slots and are AM-routed once those
+///      slots point at `RoycoFactory`.
+interface IMachineRiskManagerSetters {
+    function setShareLimit(uint256 newShareLimit) external; // onlyRiskManager
+    function setCaliberStaleThreshold(uint256 newCaliberStaleThreshold) external; // onlyRiskManagerTimelock
+    function setMaxFixedFeeAccrualRate(uint256 newMaxAccrualRate) external; // onlyRiskManagerTimelock
+    function setMaxPerfFeeAccrualRate(uint256 newMaxAccrualRate) external; // onlyRiskManagerTimelock
+    function setFeeMintCooldown(uint256 newFeeMintCooldown) external; // onlyRiskManagerTimelock
+    function setMaxSharePriceChangeRate(uint256 newMaxSharePriceChangeRate) external; // onlyRiskManagerTimelock
 }
 
 /**
@@ -73,9 +77,11 @@ library Selectors {
     // CALIBER — derived from ICaliber (makina-core)
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// @dev Risk-manager-restricted setters: routine risk parameters + base token mgmt.
+    /// @dev Risk-manager-restricted setters: routine risk parameters + base token mgmt + the
+    ///      `scheduleAllowedInstrRootUpdate` entry point (gated by `onlyRiskManager` in Caliber;
+    ///      becomes AM-routed once the Machine's `riskManager` slot is moved to ROYCO_FACTORY).
     function caliberRiskManagerSelectors() internal pure returns (bytes4[] memory s) {
-        s = new bytes4[](7);
+        s = new bytes4[](8);
         s[0] = ICaliber.setPositionStaleThreshold.selector;
         s[1] = ICaliber.setMaxPositionIncreaseLossBps.selector;
         s[2] = ICaliber.setMaxPositionDecreaseLossBps.selector;
@@ -83,22 +89,26 @@ library Selectors {
         s[4] = ICaliber.setCooldownDuration.selector;
         s[5] = ICaliber.addBaseToken.selector;
         s[6] = ICaliber.removeBaseToken.selector;
+        s[7] = ICaliber.scheduleAllowedInstrRootUpdate.selector;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
     // MACHINE — onlyRiskManagerTimelock setters (Caliber's hub-side counterpart)
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// @dev All Machine setters gated by `onlyRiskManagerTimelock`. Map to `<VAULT>_RISK_MANAGER`.
+    /// @dev All Machine setters gated by `onlyRiskManager` or `onlyRiskManagerTimelock`. Map to
+    ///      `<VAULT>_RISK_MANAGER` — both modifiers gate through the same `Machine.riskManager*`
+    ///      slots, both re-pointed to RoycoFactory by the migration.
     function machineRiskManagerSelectors() internal pure returns (bytes4[] memory s) {
-        s = new bytes4[](7);
-        s[0] = IMachineRiskManagerTimelock.setCaliberStaleThreshold.selector;
-        s[1] = IMachineRiskManagerTimelock.setMaxFixedFeeAccrualRate.selector;
-        s[2] = IMachineRiskManagerTimelock.setMaxPerfFeeAccrualRate.selector;
-        s[3] = IMachineRiskManagerTimelock.setFeeMintCooldown.selector;
-        s[4] = IMachineRiskManagerTimelock.setMaxSharePriceChangeRate.selector;
-        s[5] = IBridgeController.setOutTransferEnabled.selector;
-        s[6] = IBridgeController.setMaxBridgeLossBps.selector;
+        s = new bytes4[](8);
+        s[0] = IMachineRiskManagerSetters.setShareLimit.selector;
+        s[1] = IMachineRiskManagerSetters.setCaliberStaleThreshold.selector;
+        s[2] = IMachineRiskManagerSetters.setMaxFixedFeeAccrualRate.selector;
+        s[3] = IMachineRiskManagerSetters.setMaxPerfFeeAccrualRate.selector;
+        s[4] = IMachineRiskManagerSetters.setFeeMintCooldown.selector;
+        s[5] = IMachineRiskManagerSetters.setMaxSharePriceChangeRate.selector;
+        s[6] = IBridgeController.setOutTransferEnabled.selector;
+        s[7] = IBridgeController.setMaxBridgeLossBps.selector;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════

@@ -7,13 +7,19 @@ import { Factory } from "./Factory.sol";
  * @title Multisigs
  * @notice Per-party multisig addresses used by the security model. Same on every chain.
  *
- * - **FNDN** (Royco Foundation) — root admin / executor. Holds privileged roles across all
- *   surfaces. Same address as the legacy `ROOT_MULTISIG`.
- * - **WAY** — proposer + guardian. Holds `GUARDIAN_ROLE` (cancel/veto) and the immediate-delay
- *   variant of `ADMIN_ENTRY_POINT_ROLE`. Same address as the legacy `EXECUTOR_MULTISIG` /
- *   `WCE_MULTISIG`.
- * - **DIAL** — operations role-holder for the strategy `STRATEGY_ALLOCATOR` (and natively for
- *   the vault's `ALLOCATOR` / `WITHDRAWAL_MANAGER`, which stay native and are not remapped).
+ * - **FNDN** (Royco Foundation) — `ADMIN_ROLE` (7d, role management), `GUARDIAN_ROLE` (cancel
+ *   authority), `ADMIN_UNPAUSER_ROLE` and `ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE` (Immediate),
+ *   `STRATEGY_UNPAUSER` / `STRATEGY_RESCUE`, `DEPLOYER_ROLE`. Same address as the legacy
+ *   `ROOT_MULTISIG`.
+ * - **WAY** — every parameter-update role: `ADMIN_PAUSER_ROLE`, `LP_ROLE_ADMIN_ROLE`, `SYNC_ROLE`
+ *   (Immediate); `ADMIN_ORACLE_QUOTER_ROLE`, `DEPLOYER_ROLE_ADMIN_ROLE` (24h);
+ *   `ADMIN_KERNEL_ROLE`, `ADMIN_ACCOUNTANT_ROLE`, `ADMIN_PROTOCOL_FEE_SETTER_ROLE`,
+ *   `ADMIN_ENTRY_POINT_ROLE`, `VAULT_MANAGER` / `STRATEGY_MANAGER` / `HOOK_MANAGER`, per-vault
+ *   `*_RISK_MANAGER` / `*_TIMELOCK_MANAGER` (48h); `ADMIN_UPGRADER_ROLE` (7d). Every delayed
+ *   WAY op is FNDN-cancellable via `GUARDIAN_ROLE`. Same address as the legacy
+ *   `EXECUTOR_MULTISIG` / `WCE_MULTISIG`.
+ * - **DIAL** — operations role-holder for `STRATEGY_ALLOCATOR` (and natively for the vault's
+ *   `ALLOCATOR` / `WITHDRAWAL_MANAGER`, which stay native and are not remapped).
  */
 abstract contract Multisigs is Factory {
     /// @dev FNDN multisig (root admin / executor)
