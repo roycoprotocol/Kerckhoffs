@@ -97,12 +97,12 @@ contract MigrateDawn is MigrationBase, Script {
         _n = _maybeGrantRole(_buf, _n, _am, LP_ROLE_ADMIN_ROLE, WAY, DELAY_IMMEDIATE);
         _n = _maybeGrantRole(_buf, _n, _am, SYNC_ROLE, WAY, DELAY_IMMEDIATE);
         // Standard (24h)
-        _n = _maybeGrantRole(_buf, _n, _am, ADMIN_ORACLE_QUOTER_ROLE, WAY, DELAY_STANDARD);
         _n = _maybeGrantRole(_buf, _n, _am, DEPLOYER_ROLE_ADMIN_ROLE, WAY, DELAY_STANDARD);
         // Critical (48h)
         _n = _maybeGrantRole(_buf, _n, _am, ADMIN_KERNEL_ROLE, WAY, DELAY_CRITICAL);
         _n = _maybeGrantRole(_buf, _n, _am, ADMIN_ACCOUNTANT_ROLE, WAY, DELAY_CRITICAL);
         _n = _maybeGrantRole(_buf, _n, _am, ADMIN_PROTOCOL_FEE_SETTER_ROLE, WAY, DELAY_CRITICAL);
+        _n = _maybeGrantRole(_buf, _n, _am, ADMIN_ORACLE_QUOTER_ROLE, WAY, DELAY_CRITICAL);
         _n = _maybeGrantRole(_buf, _n, _am, ADMIN_ENTRY_POINT_ROLE, WAY, DELAY_CRITICAL);
         // Root (7d)
         _n = _maybeGrantRole(_buf, _n, _am, ADMIN_UPGRADER_ROLE, WAY, DELAY_ROOT);
@@ -110,13 +110,15 @@ contract MigrateDawn is MigrationBase, Script {
     }
 
     /// @dev FNDN holds the cancellation authority + the narrow Immediate-tier ops the
-    ///      foundation explicitly retains: unpause, fee collection, deployer role, and the
+    ///      foundation explicitly retains: unpause, fee collection, deployer role, the
+    ///      oracle/quoter role (co-held with WAY for emergency oracle re-pegs), and the
     ///      meta-grant authority (`ADMIN_ROLE`, set in step 7).
     function _diffFNDNRoleGrants(SafeTransaction[] memory _buf, uint256 _n, IAccessManager _am) internal view returns (uint256) {
         _n = _maybeGrantRole(_buf, _n, _am, GUARDIAN_ROLE, FNDN, DELAY_IMMEDIATE);
         _n = _maybeGrantRole(_buf, _n, _am, ADMIN_UNPAUSER_ROLE, FNDN, DELAY_IMMEDIATE);
         _n = _maybeGrantRole(_buf, _n, _am, ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE, FNDN, DELAY_IMMEDIATE);
         _n = _maybeGrantRole(_buf, _n, _am, DEPLOYER_ROLE, FNDN, DELAY_IMMEDIATE);
+        _n = _maybeGrantRole(_buf, _n, _am, ADMIN_ORACLE_QUOTER_ROLE, FNDN, DELAY_IMMEDIATE);
         return _n;
     }
 
@@ -141,18 +143,20 @@ contract MigrateDawn is MigrationBase, Script {
         return _n;
     }
 
+    /// @dev Roles where FNDN must NOT be a holder under the new model. ADMIN_ORACLE_QUOTER_ROLE
+    ///      is intentionally omitted — it's co-held by FNDN @ Immediate (emergency oracle
+    ///      re-peg) and WAY @ 48h (routine quoter changes).
     function _wayOnlyRoles() internal pure returns (uint64[] memory roles) {
-        roles = new uint64[](10);
+        roles = new uint64[](9);
         roles[0] = ADMIN_PAUSER_ROLE;
         roles[1] = ADMIN_UPGRADER_ROLE;
         roles[2] = ADMIN_KERNEL_ROLE;
         roles[3] = ADMIN_ACCOUNTANT_ROLE;
         roles[4] = ADMIN_PROTOCOL_FEE_SETTER_ROLE;
-        roles[5] = ADMIN_ORACLE_QUOTER_ROLE;
-        roles[6] = ADMIN_ENTRY_POINT_ROLE;
-        roles[7] = DEPLOYER_ROLE_ADMIN_ROLE;
-        roles[8] = LP_ROLE_ADMIN_ROLE;
-        roles[9] = SYNC_ROLE;
+        roles[5] = ADMIN_ENTRY_POINT_ROLE;
+        roles[6] = DEPLOYER_ROLE_ADMIN_ROLE;
+        roles[7] = LP_ROLE_ADMIN_ROLE;
+        roles[8] = SYNC_ROLE;
     }
 
     // ── Step 3: entry point ───────────────────────────────────────────────────

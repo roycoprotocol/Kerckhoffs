@@ -1,0 +1,1658 @@
+No files changed, compilation skipped
+Script ran successfully.
+Gas used: 54827141
+
+== Logs ==
+  
+  ################################################################################
+  Migration | chain: Ethereum 1
+  ################################################################################
+  
+  >>> Pre-state
+  
+  ================================================================================
+  AccessManager dump | chain: Ethereum 1
+    AccessManager: 0x7cC6fB28eC7b5e7afC3cB3986141797ffc27253C
+  ================================================================================
+  
+  --- Roles -----------------------------------------------------------------------
+  
+    Role: ADMIN_ROLE (0)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 0
+  
+    Role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 0
+  
+    Role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: ADMIN_UPGRADER_ROLE (17817129721670429102)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 172800
+  
+    Role: ST_LP_ROLE (9623252227852051139)
+      admin role:    LP_ROLE_ADMIN_ROLE (12118832287418532003)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: EntryPoint 0x63dA1229be88Fb4D20210147954a1a3e05f2581B exec delay: 0
+  
+    Role: JT_LP_ROLE (16055754263579004741)
+      admin role:    LP_ROLE_ADMIN_ROLE (12118832287418532003)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: EntryPoint 0x63dA1229be88Fb4D20210147954a1a3e05f2581B exec delay: 0
+  
+    Role: BURNER_ROLE (18208673593576913896)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+      member: EntryPoint 0x63dA1229be88Fb4D20210147954a1a3e05f2581B exec delay: 0
+  
+    Role: SYNC_ROLE (15053450870919821405)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 0
+  
+    Role: ADMIN_KERNEL_ROLE (6805807443307967810)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 172800
+  
+    Role: TRANSFER_AGENT_ROLE (6300902259487099312)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: ADMIN_ENTRY_POINT_ROLE (18089890734229314815)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 86400
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 0
+  
+    Role: ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE (3947436291410369121)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 0
+  
+    Role: ADMIN_ACCOUNTANT_ROLE (1194442435508212435)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 172800
+  
+    Role: ADMIN_PROTOCOL_FEE_SETTER_ROLE (14297485179608767180)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 86400
+  
+    Role: ADMIN_ORACLE_QUOTER_ROLE (5790196268886763633)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 0
+  
+    Role: DEPLOYER_ROLE (6507856881284443453)
+      admin role:    DEPLOYER_ROLE_ADMIN_ROLE (11875770835546705225)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+  
+    Role: LP_ROLE_ADMIN_ROLE (12118832287418532003)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 0
+  
+    Role: DEPLOYER_ROLE_ADMIN_ROLE (11875770835546705225)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 0
+  
+    Role: GUARDIAN_ROLE (3153718263372025530)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 0
+  
+    Role: STRATEGY_PAUSER (11452681425251394499)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: STRATEGY_UNPAUSER (5615552891458788855)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: STRATEGY_RESCUE (5085675420049522850)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: STRATEGY_ALLOCATOR (15277387785437310784)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: SRROYUSDC_RISK_MANAGER (6359708774850158159)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: SRROYUSDC_TIMELOCK_MANAGER (11474785291283288494)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: ROYWSTETH_RISK_MANAGER (12159166457409087352)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: ROYWSTETH_TIMELOCK_MANAGER (14149459376679876623)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: VAULT_MANAGER (15875865955164154843)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: STRATEGY_MANAGER (4487222393053400099)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: HOOK_MANAGER (14177249393595990130)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+  --- Dawn Markets - pause/unpause role bindings ----------------------------------
+  
+    Market: sNUSD
+      kernel     0x0aE0978B868804929fd4C06B3B22D9197B8cd3c6
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      accountant 0xCaa3F221fCf3c2EC7b6a49B73BB810cca35e1085
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      ST tranche 0x2070Af1C865f5d764F673Baf5654822947e71243
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      JT tranche 0x3821eBea3BBbE23F3dea74f24082BD0f0b67f6c5
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+  
+    Market: autoUSD
+      kernel     0x8748D1c21CC550B435487F473d9Aaf6C84dA46A6
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      accountant 0xB0166629D78E3876F570f18B154A60b99024b6f4
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      ST tranche 0x73C641fe41EB0270C7f473f3c3E4A40eb97fd8dE
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      JT tranche 0x6f0D6567099621deE3850C673d73c532071A888d
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+  
+    Market: SmokehouseUSDC
+      kernel     0x6dBdf6EBdF02F50ec6a7d6F782850996928176F9
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      accountant 0x955f8f7691a8908fA5a2798935Bda557A03aFb75
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      ST tranche 0xa225F24654b8995036606D5Cd0634133a4BE169c
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      JT tranche 0xC8fab124292cB792d15041292C2399910bD086d1
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+  
+    Market: syrupUSDC
+      kernel     0xde1Ce2cF64808e50d000F93058784270E412B3A4
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      accountant 0x2995f615D0ec527eD43eBb22DE0DcB66084c98FE
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      ST tranche 0x66182442522D3049A941035190C315379c959250
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      JT tranche 0x5f340B400F892bBFDed2e5c316369Dcbf05C282A
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+  
+    Market: stcUSD
+      kernel     0x9911F227E9428964D8A35B852513919C8DF92038
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      accountant 0x59609E6f6faD8b90C025E03a98ef44f7435B122d
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      ST tranche 0xa7Da92685ea436276B2e87aE12E5eE6DABaD5bB5
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      JT tranche 0xe4060E83ad26618c7Ed56A02ce099beBA4f73b29
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+  
+    Market: ParetoFalconX
+      kernel     0x15bb63C07740ff972F76716cAcC5766f0C641791
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      accountant 0x37543D7C1e0e5C4467398681180af00efB68D0Dd
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      ST tranche 0x694ADB3077BBecE31882B6d6A74fc4A4fA6a754b
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      JT tranche 0x8E0ec43E51B88AA2324102e1A3D667822be51A6d
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+  
+    Market: ApyUSD
+      kernel     0xcFbdEA0990F21b103c8D123d0D5273B4ea269cb4
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      accountant 0x5A42DD2e3C30b20663BB86D40DB0ea28689BbD0f
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      ST tranche 0xBd373c9D3D8976a4FECC504a93c768BBE8C3227C
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      JT tranche 0xAB2ab53E1e2E2c5D7202918EC8c873712bcc4a2D
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+  
+    Syncer:
+      syncer     0xc46367BBdbC62F1825a46549062a3A88D8668D52
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+  
+  --- Entry Point - selector role bindings ----------------------------------------
+    EntryPoint: 0x63dA1229be88Fb4D20210147954a1a3e05f2581B
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      modifyTrancheConfigs selector role: ADMIN_ENTRY_POINT_ROLE (18089890734229314815)
+      collectProtocolFees  selector role: ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE (3947436291410369121)
+      pause                selector role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      unpause              selector role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      upgradeToAndCall     selector role: ADMIN_UPGRADER_ROLE (17817129721670429102)
+      target closed? false
+      target admin delay: 0
+  
+  --- Concrete Vaults - target config + selector role bindings --------------------
+  
+    Vault: srRoyUSDC
+      address: 0xcD9f5907F92818bC06c9Ad70217f089E190d2a32
+      target closed? false
+      target admin delay: 0
+      vault-mgr    selector role: ADMIN_ROLE (0)
+      vault-mgr    selector role: ADMIN_ROLE (0)
+      vault-mgr    selector role: ADMIN_ROLE (0)
+      vault-mgr    selector role: ADMIN_ROLE (0)
+      strategy-mgr selector role: ADMIN_ROLE (0)
+      strategy-mgr selector role: ADMIN_ROLE (0)
+      strategy-mgr selector role: ADMIN_ROLE (0)
+      hook-mgr     selector role: ADMIN_ROLE (0)
+  
+    Vault: roywstETH
+      address: 0x41Ce72E04D349Eb957bdc373baA9c69207032c56
+      target closed? false
+      target admin delay: 0
+      vault-mgr    selector role: ADMIN_ROLE (0)
+      vault-mgr    selector role: ADMIN_ROLE (0)
+      vault-mgr    selector role: ADMIN_ROLE (0)
+      vault-mgr    selector role: ADMIN_ROLE (0)
+      strategy-mgr selector role: ADMIN_ROLE (0)
+      strategy-mgr selector role: ADMIN_ROLE (0)
+      strategy-mgr selector role: ADMIN_ROLE (0)
+      hook-mgr     selector role: ADMIN_ROLE (0)
+  
+  --- Concrete Strategies - selector role bindings --------------------------------
+  
+    Strategy: srRoyUSDC
+      address: 0xc5FeF644d59415cec65049e0653CA10eD9Cba778
+      pause       selector role: 13895792824689027911
+      unpause     selector role: 13895792824689027911
+      rescueToken selector role: 13895792824689027911
+      allocator   selector role: ADMIN_ROLE (0)
+      allocator   selector role: ADMIN_ROLE (0)
+  
+    Strategy: roywstETH
+      address: 0x185313DBb1f3AA2b3fCc603f0EE4cbA753Ef1DD7
+      pause       selector role: 13895792824689027911
+      unpause     selector role: 13895792824689027911
+      rescueToken selector role: 13895792824689027911
+      allocator   selector role: ADMIN_ROLE (0)
+      allocator   selector role: ADMIN_ROLE (0)
+  
+  --- Caliber - selector role bindings --------------------------------------------
+  
+    Caliber for: srRoyUSDC
+      address: 0x5476F4E23dAA093Ce6700e1026013c55F7AF9083
+      risk-manager selector role: ADMIN_ROLE (0)
+      risk-manager selector role: ADMIN_ROLE (0)
+      risk-manager selector role: ADMIN_ROLE (0)
+      risk-manager selector role: ADMIN_ROLE (0)
+      risk-manager selector role: ADMIN_ROLE (0)
+      risk-manager selector role: ADMIN_ROLE (0)
+      risk-manager selector role: ADMIN_ROLE (0)
+      risk-manager selector role: ADMIN_ROLE (0)
+      timelock-mgr selector role: ADMIN_ROLE (0)
+  
+    Caliber for: roywstETH
+      address: 0x3d8E2497497a3e29Ad5391c08dB2a1b3C32598c0
+      risk-manager selector role: ADMIN_ROLE (0)
+      risk-manager selector role: ADMIN_ROLE (0)
+      risk-manager selector role: ADMIN_ROLE (0)
+      risk-manager selector role: ADMIN_ROLE (0)
+      risk-manager selector role: ADMIN_ROLE (0)
+      risk-manager selector role: ADMIN_ROLE (0)
+      risk-manager selector role: ADMIN_ROLE (0)
+      risk-manager selector role: ADMIN_ROLE (0)
+      timelock-mgr selector role: ADMIN_ROLE (0)
+  
+  >>> Built batch with 84 transactions
+  
+  >>> Simulating
+    [OK] All 84 txs replayed
+  
+  >>> Post-state
+  
+  ================================================================================
+  AccessManager dump | chain: Ethereum 1
+    AccessManager: 0x7cC6fB28eC7b5e7afC3cB3986141797ffc27253C
+  ================================================================================
+  
+  --- Roles -----------------------------------------------------------------------
+  
+    Role: ADMIN_ROLE (0)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 604800
+  
+    Role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 0
+  
+    Role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 0
+  
+    Role: ADMIN_UPGRADER_ROLE (17817129721670429102)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 604800
+  
+    Role: ST_LP_ROLE (9623252227852051139)
+      admin role:    LP_ROLE_ADMIN_ROLE (12118832287418532003)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: EntryPoint 0x63dA1229be88Fb4D20210147954a1a3e05f2581B exec delay: 0
+  
+    Role: JT_LP_ROLE (16055754263579004741)
+      admin role:    LP_ROLE_ADMIN_ROLE (12118832287418532003)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: EntryPoint 0x63dA1229be88Fb4D20210147954a1a3e05f2581B exec delay: 0
+  
+    Role: BURNER_ROLE (18208673593576913896)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: EntryPoint 0x63dA1229be88Fb4D20210147954a1a3e05f2581B exec delay: 0
+  
+    Role: SYNC_ROLE (15053450870919821405)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 0
+  
+    Role: ADMIN_KERNEL_ROLE (6805807443307967810)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 172800
+  
+    Role: TRANSFER_AGENT_ROLE (6300902259487099312)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: ADMIN_ENTRY_POINT_ROLE (18089890734229314815)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 172800
+  
+    Role: ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE (3947436291410369121)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 0
+  
+    Role: ADMIN_ACCOUNTANT_ROLE (1194442435508212435)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 172800
+  
+    Role: ADMIN_PROTOCOL_FEE_SETTER_ROLE (14297485179608767180)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 172800
+  
+    Role: ADMIN_ORACLE_QUOTER_ROLE (5790196268886763633)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 86400
+  
+    Role: DEPLOYER_ROLE (6507856881284443453)
+      admin role:    DEPLOYER_ROLE_ADMIN_ROLE (11875770835546705225)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 0
+  
+    Role: LP_ROLE_ADMIN_ROLE (12118832287418532003)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 0
+  
+    Role: DEPLOYER_ROLE_ADMIN_ROLE (11875770835546705225)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 86400
+  
+    Role: GUARDIAN_ROLE (3153718263372025530)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 0
+  
+    Role: STRATEGY_PAUSER (11452681425251394499)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: STRATEGY_UNPAUSER (5615552891458788855)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: STRATEGY_RESCUE (5085675420049522850)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: STRATEGY_ALLOCATOR (15277387785437310784)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: SRROYUSDC_RISK_MANAGER (6359708774850158159)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: SRROYUSDC_TIMELOCK_MANAGER (11474785291283288494)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: ROYWSTETH_RISK_MANAGER (12159166457409087352)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: ROYWSTETH_TIMELOCK_MANAGER (14149459376679876623)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: VAULT_MANAGER (15875865955164154843)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: STRATEGY_MANAGER (4487222393053400099)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: HOOK_MANAGER (14177249393595990130)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+  --- Dawn Markets - pause/unpause role bindings ----------------------------------
+  
+    Market: sNUSD
+      kernel     0x0aE0978B868804929fd4C06B3B22D9197B8cd3c6
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      accountant 0xCaa3F221fCf3c2EC7b6a49B73BB810cca35e1085
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      ST tranche 0x2070Af1C865f5d764F673Baf5654822947e71243
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      JT tranche 0x3821eBea3BBbE23F3dea74f24082BD0f0b67f6c5
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+  
+    Market: autoUSD
+      kernel     0x8748D1c21CC550B435487F473d9Aaf6C84dA46A6
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      accountant 0xB0166629D78E3876F570f18B154A60b99024b6f4
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      ST tranche 0x73C641fe41EB0270C7f473f3c3E4A40eb97fd8dE
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      JT tranche 0x6f0D6567099621deE3850C673d73c532071A888d
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+  
+    Market: SmokehouseUSDC
+      kernel     0x6dBdf6EBdF02F50ec6a7d6F782850996928176F9
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      accountant 0x955f8f7691a8908fA5a2798935Bda557A03aFb75
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      ST tranche 0xa225F24654b8995036606D5Cd0634133a4BE169c
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      JT tranche 0xC8fab124292cB792d15041292C2399910bD086d1
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+  
+    Market: syrupUSDC
+      kernel     0xde1Ce2cF64808e50d000F93058784270E412B3A4
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      accountant 0x2995f615D0ec527eD43eBb22DE0DcB66084c98FE
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      ST tranche 0x66182442522D3049A941035190C315379c959250
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      JT tranche 0x5f340B400F892bBFDed2e5c316369Dcbf05C282A
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+  
+    Market: stcUSD
+      kernel     0x9911F227E9428964D8A35B852513919C8DF92038
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      accountant 0x59609E6f6faD8b90C025E03a98ef44f7435B122d
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      ST tranche 0xa7Da92685ea436276B2e87aE12E5eE6DABaD5bB5
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      JT tranche 0xe4060E83ad26618c7Ed56A02ce099beBA4f73b29
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+  
+    Market: ParetoFalconX
+      kernel     0x15bb63C07740ff972F76716cAcC5766f0C641791
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      accountant 0x37543D7C1e0e5C4467398681180af00efB68D0Dd
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      ST tranche 0x694ADB3077BBecE31882B6d6A74fc4A4fA6a754b
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      JT tranche 0x8E0ec43E51B88AA2324102e1A3D667822be51A6d
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+  
+    Market: ApyUSD
+      kernel     0xcFbdEA0990F21b103c8D123d0D5273B4ea269cb4
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      accountant 0x5A42DD2e3C30b20663BB86D40DB0ea28689BbD0f
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      ST tranche 0xBd373c9D3D8976a4FECC504a93c768BBE8C3227C
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      JT tranche 0xAB2ab53E1e2E2c5D7202918EC8c873712bcc4a2D
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+  
+    Syncer:
+      syncer     0xc46367BBdbC62F1825a46549062a3A88D8668D52
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+  
+  --- Entry Point - selector role bindings ----------------------------------------
+    EntryPoint: 0x63dA1229be88Fb4D20210147954a1a3e05f2581B
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      modifyTrancheConfigs selector role: ADMIN_ENTRY_POINT_ROLE (18089890734229314815)
+      collectProtocolFees  selector role: ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE (3947436291410369121)
+      pause                selector role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      unpause              selector role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      upgradeToAndCall     selector role: ADMIN_UPGRADER_ROLE (17817129721670429102)
+      target closed? false
+      target admin delay: 0
+  
+  --- Concrete Vaults - target config + selector role bindings --------------------
+  
+    Vault: srRoyUSDC
+      address: 0xcD9f5907F92818bC06c9Ad70217f089E190d2a32
+      target closed? false
+      target admin delay: 0
+      vault-mgr    selector role: ADMIN_ROLE (0)
+      vault-mgr    selector role: ADMIN_ROLE (0)
+      vault-mgr    selector role: ADMIN_ROLE (0)
+      vault-mgr    selector role: ADMIN_ROLE (0)
+      strategy-mgr selector role: ADMIN_ROLE (0)
+      strategy-mgr selector role: ADMIN_ROLE (0)
+      strategy-mgr selector role: ADMIN_ROLE (0)
+      hook-mgr     selector role: ADMIN_ROLE (0)
+  
+    Vault: roywstETH
+      address: 0x41Ce72E04D349Eb957bdc373baA9c69207032c56
+      target closed? false
+      target admin delay: 0
+      vault-mgr    selector role: ADMIN_ROLE (0)
+      vault-mgr    selector role: ADMIN_ROLE (0)
+      vault-mgr    selector role: ADMIN_ROLE (0)
+      vault-mgr    selector role: ADMIN_ROLE (0)
+      strategy-mgr selector role: ADMIN_ROLE (0)
+      strategy-mgr selector role: ADMIN_ROLE (0)
+      strategy-mgr selector role: ADMIN_ROLE (0)
+      hook-mgr     selector role: ADMIN_ROLE (0)
+  
+  --- Concrete Strategies - selector role bindings --------------------------------
+  
+    Strategy: srRoyUSDC
+      address: 0xc5FeF644d59415cec65049e0653CA10eD9Cba778
+      pause       selector role: 13895792824689027911
+      unpause     selector role: 13895792824689027911
+      rescueToken selector role: 13895792824689027911
+      allocator   selector role: ADMIN_ROLE (0)
+      allocator   selector role: ADMIN_ROLE (0)
+  
+    Strategy: roywstETH
+      address: 0x185313DBb1f3AA2b3fCc603f0EE4cbA753Ef1DD7
+      pause       selector role: 13895792824689027911
+      unpause     selector role: 13895792824689027911
+      rescueToken selector role: 13895792824689027911
+      allocator   selector role: ADMIN_ROLE (0)
+      allocator   selector role: ADMIN_ROLE (0)
+  
+  --- Caliber - selector role bindings --------------------------------------------
+  
+    Caliber for: srRoyUSDC
+      address: 0x5476F4E23dAA093Ce6700e1026013c55F7AF9083
+      risk-manager selector role: ADMIN_ROLE (0)
+      risk-manager selector role: ADMIN_ROLE (0)
+      risk-manager selector role: ADMIN_ROLE (0)
+      risk-manager selector role: ADMIN_ROLE (0)
+      risk-manager selector role: ADMIN_ROLE (0)
+      risk-manager selector role: ADMIN_ROLE (0)
+      risk-manager selector role: ADMIN_ROLE (0)
+      risk-manager selector role: ADMIN_ROLE (0)
+      timelock-mgr selector role: ADMIN_ROLE (0)
+  
+    Caliber for: roywstETH
+      address: 0x3d8E2497497a3e29Ad5391c08dB2a1b3C32598c0
+      risk-manager selector role: ADMIN_ROLE (0)
+      risk-manager selector role: ADMIN_ROLE (0)
+      risk-manager selector role: ADMIN_ROLE (0)
+      risk-manager selector role: ADMIN_ROLE (0)
+      risk-manager selector role: ADMIN_ROLE (0)
+      risk-manager selector role: ADMIN_ROLE (0)
+      risk-manager selector role: ADMIN_ROLE (0)
+      risk-manager selector role: ADMIN_ROLE (0)
+      timelock-mgr selector role: ADMIN_ROLE (0)
+  
+    Output: output/migrate/dawn/1_apply_security_migration.json
+    Done.
+  
+  ################################################################################
+  Migration | chain: Avalanche 43114
+  ################################################################################
+  
+  >>> Pre-state
+  
+  ================================================================================
+  AccessManager dump | chain: Avalanche 43114
+    AccessManager: 0x7cC6fB28eC7b5e7afC3cB3986141797ffc27253C
+  ================================================================================
+  
+  --- Roles -----------------------------------------------------------------------
+  
+    Role: ADMIN_ROLE (0)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 0
+  
+    Role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 0
+  
+    Role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: ADMIN_UPGRADER_ROLE (17817129721670429102)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 172800
+  
+    Role: ST_LP_ROLE (9623252227852051139)
+      admin role:    LP_ROLE_ADMIN_ROLE (12118832287418532003)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: EntryPoint 0x63dA1229be88Fb4D20210147954a1a3e05f2581B exec delay: 0
+  
+    Role: JT_LP_ROLE (16055754263579004741)
+      admin role:    LP_ROLE_ADMIN_ROLE (12118832287418532003)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: EntryPoint 0x63dA1229be88Fb4D20210147954a1a3e05f2581B exec delay: 0
+  
+    Role: BURNER_ROLE (18208673593576913896)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+      member: EntryPoint 0x63dA1229be88Fb4D20210147954a1a3e05f2581B exec delay: 0
+  
+    Role: SYNC_ROLE (15053450870919821405)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 0
+  
+    Role: ADMIN_KERNEL_ROLE (6805807443307967810)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 172800
+  
+    Role: TRANSFER_AGENT_ROLE (6300902259487099312)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: ADMIN_ENTRY_POINT_ROLE (18089890734229314815)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 86400
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 0
+  
+    Role: ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE (3947436291410369121)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 0
+  
+    Role: ADMIN_ACCOUNTANT_ROLE (1194442435508212435)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 172800
+  
+    Role: ADMIN_PROTOCOL_FEE_SETTER_ROLE (14297485179608767180)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 172800
+  
+    Role: ADMIN_ORACLE_QUOTER_ROLE (5790196268886763633)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 0
+  
+    Role: DEPLOYER_ROLE (6507856881284443453)
+      admin role:    DEPLOYER_ROLE_ADMIN_ROLE (11875770835546705225)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+  
+    Role: LP_ROLE_ADMIN_ROLE (12118832287418532003)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 0
+  
+    Role: DEPLOYER_ROLE_ADMIN_ROLE (11875770835546705225)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 0
+  
+    Role: GUARDIAN_ROLE (3153718263372025530)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 0
+  
+    Role: STRATEGY_PAUSER (11452681425251394499)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: STRATEGY_UNPAUSER (5615552891458788855)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: STRATEGY_RESCUE (5085675420049522850)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: STRATEGY_ALLOCATOR (15277387785437310784)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: SRROYUSDC_RISK_MANAGER (6359708774850158159)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: SRROYUSDC_TIMELOCK_MANAGER (11474785291283288494)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: ROYWSTETH_RISK_MANAGER (12159166457409087352)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: ROYWSTETH_TIMELOCK_MANAGER (14149459376679876623)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: VAULT_MANAGER (15875865955164154843)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: STRATEGY_MANAGER (4487222393053400099)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: HOOK_MANAGER (14177249393595990130)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+  --- Dawn Markets - pause/unpause role bindings ----------------------------------
+  
+    Market: savUSD
+      kernel     0x7240FF91b471217FF93349184ABE9f102Ca1955C
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      accountant 0x1067405d143a3973Dc48fD0Ea14ed6c1AF20dbb1
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      ST tranche 0xDA7bf1788aecb94fE6D5D3f739358De94f43E5C9
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      JT tranche 0x2dfde7811567562aaB39D0A292e43aa7195f6Cf6
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+  
+    Syncer:
+      syncer     0x2E9fCb5Ea139d2fDb5CcDc5BdF16357Da68d872C
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+  
+  --- Entry Point - selector role bindings ----------------------------------------
+    EntryPoint: 0x63dA1229be88Fb4D20210147954a1a3e05f2581B
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      modifyTrancheConfigs selector role: ADMIN_ENTRY_POINT_ROLE (18089890734229314815)
+      collectProtocolFees  selector role: ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE (3947436291410369121)
+      pause                selector role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      unpause              selector role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      upgradeToAndCall     selector role: ADMIN_UPGRADER_ROLE (17817129721670429102)
+      target closed? false
+      target admin delay: 0
+  
+  >>> Built batch with 54 transactions
+  
+  >>> Simulating
+    [OK] All 54 txs replayed
+  
+  >>> Post-state
+  
+  ================================================================================
+  AccessManager dump | chain: Avalanche 43114
+    AccessManager: 0x7cC6fB28eC7b5e7afC3cB3986141797ffc27253C
+  ================================================================================
+  
+  --- Roles -----------------------------------------------------------------------
+  
+    Role: ADMIN_ROLE (0)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 604800
+  
+    Role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 0
+  
+    Role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 0
+  
+    Role: ADMIN_UPGRADER_ROLE (17817129721670429102)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 604800
+  
+    Role: ST_LP_ROLE (9623252227852051139)
+      admin role:    LP_ROLE_ADMIN_ROLE (12118832287418532003)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: EntryPoint 0x63dA1229be88Fb4D20210147954a1a3e05f2581B exec delay: 0
+  
+    Role: JT_LP_ROLE (16055754263579004741)
+      admin role:    LP_ROLE_ADMIN_ROLE (12118832287418532003)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: EntryPoint 0x63dA1229be88Fb4D20210147954a1a3e05f2581B exec delay: 0
+  
+    Role: BURNER_ROLE (18208673593576913896)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: EntryPoint 0x63dA1229be88Fb4D20210147954a1a3e05f2581B exec delay: 0
+  
+    Role: SYNC_ROLE (15053450870919821405)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 0
+  
+    Role: ADMIN_KERNEL_ROLE (6805807443307967810)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 172800
+  
+    Role: TRANSFER_AGENT_ROLE (6300902259487099312)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: ADMIN_ENTRY_POINT_ROLE (18089890734229314815)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 172800
+  
+    Role: ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE (3947436291410369121)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 0
+  
+    Role: ADMIN_ACCOUNTANT_ROLE (1194442435508212435)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 172800
+  
+    Role: ADMIN_PROTOCOL_FEE_SETTER_ROLE (14297485179608767180)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 172800
+  
+    Role: ADMIN_ORACLE_QUOTER_ROLE (5790196268886763633)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 86400
+  
+    Role: DEPLOYER_ROLE (6507856881284443453)
+      admin role:    DEPLOYER_ROLE_ADMIN_ROLE (11875770835546705225)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 0
+  
+    Role: LP_ROLE_ADMIN_ROLE (12118832287418532003)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 0
+  
+    Role: DEPLOYER_ROLE_ADMIN_ROLE (11875770835546705225)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 86400
+  
+    Role: GUARDIAN_ROLE (3153718263372025530)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 0
+  
+    Role: STRATEGY_PAUSER (11452681425251394499)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: STRATEGY_UNPAUSER (5615552891458788855)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: STRATEGY_RESCUE (5085675420049522850)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: STRATEGY_ALLOCATOR (15277387785437310784)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: SRROYUSDC_RISK_MANAGER (6359708774850158159)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: SRROYUSDC_TIMELOCK_MANAGER (11474785291283288494)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: ROYWSTETH_RISK_MANAGER (12159166457409087352)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: ROYWSTETH_TIMELOCK_MANAGER (14149459376679876623)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: VAULT_MANAGER (15875865955164154843)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: STRATEGY_MANAGER (4487222393053400099)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: HOOK_MANAGER (14177249393595990130)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+  --- Dawn Markets - pause/unpause role bindings ----------------------------------
+  
+    Market: savUSD
+      kernel     0x7240FF91b471217FF93349184ABE9f102Ca1955C
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      accountant 0x1067405d143a3973Dc48fD0Ea14ed6c1AF20dbb1
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      ST tranche 0xDA7bf1788aecb94fE6D5D3f739358De94f43E5C9
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      JT tranche 0x2dfde7811567562aaB39D0A292e43aa7195f6Cf6
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+  
+    Syncer:
+      syncer     0x2E9fCb5Ea139d2fDb5CcDc5BdF16357Da68d872C
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+  
+  --- Entry Point - selector role bindings ----------------------------------------
+    EntryPoint: 0x63dA1229be88Fb4D20210147954a1a3e05f2581B
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      modifyTrancheConfigs selector role: ADMIN_ENTRY_POINT_ROLE (18089890734229314815)
+      collectProtocolFees  selector role: ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE (3947436291410369121)
+      pause                selector role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      unpause              selector role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      upgradeToAndCall     selector role: ADMIN_UPGRADER_ROLE (17817129721670429102)
+      target closed? false
+      target admin delay: 0
+  
+    Output: output/migrate/dawn/43114_apply_security_migration.json
+    Done.
+  
+  ################################################################################
+  Migration | chain: Arbitrum 42161
+  ################################################################################
+  
+  >>> Pre-state
+  
+  ================================================================================
+  AccessManager dump | chain: Arbitrum 42161
+    AccessManager: 0x7cC6fB28eC7b5e7afC3cB3986141797ffc27253C
+  ================================================================================
+  
+  --- Roles -----------------------------------------------------------------------
+  
+    Role: ADMIN_ROLE (0)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 0
+  
+    Role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 0
+  
+    Role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: ADMIN_UPGRADER_ROLE (17817129721670429102)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 172800
+  
+    Role: ST_LP_ROLE (9623252227852051139)
+      admin role:    LP_ROLE_ADMIN_ROLE (12118832287418532003)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: EntryPoint 0x63dA1229be88Fb4D20210147954a1a3e05f2581B exec delay: 0
+  
+    Role: JT_LP_ROLE (16055754263579004741)
+      admin role:    LP_ROLE_ADMIN_ROLE (12118832287418532003)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: EntryPoint 0x63dA1229be88Fb4D20210147954a1a3e05f2581B exec delay: 0
+  
+    Role: BURNER_ROLE (18208673593576913896)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+      member: EntryPoint 0x63dA1229be88Fb4D20210147954a1a3e05f2581B exec delay: 0
+  
+    Role: SYNC_ROLE (15053450870919821405)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 0
+  
+    Role: ADMIN_KERNEL_ROLE (6805807443307967810)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 172800
+  
+    Role: TRANSFER_AGENT_ROLE (6300902259487099312)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: ADMIN_ENTRY_POINT_ROLE (18089890734229314815)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 86400
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 0
+  
+    Role: ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE (3947436291410369121)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 0
+  
+    Role: ADMIN_ACCOUNTANT_ROLE (1194442435508212435)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 172800
+  
+    Role: ADMIN_PROTOCOL_FEE_SETTER_ROLE (14297485179608767180)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 172800
+  
+    Role: ADMIN_ORACLE_QUOTER_ROLE (5790196268886763633)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 0
+  
+    Role: DEPLOYER_ROLE (6507856881284443453)
+      admin role:    DEPLOYER_ROLE_ADMIN_ROLE (11875770835546705225)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+  
+    Role: LP_ROLE_ADMIN_ROLE (12118832287418532003)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 0
+  
+    Role: DEPLOYER_ROLE_ADMIN_ROLE (11875770835546705225)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 0
+  
+    Role: GUARDIAN_ROLE (3153718263372025530)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 0
+  
+    Role: STRATEGY_PAUSER (11452681425251394499)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: STRATEGY_UNPAUSER (5615552891458788855)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: STRATEGY_RESCUE (5085675420049522850)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: STRATEGY_ALLOCATOR (15277387785437310784)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: SRROYUSDC_RISK_MANAGER (6359708774850158159)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: SRROYUSDC_TIMELOCK_MANAGER (11474785291283288494)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: ROYWSTETH_RISK_MANAGER (12159166457409087352)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: ROYWSTETH_TIMELOCK_MANAGER (14149459376679876623)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: VAULT_MANAGER (15875865955164154843)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: STRATEGY_MANAGER (4487222393053400099)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: HOOK_MANAGER (14177249393595990130)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+  --- Dawn Markets - pause/unpause role bindings ----------------------------------
+  
+    Market: sUSDai
+      kernel     0xFdb17E53eA5d342124b8473188BCB9F05F1949CA
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      accountant 0x1b282c9CDB63378788Bbfd059a7cd44bc9Cba738
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      ST tranche 0x90465aad4e426948A4ea342AC49A1A38200B7017
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      JT tranche 0xeB60a64039289a4c07879147073A1Ec5AEA91553
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+  
+    Syncer:
+      syncer     0x8DCC7107e3AD82B60144bE68bE9C4809c84b9E06
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_PAUSER_ROLE (7925626764789623619)
+  
+  --- Entry Point - selector role bindings ----------------------------------------
+    EntryPoint: 0x63dA1229be88Fb4D20210147954a1a3e05f2581B
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      modifyTrancheConfigs selector role: ADMIN_ENTRY_POINT_ROLE (18089890734229314815)
+      collectProtocolFees  selector role: ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE (3947436291410369121)
+      pause                selector role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      unpause              selector role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      upgradeToAndCall     selector role: ADMIN_UPGRADER_ROLE (17817129721670429102)
+      target closed? false
+      target admin delay: 0
+  
+  >>> Built batch with 54 transactions
+  
+  >>> Simulating
+    [OK] All 54 txs replayed
+  
+  >>> Post-state
+  
+  ================================================================================
+  AccessManager dump | chain: Arbitrum 42161
+    AccessManager: 0x7cC6fB28eC7b5e7afC3cB3986141797ffc27253C
+  ================================================================================
+  
+  --- Roles -----------------------------------------------------------------------
+  
+    Role: ADMIN_ROLE (0)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 604800
+  
+    Role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 0
+  
+    Role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 0
+  
+    Role: ADMIN_UPGRADER_ROLE (17817129721670429102)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 604800
+  
+    Role: ST_LP_ROLE (9623252227852051139)
+      admin role:    LP_ROLE_ADMIN_ROLE (12118832287418532003)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: EntryPoint 0x63dA1229be88Fb4D20210147954a1a3e05f2581B exec delay: 0
+  
+    Role: JT_LP_ROLE (16055754263579004741)
+      admin role:    LP_ROLE_ADMIN_ROLE (12118832287418532003)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: EntryPoint 0x63dA1229be88Fb4D20210147954a1a3e05f2581B exec delay: 0
+  
+    Role: BURNER_ROLE (18208673593576913896)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: EntryPoint 0x63dA1229be88Fb4D20210147954a1a3e05f2581B exec delay: 0
+  
+    Role: SYNC_ROLE (15053450870919821405)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 0
+  
+    Role: ADMIN_KERNEL_ROLE (6805807443307967810)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 172800
+  
+    Role: TRANSFER_AGENT_ROLE (6300902259487099312)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: ADMIN_ENTRY_POINT_ROLE (18089890734229314815)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 172800
+  
+    Role: ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE (3947436291410369121)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 0
+  
+    Role: ADMIN_ACCOUNTANT_ROLE (1194442435508212435)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 172800
+  
+    Role: ADMIN_PROTOCOL_FEE_SETTER_ROLE (14297485179608767180)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 172800
+  
+    Role: ADMIN_ORACLE_QUOTER_ROLE (5790196268886763633)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 86400
+  
+    Role: DEPLOYER_ROLE (6507856881284443453)
+      admin role:    DEPLOYER_ROLE_ADMIN_ROLE (11875770835546705225)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 0
+  
+    Role: LP_ROLE_ADMIN_ROLE (12118832287418532003)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 0
+  
+    Role: DEPLOYER_ROLE_ADMIN_ROLE (11875770835546705225)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: GUARDIAN_ROLE (3153718263372025530)
+      grant delay:  0
+      member: WAY  0x84d37A25e46029CE161111420E07cEb78880119e exec delay: 86400
+  
+    Role: GUARDIAN_ROLE (3153718263372025530)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+      member: FNDN 0x7c405bbD131e42af506d14e752f2e59B19D49997 exec delay: 0
+  
+    Role: STRATEGY_PAUSER (11452681425251394499)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: STRATEGY_UNPAUSER (5615552891458788855)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: STRATEGY_RESCUE (5085675420049522850)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: STRATEGY_ALLOCATOR (15277387785437310784)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: SRROYUSDC_RISK_MANAGER (6359708774850158159)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: SRROYUSDC_TIMELOCK_MANAGER (11474785291283288494)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: ROYWSTETH_RISK_MANAGER (12159166457409087352)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: ROYWSTETH_TIMELOCK_MANAGER (14149459376679876623)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: VAULT_MANAGER (15875865955164154843)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: STRATEGY_MANAGER (4487222393053400099)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+    Role: HOOK_MANAGER (14177249393595990130)
+      admin role:    ADMIN_ROLE (0)
+      guardian role: ADMIN_ROLE (0)
+      grant delay:  0
+  
+  --- Dawn Markets - pause/unpause role bindings ----------------------------------
+  
+    Market: sUSDai
+      kernel     0xFdb17E53eA5d342124b8473188BCB9F05F1949CA
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      accountant 0x1b282c9CDB63378788Bbfd059a7cd44bc9Cba738
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      ST tranche 0x90465aad4e426948A4ea342AC49A1A38200B7017
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      JT tranche 0xeB60a64039289a4c07879147073A1Ec5AEA91553
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+  
+    Syncer:
+      syncer     0x8DCC7107e3AD82B60144bE68bE9C4809c84b9E06
+        pause   role: ADMIN_PAUSER_ROLE (7925626764789623619)
+        unpause role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+  
+  --- Entry Point - selector role bindings ----------------------------------------
+    EntryPoint: 0x63dA1229be88Fb4D20210147954a1a3e05f2581B
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      lp selector role: PUBLIC_ROLE (18446744073709551615)
+      modifyTrancheConfigs selector role: ADMIN_ENTRY_POINT_ROLE (18089890734229314815)
+      collectProtocolFees  selector role: ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE (3947436291410369121)
+      pause                selector role: ADMIN_PAUSER_ROLE (7925626764789623619)
+      unpause              selector role: ADMIN_UNPAUSER_ROLE (10054419464311379566)
+      upgradeToAndCall     selector role: ADMIN_UPGRADER_ROLE (17817129721670429102)
+      target closed? false
+      target admin delay: 0
+  
+    Output: output/migrate/dawn/42161_apply_security_migration.json
+    Done.

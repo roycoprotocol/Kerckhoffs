@@ -53,7 +53,7 @@ Source: `src/registry/Multisigs.sol`.
 | `ADMIN_KERNEL_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | 48h | Kernel admin: `setProtocolFeeRecipient`, `setSeniorTrancheSelfLiquidationBonus`. |
 | `ADMIN_ACCOUNTANT_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | 48h | Accountant params: YDM, coverage, beta, LLTV, dust tolerances, fixed-term. |
 | `ADMIN_PROTOCOL_FEE_SETTER_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | 48h | Protocol fee % on senior / junior tranche yields. |
-| `ADMIN_ORACLE_QUOTER_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | 24h | Oracle / quoter settings: `setConversionRate`, `setChainlinkOracle`. |
+| `ADMIN_ORACLE_QUOTER_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY, FNDN | 48h (WAY) / Immediate (FNDN) | Oracle / quoter settings: `setConversionRate`, `setChainlinkOracle`. WAY does routine quoter changes under 48h delay (FNDN-cancellable); FNDN can act immediately for emergency oracle re-pegs (e.g. depeg / Chainlink feed swap during incident response). |
 | **Entry point** | | | | | |
 | `ADMIN_ENTRY_POINT_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | 48h | `modifyTrancheConfigs`. |
 | `ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Immediate | `collectProtocolFees`. |

@@ -38,25 +38,28 @@ contract DawnMigrationTest is RoleBehaviorBase, MigrateDawn {
     function test_PostState_FNDN_RoleDelays() public view {
         // FNDN holds: ADMIN_ROLE @ 7d (role management), GUARDIAN_ROLE @ Immediate (cancel),
         //             ADMIN_UNPAUSER_ROLE @ Immediate, ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE @ Immediate,
-        //             DEPLOYER_ROLE @ Immediate (market deployment).
+        //             DEPLOYER_ROLE @ Immediate (market deployment), ADMIN_ORACLE_QUOTER_ROLE @ Immediate
+        //             (emergency oracle re-pegs; co-held with WAY).
         _assertMembership(ADMIN_ROLE, FNDN, DELAY_ROOT, "ADMIN_ROLE @ FNDN");
         _assertMembership(GUARDIAN_ROLE, FNDN, DELAY_IMMEDIATE, "GUARDIAN_ROLE @ FNDN");
         _assertMembership(ADMIN_UNPAUSER_ROLE, FNDN, DELAY_IMMEDIATE, "ADMIN_UNPAUSER_ROLE @ FNDN");
         _assertMembership(ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE, FNDN, DELAY_IMMEDIATE, "ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE @ FNDN");
         _assertMembership(DEPLOYER_ROLE, FNDN, DELAY_IMMEDIATE, "DEPLOYER_ROLE @ FNDN");
+        _assertMembership(ADMIN_ORACLE_QUOTER_ROLE, FNDN, DELAY_IMMEDIATE, "ADMIN_ORACLE_QUOTER_ROLE @ FNDN");
     }
 
     function test_PostState_WAY_RoleDelays() public view {
         // WAY holds every parameter-update role plus ADMIN_PAUSER_ROLE, LP_ROLE_ADMIN_ROLE,
-        // SYNC_ROLE, and ADMIN_UPGRADER_ROLE. FNDN is NOT a co-holder of any operational role.
+        // SYNC_ROLE, and ADMIN_UPGRADER_ROLE. FNDN is intentionally a co-holder of
+        // ADMIN_ORACLE_QUOTER_ROLE (Immediate) for emergency oracle re-pegs.
         _assertMembership(ADMIN_PAUSER_ROLE, WAY, DELAY_IMMEDIATE, "ADMIN_PAUSER_ROLE @ WAY");
         _assertMembership(LP_ROLE_ADMIN_ROLE, WAY, DELAY_IMMEDIATE, "LP_ROLE_ADMIN_ROLE @ WAY");
         _assertMembership(SYNC_ROLE, WAY, DELAY_IMMEDIATE, "SYNC_ROLE @ WAY");
-        _assertMembership(ADMIN_ORACLE_QUOTER_ROLE, WAY, DELAY_STANDARD, "ADMIN_ORACLE_QUOTER_ROLE @ WAY");
         _assertMembership(DEPLOYER_ROLE_ADMIN_ROLE, WAY, DELAY_STANDARD, "DEPLOYER_ROLE_ADMIN_ROLE @ WAY");
         _assertMembership(ADMIN_KERNEL_ROLE, WAY, DELAY_CRITICAL, "ADMIN_KERNEL_ROLE @ WAY");
         _assertMembership(ADMIN_ACCOUNTANT_ROLE, WAY, DELAY_CRITICAL, "ADMIN_ACCOUNTANT_ROLE @ WAY");
         _assertMembership(ADMIN_PROTOCOL_FEE_SETTER_ROLE, WAY, DELAY_CRITICAL, "ADMIN_PROTOCOL_FEE_SETTER_ROLE @ WAY");
+        _assertMembership(ADMIN_ORACLE_QUOTER_ROLE, WAY, DELAY_CRITICAL, "ADMIN_ORACLE_QUOTER_ROLE @ WAY");
         _assertMembership(ADMIN_ENTRY_POINT_ROLE, WAY, DELAY_CRITICAL, "ADMIN_ENTRY_POINT_ROLE @ WAY");
         _assertMembership(ADMIN_UPGRADER_ROLE, WAY, DELAY_ROOT, "ADMIN_UPGRADER_ROLE @ WAY");
     }
@@ -202,7 +205,14 @@ contract DawnMigrationTest is RoleBehaviorBase, MigrateDawn {
     function test_AdminOracleQuoterRole_Behavior_WAY() public {
         address kernel = getMarketAddresses(MAINNET, marketNames(MAINNET)[0]).kernel;
         bytes memory data = abi.encodeWithSignature("setConversionRate(uint256,bool)", uint256(1e18), false);
-        _assertDelayedRoleBehavior("ADMIN_ORACLE_QUOTER_ROLE @ WAY", ADMIN_ORACLE_QUOTER_ROLE, WAY, DELAY_STANDARD, kernel, data, FNDN);
+        _assertDelayedRoleBehavior("ADMIN_ORACLE_QUOTER_ROLE @ WAY", ADMIN_ORACLE_QUOTER_ROLE, WAY, DELAY_CRITICAL, kernel, data, FNDN);
+    }
+
+    function test_AdminOracleQuoterRole_Behavior_FNDN() public {
+        // FNDN co-holds the role at Immediate for emergency oracle re-pegs.
+        address kernel = getMarketAddresses(MAINNET, marketNames(MAINNET)[0]).kernel;
+        bytes memory data = abi.encodeWithSignature("setConversionRate(uint256,bool)", uint256(1e18), false);
+        _assertImmediateRoleBehavior("ADMIN_ORACLE_QUOTER_ROLE @ FNDN", ADMIN_ORACLE_QUOTER_ROLE, FNDN, kernel, data);
     }
 
     function test_DeployerRoleAdminRole_Behavior_WAY() public {
