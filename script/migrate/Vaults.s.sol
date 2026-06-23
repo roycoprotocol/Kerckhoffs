@@ -52,6 +52,7 @@ contract MigrateVaults is AccessManagerDumper, SafeSimulator, Script {
     // ═══════════════════════════════════════════════════════════════════════════
 
     function run() external {
+        _assertProductionMultisigs();
         // Vaults are Ethereum-only.
         _processChain(MAINNET);
     }
@@ -246,13 +247,13 @@ contract MigrateVaults is AccessManagerDumper, SafeSimulator, Script {
     ///         - `VAULT_MANAGER` ← `vaultManagerSelectors`
     ///         - `STRATEGY_MANAGER` ← `strategyManagerSelectors`
     ///         - `HOOK_MANAGER` ← `hookManagerSelectors`
-    ///       All three held by WAY at Critical (48h), guardian = `GUARDIAN_ROLE` (FNDN-cancellable).
+    ///       All three held by WAY at 60h, guardian = `GUARDIAN_ROLE` (FNDN-cancellable).
     ///       The native `vault.grantRole` / `vault.revokeRole` paths are not bound to any
     ///       specific AM role and fall through to the default (`ADMIN_ROLE`), so adding new
     ///       holders to a native vault role requires FNDN's 7d ADMIN_ROLE flow.
     ///       `ALLOCATOR` / `WITHDRAWAL_MANAGER` stay native (Immediate, DIAL).
     ///   (b) **Strategy-level** wiring for the makina-strategy adapter:
-    ///         - `STRATEGY_PAUSER` → WAY @ Immediate
+    ///         - `STRATEGY_PAUSER` → WAY_PAUSE @ Immediate (WAY revoked)
     ///         - `STRATEGY_UNPAUSER` → FNDN @ Immediate
     ///         - `STRATEGY_RESCUE` → FNDN @ 30d (single AM-side delay; `rescueToken` is
     ///           `restricted` with no internal timelock, so this is the only gate)
@@ -263,9 +264,10 @@ contract MigrateVaults is AccessManagerDumper, SafeSimulator, Script {
         require(DIAL != address(0), "DIAL multisig must be set before applying vault migration");
 
         // Vault: 3 labels + 3 setTargetFunctionRole + 3 setRoleGuardian + 3 grants = 12
-        // Strategy: 4 labels + 4 setTargetFunctionRole + 1 setRoleGuardian (RESCUE) + 4 grants = 13
+        // Strategy: 4 labels + 4 setTargetFunctionRole + 1 setRoleGuardian (RESCUE) + 4 grants
+        //           + 1 revoke (WAY from STRATEGY_PAUSER) = 14
         uint256 vaultTxs = 12;
-        uint256 strategyTxs = 4 + 4 + 1 + 4;
+        uint256 strategyTxs = 4 + 4 + 1 + 4 + 1;
         SafeTransaction[] memory txs = new SafeTransaction[](vaultTxs + strategyTxs);
         uint256 t;
 
@@ -282,9 +284,9 @@ contract MigrateVaults is AccessManagerDumper, SafeSimulator, Script {
         txs[t++] = buildSetRoleGuardian(ROYCO_FACTORY, STRATEGY_MANAGER, GUARDIAN_ROLE);
         txs[t++] = buildSetRoleGuardian(ROYCO_FACTORY, HOOK_MANAGER, GUARDIAN_ROLE);
 
-        txs[t++] = buildGrantRole(ROYCO_FACTORY, VAULT_MANAGER, WAY, DELAY_CRITICAL);
-        txs[t++] = buildGrantRole(ROYCO_FACTORY, STRATEGY_MANAGER, WAY, DELAY_CRITICAL);
-        txs[t++] = buildGrantRole(ROYCO_FACTORY, HOOK_MANAGER, WAY, DELAY_CRITICAL);
+        txs[t++] = buildGrantRole(ROYCO_FACTORY, VAULT_MANAGER, WAY, DELAY_MIN);
+        txs[t++] = buildGrantRole(ROYCO_FACTORY, STRATEGY_MANAGER, WAY, DELAY_MIN);
+        txs[t++] = buildGrantRole(ROYCO_FACTORY, HOOK_MANAGER, WAY, DELAY_MIN);
 
         // ── Strategy labels ──────────────────────────────────────────────────
         txs[t++] = buildLabelRole(ROYCO_FACTORY, STRATEGY_PAUSER, string.concat(_vaultName, "_STRATEGY_PAUSER"));
@@ -304,7 +306,10 @@ contract MigrateVaults is AccessManagerDumper, SafeSimulator, Script {
         txs[t++] = buildSetRoleGuardian(ROYCO_FACTORY, STRATEGY_RESCUE, GUARDIAN_ROLE);
 
         // ── Strategy grants ──────────────────────────────────────────────────
-        txs[t++] = buildGrantRole(ROYCO_FACTORY, STRATEGY_PAUSER, WAY, DELAY_IMMEDIATE);
+        // Pause goes to the dedicated WAY_PAUSE multisig; WAY is revoked below. (The revoke is a
+        // safe no-op if WAY was never granted STRATEGY_PAUSER — OZ `_revokeRole` returns false.)
+        txs[t++] = buildGrantRole(ROYCO_FACTORY, STRATEGY_PAUSER, WAY_PAUSE, DELAY_IMMEDIATE);
+        txs[t++] = buildRevokeRole(ROYCO_FACTORY, STRATEGY_PAUSER, WAY);
         txs[t++] = buildGrantRole(ROYCO_FACTORY, STRATEGY_UNPAUSER, FNDN, DELAY_IMMEDIATE);
         txs[t++] = buildGrantRole(ROYCO_FACTORY, STRATEGY_RESCUE, FNDN, DELAY_RESCUE);
         txs[t++] = buildGrantRole(ROYCO_FACTORY, STRATEGY_ALLOCATOR, DIAL, DELAY_IMMEDIATE);

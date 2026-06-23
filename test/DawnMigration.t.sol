@@ -42,6 +42,8 @@ contract DawnMigrationTest is RoleBehaviorBase, MigrateDawn {
         //             (emergency oracle re-pegs; co-held with WAY).
         _assertMembership(ADMIN_ROLE, FNDN, DELAY_ROOT, "ADMIN_ROLE @ FNDN");
         _assertMembership(GUARDIAN_ROLE, FNDN, DELAY_IMMEDIATE, "GUARDIAN_ROLE @ FNDN");
+        // GUARDIAN_ROLE is co-held by the dedicated 1/4 FNDN_VETO multisig.
+        _assertMembership(GUARDIAN_ROLE, FNDN_VETO, DELAY_IMMEDIATE, "GUARDIAN_ROLE @ FNDN_VETO");
         _assertMembership(ADMIN_UNPAUSER_ROLE, FNDN, DELAY_IMMEDIATE, "ADMIN_UNPAUSER_ROLE @ FNDN");
         _assertMembership(ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE, FNDN, DELAY_IMMEDIATE, "ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE @ FNDN");
         _assertMembership(DEPLOYER_ROLE, FNDN, DELAY_IMMEDIATE, "DEPLOYER_ROLE @ FNDN");
@@ -49,18 +51,18 @@ contract DawnMigrationTest is RoleBehaviorBase, MigrateDawn {
     }
 
     function test_PostState_WAY_RoleDelays() public view {
-        // WAY holds every parameter-update role plus ADMIN_PAUSER_ROLE, LP_ROLE_ADMIN_ROLE,
-        // SYNC_ROLE, and ADMIN_UPGRADER_ROLE. FNDN is intentionally a co-holder of
+        // WAY holds every parameter-update role plus LP_ROLE_ADMIN_ROLE, SYNC_ROLE, and
+        // ADMIN_UPGRADER_ROLE. Pause moved to WAY_PAUSE. FNDN is intentionally a co-holder of
         // ADMIN_ORACLE_QUOTER_ROLE (Immediate) for emergency oracle re-pegs.
-        _assertMembership(ADMIN_PAUSER_ROLE, WAY, DELAY_IMMEDIATE, "ADMIN_PAUSER_ROLE @ WAY");
+        _assertMembership(ADMIN_PAUSER_ROLE, WAY_PAUSE, DELAY_IMMEDIATE, "ADMIN_PAUSER_ROLE @ WAY_PAUSE");
         _assertMembership(LP_ROLE_ADMIN_ROLE, WAY, DELAY_IMMEDIATE, "LP_ROLE_ADMIN_ROLE @ WAY");
         _assertMembership(SYNC_ROLE, WAY, DELAY_IMMEDIATE, "SYNC_ROLE @ WAY");
-        _assertMembership(DEPLOYER_ROLE_ADMIN_ROLE, WAY, DELAY_STANDARD, "DEPLOYER_ROLE_ADMIN_ROLE @ WAY");
-        _assertMembership(ADMIN_KERNEL_ROLE, WAY, DELAY_CRITICAL, "ADMIN_KERNEL_ROLE @ WAY");
-        _assertMembership(ADMIN_ACCOUNTANT_ROLE, WAY, DELAY_CRITICAL, "ADMIN_ACCOUNTANT_ROLE @ WAY");
-        _assertMembership(ADMIN_PROTOCOL_FEE_SETTER_ROLE, WAY, DELAY_CRITICAL, "ADMIN_PROTOCOL_FEE_SETTER_ROLE @ WAY");
-        _assertMembership(ADMIN_ORACLE_QUOTER_ROLE, WAY, DELAY_CRITICAL, "ADMIN_ORACLE_QUOTER_ROLE @ WAY");
-        _assertMembership(ADMIN_ENTRY_POINT_ROLE, WAY, DELAY_CRITICAL, "ADMIN_ENTRY_POINT_ROLE @ WAY");
+        _assertMembership(DEPLOYER_ROLE_ADMIN_ROLE, WAY, DELAY_MIN, "DEPLOYER_ROLE_ADMIN_ROLE @ WAY");
+        _assertMembership(ADMIN_KERNEL_ROLE, WAY, DELAY_MIN, "ADMIN_KERNEL_ROLE @ WAY");
+        _assertMembership(ADMIN_ACCOUNTANT_ROLE, WAY, DELAY_MIN, "ADMIN_ACCOUNTANT_ROLE @ WAY");
+        _assertMembership(ADMIN_PROTOCOL_FEE_SETTER_ROLE, WAY, DELAY_MIN, "ADMIN_PROTOCOL_FEE_SETTER_ROLE @ WAY");
+        _assertMembership(ADMIN_ORACLE_QUOTER_ROLE, WAY, DELAY_MIN, "ADMIN_ORACLE_QUOTER_ROLE @ WAY");
+        _assertMembership(ADMIN_ENTRY_POINT_ROLE, WAY, DELAY_MIN, "ADMIN_ENTRY_POINT_ROLE @ WAY");
         _assertMembership(ADMIN_UPGRADER_ROLE, WAY, DELAY_ROOT, "ADMIN_UPGRADER_ROLE @ WAY");
     }
 
@@ -71,9 +73,12 @@ contract DawnMigrationTest is RoleBehaviorBase, MigrateDawn {
             (bool isMember,) = am.hasRole(waOnly[i], FNDN);
             require(!isMember, "FNDN still holds a WAY-only role");
         }
-        // WAY should NOT hold GUARDIAN_ROLE.
+        // WAY should NOT hold GUARDIAN_ROLE (now FNDN + FNDN_VETO).
         (bool wayHasGuardian,) = am.hasRole(GUARDIAN_ROLE, WAY);
         require(!wayHasGuardian, "WAY still holds GUARDIAN_ROLE");
+        // WAY should NOT hold ADMIN_PAUSER_ROLE (pause moved to WAY_PAUSE).
+        (bool wayHasPauser,) = am.hasRole(ADMIN_PAUSER_ROLE, WAY);
+        require(!wayHasPauser, "WAY still holds ADMIN_PAUSER_ROLE");
     }
 
     function test_PostState_EntryPoint_Wiring() public view {
@@ -136,8 +141,8 @@ contract DawnMigrationTest is RoleBehaviorBase, MigrateDawn {
     // ROLE BEHAVIOR — Immediate roles
     // ═══════════════════════════════════════════════════════════════════════════
 
-    function test_AdminPauserRole_Behavior_WAY() public {
-        _assertImmediateRoleBehavior("ADMIN_PAUSER_ROLE @ WAY", ADMIN_PAUSER_ROLE, WAY, ep, abi.encodeCall(IRoycoAuth.pause, ()));
+    function test_AdminPauserRole_Behavior_WAY_PAUSE() public {
+        _assertImmediateRoleBehavior("ADMIN_PAUSER_ROLE @ WAY_PAUSE", ADMIN_PAUSER_ROLE, WAY_PAUSE, ep, abi.encodeCall(IRoycoAuth.pause, ()));
     }
 
     function test_AdminUnpauserRole_Behavior_FNDN() public {
@@ -168,6 +173,7 @@ contract DawnMigrationTest is RoleBehaviorBase, MigrateDawn {
 
     function test_GuardianRole_Behavior_FNDN() public view {
         _assertMembership(GUARDIAN_ROLE, FNDN, DELAY_IMMEDIATE, "GUARDIAN_ROLE @ FNDN");
+        _assertMembership(GUARDIAN_ROLE, FNDN_VETO, DELAY_IMMEDIATE, "GUARDIAN_ROLE @ FNDN_VETO");
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -181,31 +187,31 @@ contract DawnMigrationTest is RoleBehaviorBase, MigrateDawn {
 
     function test_AdminEntryPointRole_Behavior_WAY() public {
         bytes memory data = abi.encodeCall(IRoycoEntryPoint.modifyTrancheConfigs, (new address[](0), new IRoycoEntryPoint.TrancheConfig[](0)));
-        _assertDelayedRoleBehavior("ADMIN_ENTRY_POINT_ROLE @ WAY", ADMIN_ENTRY_POINT_ROLE, WAY, DELAY_CRITICAL, ep, data, FNDN);
+        _assertDelayedRoleBehavior("ADMIN_ENTRY_POINT_ROLE @ WAY", ADMIN_ENTRY_POINT_ROLE, WAY, DELAY_MIN, ep, data, FNDN);
     }
 
     function test_AdminKernelRole_Behavior_WAY() public {
         address kernel = getMarketAddresses(MAINNET, marketNames(MAINNET)[0]).kernel;
         bytes memory data = abi.encodeCall(IRoycoKernel.setProtocolFeeRecipient, (FNDN));
-        _assertDelayedRoleBehavior("ADMIN_KERNEL_ROLE @ WAY", ADMIN_KERNEL_ROLE, WAY, DELAY_CRITICAL, kernel, data, FNDN);
+        _assertDelayedRoleBehavior("ADMIN_KERNEL_ROLE @ WAY", ADMIN_KERNEL_ROLE, WAY, DELAY_MIN, kernel, data, FNDN);
     }
 
     function test_AdminAccountantRole_Behavior_WAY() public {
         address accountant = getMarketAddresses(MAINNET, marketNames(MAINNET)[0]).accountant;
         bytes memory data = abi.encodeCall(IRoycoAccountant.setBeta, (uint96(0)));
-        _assertDelayedRoleBehavior("ADMIN_ACCOUNTANT_ROLE @ WAY", ADMIN_ACCOUNTANT_ROLE, WAY, DELAY_CRITICAL, accountant, data, FNDN);
+        _assertDelayedRoleBehavior("ADMIN_ACCOUNTANT_ROLE @ WAY", ADMIN_ACCOUNTANT_ROLE, WAY, DELAY_MIN, accountant, data, FNDN);
     }
 
     function test_AdminProtocolFeeSetterRole_Behavior_WAY() public {
         address accountant = getMarketAddresses(MAINNET, marketNames(MAINNET)[0]).accountant;
         bytes memory data = abi.encodeCall(IRoycoAccountant.setSeniorTrancheProtocolFee, (uint64(0)));
-        _assertDelayedRoleBehavior("ADMIN_PROTOCOL_FEE_SETTER_ROLE @ WAY", ADMIN_PROTOCOL_FEE_SETTER_ROLE, WAY, DELAY_CRITICAL, accountant, data, FNDN);
+        _assertDelayedRoleBehavior("ADMIN_PROTOCOL_FEE_SETTER_ROLE @ WAY", ADMIN_PROTOCOL_FEE_SETTER_ROLE, WAY, DELAY_MIN, accountant, data, FNDN);
     }
 
     function test_AdminOracleQuoterRole_Behavior_WAY() public {
         address kernel = getMarketAddresses(MAINNET, marketNames(MAINNET)[0]).kernel;
         bytes memory data = abi.encodeWithSignature("setConversionRate(uint256,bool)", uint256(1e18), false);
-        _assertDelayedRoleBehavior("ADMIN_ORACLE_QUOTER_ROLE @ WAY", ADMIN_ORACLE_QUOTER_ROLE, WAY, DELAY_CRITICAL, kernel, data, FNDN);
+        _assertDelayedRoleBehavior("ADMIN_ORACLE_QUOTER_ROLE @ WAY", ADMIN_ORACLE_QUOTER_ROLE, WAY, DELAY_MIN, kernel, data, FNDN);
     }
 
     function test_AdminOracleQuoterRole_Behavior_FNDN() public {
@@ -217,7 +223,7 @@ contract DawnMigrationTest is RoleBehaviorBase, MigrateDawn {
 
     function test_DeployerRoleAdminRole_Behavior_WAY() public {
         bytes memory data = abi.encodeCall(IAccessManager.grantRole, (DEPLOYER_ROLE, address(0xCAFE), 0));
-        _assertDelayedRoleBehavior("DEPLOYER_ROLE_ADMIN_ROLE @ WAY", DEPLOYER_ROLE_ADMIN_ROLE, WAY, DELAY_STANDARD, ROYCO_FACTORY, data, FNDN);
+        _assertDelayedRoleBehavior("DEPLOYER_ROLE_ADMIN_ROLE @ WAY", DEPLOYER_ROLE_ADMIN_ROLE, WAY, DELAY_MIN, ROYCO_FACTORY, data, FNDN);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -292,6 +298,16 @@ contract DawnMigrationTest is RoleBehaviorBase, MigrateDawn {
         require(!isMember, "FNDN should not hold ADMIN_PAUSER_ROLE");
         bytes memory data = abi.encodeCall(IRoycoAuth.pause, ());
         vm.prank(FNDN);
+        vm.expectRevert();
+        am.execute(ep, data);
+    }
+
+    function test_Negative_WAYCannotPause() public {
+        // WAY no longer holds ADMIN_PAUSER_ROLE — pause moved to the WAY_PAUSE multisig.
+        (bool isMember,) = am.hasRole(ADMIN_PAUSER_ROLE, WAY);
+        require(!isMember, "WAY should not hold ADMIN_PAUSER_ROLE");
+        bytes memory data = abi.encodeCall(IRoycoAuth.pause, ());
+        vm.prank(WAY);
         vm.expectRevert();
         am.execute(ep, data);
     }

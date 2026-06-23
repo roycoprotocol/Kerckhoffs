@@ -62,6 +62,7 @@ abstract contract MigrationBase is AccessManagerDumper, SafeSimulator {
     // ═══════════════════════════════════════════════════════════════════════════
 
     function run() external virtual {
+        _assertProductionMultisigs();
         uint256[] memory chains = _targetChains();
         for (uint256 i = 0; i < chains.length; i++) {
             _processChain(chains[i]);

@@ -17,7 +17,7 @@ import { RoleBehaviorBase } from "./_RoleBehaviorBase.sol";
  * @notice Verifies the Vaults migration:
  *   - AM holds every native AccessControl role on each vault (Phase 1).
  *   - Every vault selector (management + native admin) routes through `VAULT_MANAGER` held
- *     by WAY @ Critical 48h, FNDN-cancellable.
+ *     by WAY @ 60h, FNDN-cancellable.
  *   - Strategy roles: WAY pauses Immediate, FNDN unpauses Immediate, FNDN rescues @ 30d
  *     (FNDN-cancellable), DIAL allocates Immediate.
  *
@@ -69,10 +69,10 @@ contract VaultsMigrationTest is RoleBehaviorBase, MigrateVaults {
     }
 
     function test_PostState_ConcreteVaultRoles_HoldersAndGuardians() public view {
-        // Three per-concrete-role AM roles, each WAY @ 48h, FNDN-cancellable.
-        _assertMembership(VAULT_MANAGER, WAY, DELAY_CRITICAL, "VAULT_MANAGER @ WAY");
-        _assertMembership(STRATEGY_MANAGER, WAY, DELAY_CRITICAL, "STRATEGY_MANAGER @ WAY");
-        _assertMembership(HOOK_MANAGER, WAY, DELAY_CRITICAL, "HOOK_MANAGER @ WAY");
+        // Three per-concrete-role AM roles, each WAY @ 60h, FNDN-cancellable.
+        _assertMembership(VAULT_MANAGER, WAY, DELAY_MIN, "VAULT_MANAGER @ WAY");
+        _assertMembership(STRATEGY_MANAGER, WAY, DELAY_MIN, "STRATEGY_MANAGER @ WAY");
+        _assertMembership(HOOK_MANAGER, WAY, DELAY_MIN, "HOOK_MANAGER @ WAY");
         require(am.getRoleGuardian(VAULT_MANAGER) == GUARDIAN_ROLE, "VAULT_MANAGER guardian mismatch");
         require(am.getRoleGuardian(STRATEGY_MANAGER) == GUARDIAN_ROLE, "STRATEGY_MANAGER guardian mismatch");
         require(am.getRoleGuardian(HOOK_MANAGER) == GUARDIAN_ROLE, "HOOK_MANAGER guardian mismatch");
@@ -132,7 +132,9 @@ contract VaultsMigrationTest is RoleBehaviorBase, MigrateVaults {
         require(am.getTargetFunctionRole(s.strategy, IRoycoAuth.unpause.selector) == STRATEGY_UNPAUSER, "Strategy unpause role mismatch");
         require(am.getTargetFunctionRole(s.strategy, IStrategyTemplate.rescueToken.selector) == STRATEGY_RESCUE, "Strategy rescueToken role mismatch");
 
-        _assertMembership(STRATEGY_PAUSER, WAY, DELAY_IMMEDIATE, string.concat(_vaultName, " STRATEGY_PAUSER @ WAY"));
+        _assertMembership(STRATEGY_PAUSER, WAY_PAUSE, DELAY_IMMEDIATE, string.concat(_vaultName, " STRATEGY_PAUSER @ WAY_PAUSE"));
+        (bool wayHasStrategyPauser,) = am.hasRole(STRATEGY_PAUSER, WAY);
+        require(!wayHasStrategyPauser, string.concat(_vaultName, " WAY should not hold STRATEGY_PAUSER"));
         _assertMembership(STRATEGY_UNPAUSER, FNDN, DELAY_IMMEDIATE, string.concat(_vaultName, " STRATEGY_UNPAUSER @ FNDN"));
         _assertMembership(STRATEGY_RESCUE, FNDN, DELAY_RESCUE, string.concat(_vaultName, " STRATEGY_RESCUE @ FNDN"));
         _assertMembership(STRATEGY_ALLOCATOR, DIAL, DELAY_IMMEDIATE, string.concat(_vaultName, " STRATEGY_ALLOCATOR @ DIAL"));
@@ -140,21 +142,21 @@ contract VaultsMigrationTest is RoleBehaviorBase, MigrateVaults {
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // VAULT_MANAGER behavior — WAY @ 48h, FNDN-cancellable
+    // VAULT_MANAGER behavior — WAY @ 60h, FNDN-cancellable
     // ═══════════════════════════════════════════════════════════════════════════
 
     function test_VaultManagement_srRoyUSDC_DelayedAndCancellable() public {
         VaultAddresses memory v = getVaultAddresses(MAINNET, SRROYUSDC);
         bytes4[] memory sel = Selectors.vaultManagerSelectors();
         bytes memory data = abi.encodeWithSelector(sel[0]);
-        _assertDelayedRoleBehavior(string.concat(SRROYUSDC, " VAULT_MANAGER"), VAULT_MANAGER, WAY, DELAY_CRITICAL, v.vault, data, FNDN);
+        _assertDelayedRoleBehavior(string.concat(SRROYUSDC, " VAULT_MANAGER"), VAULT_MANAGER, WAY, DELAY_MIN, v.vault, data, FNDN);
     }
 
     function test_VaultManagement_roywstETH_DelayedAndCancellable() public {
         VaultAddresses memory v = getVaultAddresses(MAINNET, ROYWSTETH);
         bytes4[] memory sel = Selectors.vaultManagerSelectors();
         bytes memory data = abi.encodeWithSelector(sel[0]);
-        _assertDelayedRoleBehavior(string.concat(ROYWSTETH, " VAULT_MANAGER"), VAULT_MANAGER, WAY, DELAY_CRITICAL, v.vault, data, FNDN);
+        _assertDelayedRoleBehavior(string.concat(ROYWSTETH, " VAULT_MANAGER"), VAULT_MANAGER, WAY, DELAY_MIN, v.vault, data, FNDN);
     }
 
     // vault.grantRole / vault.revokeRole default to ADMIN_ROLE (FNDN @ 7d). Verify a delayed
@@ -171,38 +173,38 @@ contract VaultsMigrationTest is RoleBehaviorBase, MigrateVaults {
         VaultAddresses memory v = getVaultAddresses(MAINNET, SRROYUSDC);
         bytes4[] memory sel = Selectors.strategyManagerSelectors();
         bytes memory data = abi.encodeWithSelector(sel[0]);
-        _assertDelayedRoleBehavior(string.concat(SRROYUSDC, " STRATEGY_MANAGER"), STRATEGY_MANAGER, WAY, DELAY_CRITICAL, v.vault, data, FNDN);
+        _assertDelayedRoleBehavior(string.concat(SRROYUSDC, " STRATEGY_MANAGER"), STRATEGY_MANAGER, WAY, DELAY_MIN, v.vault, data, FNDN);
     }
 
     function test_HookManagement_srRoyUSDC_DelayedAndCancellable() public {
         VaultAddresses memory v = getVaultAddresses(MAINNET, SRROYUSDC);
         bytes4[] memory sel = Selectors.hookManagerSelectors();
         bytes memory data = abi.encodeWithSelector(sel[0]);
-        _assertDelayedRoleBehavior(string.concat(SRROYUSDC, " HOOK_MANAGER"), HOOK_MANAGER, WAY, DELAY_CRITICAL, v.vault, data, FNDN);
+        _assertDelayedRoleBehavior(string.concat(SRROYUSDC, " HOOK_MANAGER"), HOOK_MANAGER, WAY, DELAY_MIN, v.vault, data, FNDN);
     }
 
     function test_StrategyManagement_roywstETH_DelayedAndCancellable() public {
         VaultAddresses memory v = getVaultAddresses(MAINNET, ROYWSTETH);
         bytes4[] memory sel = Selectors.strategyManagerSelectors();
         bytes memory data = abi.encodeWithSelector(sel[0]);
-        _assertDelayedRoleBehavior(string.concat(ROYWSTETH, " STRATEGY_MANAGER"), STRATEGY_MANAGER, WAY, DELAY_CRITICAL, v.vault, data, FNDN);
+        _assertDelayedRoleBehavior(string.concat(ROYWSTETH, " STRATEGY_MANAGER"), STRATEGY_MANAGER, WAY, DELAY_MIN, v.vault, data, FNDN);
     }
 
     function test_HookManagement_roywstETH_DelayedAndCancellable() public {
         VaultAddresses memory v = getVaultAddresses(MAINNET, ROYWSTETH);
         bytes4[] memory sel = Selectors.hookManagerSelectors();
         bytes memory data = abi.encodeWithSelector(sel[0]);
-        _assertDelayedRoleBehavior(string.concat(ROYWSTETH, " HOOK_MANAGER"), HOOK_MANAGER, WAY, DELAY_CRITICAL, v.vault, data, FNDN);
+        _assertDelayedRoleBehavior(string.concat(ROYWSTETH, " HOOK_MANAGER"), HOOK_MANAGER, WAY, DELAY_MIN, v.vault, data, FNDN);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Strategy role behavior
     // ═══════════════════════════════════════════════════════════════════════════
 
-    function test_StrategyPauserRole_srRoyUSDC_WAY_Immediate() public {
+    function test_StrategyPauserRole_srRoyUSDC_WAY_PAUSE_Immediate() public {
         StrategyStack memory s = getStrategyStack(MAINNET, SRROYUSDC);
         bytes memory data = abi.encodeCall(IRoycoAuth.pause, ());
-        _assertImmediateRoleBehavior(string.concat(SRROYUSDC, " STRATEGY_PAUSER @ WAY"), STRATEGY_PAUSER, WAY, s.strategy, data);
+        _assertImmediateRoleBehavior(string.concat(SRROYUSDC, " STRATEGY_PAUSER @ WAY_PAUSE"), STRATEGY_PAUSER, WAY_PAUSE, s.strategy, data);
     }
 
     function test_StrategyUnpauserRole_srRoyUSDC_FNDN_Immediate() public {
@@ -223,10 +225,10 @@ contract VaultsMigrationTest is RoleBehaviorBase, MigrateVaults {
         _assertImmediateRoleBehavior(string.concat(SRROYUSDC, " STRATEGY_ALLOCATOR @ DIAL"), STRATEGY_ALLOCATOR, DIAL, s.strategy, data);
     }
 
-    function test_StrategyPauserRole_roywstETH_WAY_Immediate() public {
+    function test_StrategyPauserRole_roywstETH_WAY_PAUSE_Immediate() public {
         StrategyStack memory s = getStrategyStack(MAINNET, ROYWSTETH);
         bytes memory data = abi.encodeCall(IRoycoAuth.pause, ());
-        _assertImmediateRoleBehavior(string.concat(ROYWSTETH, " STRATEGY_PAUSER @ WAY"), STRATEGY_PAUSER, WAY, s.strategy, data);
+        _assertImmediateRoleBehavior(string.concat(ROYWSTETH, " STRATEGY_PAUSER @ WAY_PAUSE"), STRATEGY_PAUSER, WAY_PAUSE, s.strategy, data);
     }
 
     function test_StrategyUnpauserRole_roywstETH_FNDN_Immediate() public {

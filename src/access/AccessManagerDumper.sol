@@ -94,6 +94,8 @@ abstract contract AccessManagerDumper is Roles, Multisigs, Markets, Vaults, Stra
         // Curated holders
         _logMember(_am, _role, "FNDN", FNDN);
         _logMember(_am, _role, "WAY ", WAY);
+        _logMember(_am, _role, "WAY_PAUSE", WAY_PAUSE);
+        _logMember(_am, _role, "FNDN_VETO", FNDN_VETO);
         if (DIAL != address(0)) _logMember(_am, _role, "DIAL", DIAL);
 
         // Per-role: also check if the entry point or factory itself holds it (used for self-grants)

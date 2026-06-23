@@ -15,25 +15,29 @@ import { MigrationBase } from "../../src/migration/MigrationBase.sol";
 /**
  * @title MigrateDawn
  * @notice Migrates the Royco Dawn surface (markets + entry point) to the canonical security
- *         model. **WAY-centric**: WAY holds every parameter-update role (under specified
- *         delays) and `ADMIN_PAUSER_ROLE`. FNDN holds `ADMIN_ROLE` (Root 7d, role
- *         management), `GUARDIAN_ROLE` (cancellation), and `ADMIN_UNPAUSER_ROLE` (Immediate).
- *         Every WAY-scheduled op is FNDN-cancellable. FNDN's own ADMIN_ROLE-gated ops are
+ *         model. **WAY-centric**: WAY holds every parameter-update role under a uniform 60h
+ *         minimum delay. Pause is split out to the dedicated `WAY_PAUSE` multisig
+ *         (`ADMIN_PAUSER_ROLE`, Immediate). FNDN holds `ADMIN_ROLE` (Root 7d, role
+ *         management) and `ADMIN_UNPAUSER_ROLE` (Immediate); `GUARDIAN_ROLE` (cancellation)
+ *         is co-held by FNDN and the dedicated `FNDN_VETO` multisig. Every WAY-scheduled op
+ *         is cancellable by either guardian holder. FNDN's own ADMIN_ROLE-gated ops are
  *         intentionally non-cancellable by anyone but FNDN itself.
  *
  * **Diff-based.** Each step reads on-chain state and emits a Safe transaction ONLY when the
  * current configuration differs from the desired configuration.
  *
  * Order:
- *   1. WAY operational role grants (Immediate / 24h / 48h / 7d) + FNDN narrow grants
+ *   1. WAY operational role grants (Immediate / 60h / 7d) + FNDN narrow grants
  *      (`ADMIN_UNPAUSER_ROLE`, `ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE`, `GUARDIAN_ROLE`).
- *   2. Revoke prior holders that the new model says shouldn't hold a role (e.g. FNDN losing
- *      operational roles to WAY).
- *   3. Entry point selector + role wiring.
- *   4. Tranche binding consistency backfill.
- *   5. Unpause re-bind (`unpause` selectors → `ADMIN_UNPAUSER_ROLE`, FNDN @ Immediate).
- *   6. Backfill `labelRole` for every Dawn role on first-run.
- *   7. ADMIN_ROLE delay flip to Root (7d) on FNDN — LAST.
+ *   2. Emergency-multisig grants: `ADMIN_PAUSER_ROLE` → WAY_PAUSE, `GUARDIAN_ROLE` co-grant
+ *      → FNDN_VETO (both Immediate).
+ *   3. Revoke prior holders the new model says shouldn't hold a role (FNDN losing operational
+ *      roles to WAY; WAY losing `GUARDIAN_ROLE` and `ADMIN_PAUSER_ROLE`).
+ *   4. Entry point selector + role wiring.
+ *   5. Tranche binding consistency backfill.
+ *   6. Unpause re-bind (`unpause` selectors → `ADMIN_UNPAUSER_ROLE`, FNDN @ Immediate).
+ *   7. Backfill `labelRole` for every Dawn role on first-run.
+ *   8. ADMIN_ROLE delay flip to Root (7d) on FNDN — LAST.
  *
  * Output: `output/migrate/dawn/{chainId}_apply_security_migration.json` (one per chain).
  */
@@ -75,6 +79,7 @@ contract MigrateDawn is MigrationBase, Script {
 
         n = _diffWAYRoleGrants(buf, n, am);
         n = _diffFNDNRoleGrants(buf, n, am);
+        n = _diffEmergencyMultisigGrants(buf, n, am);
         n = _diffRevokeStaleHolders(buf, n, am);
         n = _diffEntryPointConfig(buf, n, am, _chainId);
         n = _diffTrancheBindings(buf, n, am, _chainId);
@@ -87,23 +92,22 @@ contract MigrateDawn is MigrationBase, Script {
 
     // ── Step 1: WAY operational role grants ───────────────────────────────────
 
-    /// @dev WAY holds every parameter-update role (per spec) plus pause and upgrade.
-    ///      All delayed WAY ops are FNDN-cancellable via `GUARDIAN_ROLE` (default guardian
+    /// @dev WAY holds every parameter-update role (per spec) plus upgrade. Pause is NOT here —
+    ///      it moved to the dedicated WAY_PAUSE multisig (see `_diffEmergencyMultisigGrants`).
+    ///      All delayed WAY ops are cancellable via `GUARDIAN_ROLE` (default guardian
     ///      `GUARDIAN_ROLE` was set at original Dawn deploy; we backfill it for any role
     ///      that's missing it as part of the unpause/entry-point wiring steps).
     function _diffWAYRoleGrants(SafeTransaction[] memory _buf, uint256 _n, IAccessManager _am) internal view returns (uint256) {
         // Immediate
-        _n = _maybeGrantRole(_buf, _n, _am, ADMIN_PAUSER_ROLE, WAY, DELAY_IMMEDIATE);
         _n = _maybeGrantRole(_buf, _n, _am, LP_ROLE_ADMIN_ROLE, WAY, DELAY_IMMEDIATE);
         _n = _maybeGrantRole(_buf, _n, _am, SYNC_ROLE, WAY, DELAY_IMMEDIATE);
-        // Standard (24h)
-        _n = _maybeGrantRole(_buf, _n, _am, DEPLOYER_ROLE_ADMIN_ROLE, WAY, DELAY_STANDARD);
-        // Critical (48h)
-        _n = _maybeGrantRole(_buf, _n, _am, ADMIN_KERNEL_ROLE, WAY, DELAY_CRITICAL);
-        _n = _maybeGrantRole(_buf, _n, _am, ADMIN_ACCOUNTANT_ROLE, WAY, DELAY_CRITICAL);
-        _n = _maybeGrantRole(_buf, _n, _am, ADMIN_PROTOCOL_FEE_SETTER_ROLE, WAY, DELAY_CRITICAL);
-        _n = _maybeGrantRole(_buf, _n, _am, ADMIN_ORACLE_QUOTER_ROLE, WAY, DELAY_CRITICAL);
-        _n = _maybeGrantRole(_buf, _n, _am, ADMIN_ENTRY_POINT_ROLE, WAY, DELAY_CRITICAL);
+        // Minimum delay (60h)
+        _n = _maybeGrantRole(_buf, _n, _am, DEPLOYER_ROLE_ADMIN_ROLE, WAY, DELAY_MIN);
+        _n = _maybeGrantRole(_buf, _n, _am, ADMIN_KERNEL_ROLE, WAY, DELAY_MIN);
+        _n = _maybeGrantRole(_buf, _n, _am, ADMIN_ACCOUNTANT_ROLE, WAY, DELAY_MIN);
+        _n = _maybeGrantRole(_buf, _n, _am, ADMIN_PROTOCOL_FEE_SETTER_ROLE, WAY, DELAY_MIN);
+        _n = _maybeGrantRole(_buf, _n, _am, ADMIN_ORACLE_QUOTER_ROLE, WAY, DELAY_MIN);
+        _n = _maybeGrantRole(_buf, _n, _am, ADMIN_ENTRY_POINT_ROLE, WAY, DELAY_MIN);
         // Root (7d)
         _n = _maybeGrantRole(_buf, _n, _am, ADMIN_UPGRADER_ROLE, WAY, DELAY_ROOT);
         return _n;
@@ -122,10 +126,24 @@ contract MigrateDawn is MigrationBase, Script {
         return _n;
     }
 
-    // ── Step 2: revoke stale holders ──────────────────────────────────────────
+    // ── Step 2: emergency-multisig grants ─────────────────────────────────────
+
+    /// @dev Dedicated fast-response multisigs (both 1/4, Immediate):
+    ///        - WAY_PAUSE  → `ADMIN_PAUSER_ROLE` (sole pause authority; WAY revoked in step 3).
+    ///        - FNDN_VETO  → `GUARDIAN_ROLE` (co-held with FNDN; cancels any WAY-scheduled op).
+    ///      Both run before the step-8 ADMIN_ROLE delay flip so FNDN can grant immediately.
+    function _diffEmergencyMultisigGrants(SafeTransaction[] memory _buf, uint256 _n, IAccessManager _am) internal view returns (uint256) {
+        _n = _maybeGrantRole(_buf, _n, _am, ADMIN_PAUSER_ROLE, WAY_PAUSE, DELAY_IMMEDIATE);
+        _n = _maybeGrantRole(_buf, _n, _am, GUARDIAN_ROLE, FNDN_VETO, DELAY_IMMEDIATE);
+        return _n;
+    }
+
+    // ── Step 3: revoke stale holders ──────────────────────────────────────────
 
     /// @dev The original Dawn deploy granted many operational roles to FNDN. The new model
-    ///      gives those to WAY exclusively — revoke FNDN where it shouldn't be.
+    ///      gives those to WAY exclusively — revoke FNDN where it shouldn't be. Also revoke
+    ///      WAY from the roles it no longer holds under the new model: `GUARDIAN_ROLE` (now
+    ///      FNDN/FNDN_VETO) and `ADMIN_PAUSER_ROLE` (now WAY_PAUSE).
     function _diffRevokeStaleHolders(SafeTransaction[] memory _buf, uint256 _n, IAccessManager _am) internal view returns (uint256) {
         // Roles where FNDN should NOT be a holder under the new model (WAY-only).
         uint64[] memory waOnly = _wayOnlyRoles();
@@ -135,17 +153,23 @@ contract MigrateDawn is MigrationBase, Script {
                 _buf[_n++] = buildRevokeRole(ROYCO_FACTORY, waOnly[i], FNDN);
             }
         }
-        // GUARDIAN_ROLE: WAY held it under the old model; new model has FNDN as guardian.
+        // GUARDIAN_ROLE: WAY held it under the old model; new model has FNDN + FNDN_VETO.
         (bool wayHasGuardian,) = _am.hasRole(GUARDIAN_ROLE, WAY);
         if (wayHasGuardian) {
             _buf[_n++] = buildRevokeRole(ROYCO_FACTORY, GUARDIAN_ROLE, WAY);
+        }
+        // ADMIN_PAUSER_ROLE: WAY held it under the old model; pause now lives on WAY_PAUSE.
+        (bool wayHasPauser,) = _am.hasRole(ADMIN_PAUSER_ROLE, WAY);
+        if (wayHasPauser) {
+            _buf[_n++] = buildRevokeRole(ROYCO_FACTORY, ADMIN_PAUSER_ROLE, WAY);
         }
         return _n;
     }
 
     /// @dev Roles where FNDN must NOT be a holder under the new model. ADMIN_ORACLE_QUOTER_ROLE
     ///      is intentionally omitted — it's co-held by FNDN @ Immediate (emergency oracle
-    ///      re-peg) and WAY @ 48h (routine quoter changes).
+    ///      re-peg) and WAY @ 60h (routine quoter changes). ADMIN_PAUSER_ROLE stays in the
+    ///      list so FNDN is revoked from it too (pause is WAY_PAUSE-only; WAY revoked above).
     function _wayOnlyRoles() internal pure returns (uint64[] memory roles) {
         roles = new uint64[](9);
         roles[0] = ADMIN_PAUSER_ROLE;
@@ -159,7 +183,7 @@ contract MigrateDawn is MigrationBase, Script {
         roles[8] = SYNC_ROLE;
     }
 
-    // ── Step 3: entry point ───────────────────────────────────────────────────
+    // ── Step 4: entry point ───────────────────────────────────────────────────
 
     function _diffEntryPointConfig(SafeTransaction[] memory _buf, uint256 _n, IAccessManager _am, uint256 _chainId) internal view returns (uint256) {
         address ep = entryPoint(_chainId);
@@ -192,7 +216,7 @@ contract MigrateDawn is MigrationBase, Script {
         return _n;
     }
 
-    // ── Step 4: tranche bindings consistency ──────────────────────────────────
+    // ── Step 5: tranche bindings consistency ──────────────────────────────────
 
     /// @dev Backfill any tranche selector → role binding the original Dawn deploy missed
     ///      (notably `BURNER_ROLE` on older markets). Idempotent: 0 txs if all set.
@@ -231,7 +255,7 @@ contract MigrateDawn is MigrationBase, Script {
         return _n;
     }
 
-    // ── Step 5: unpause rebind ────────────────────────────────────────────────
+    // ── Step 6: unpause rebind ────────────────────────────────────────────────
 
     function _diffUnpauseRebind(SafeTransaction[] memory _buf, uint256 _n, IAccessManager _am, uint256 _chainId) internal view returns (uint256) {
         if (_am.getRoleGuardian(ADMIN_UNPAUSER_ROLE) != GUARDIAN_ROLE) {
@@ -264,7 +288,7 @@ contract MigrateDawn is MigrationBase, Script {
         if (entryPoint(_chainId) != address(0)) targets[idx++] = entryPoint(_chainId);
     }
 
-    // ── Step 6: label backfill ────────────────────────────────────────────────
+    // ── Step 7: label backfill ────────────────────────────────────────────────
 
     /// @dev Original royco-dawn deploy doesn't `labelRole` any of its roles. Backfill on a
     ///      first-run gate (probe via `getRoleGuardian(ADMIN_UPGRADER_ROLE)` against the
@@ -296,7 +320,7 @@ contract MigrateDawn is MigrationBase, Script {
         return _n;
     }
 
-    // ── Step 7: ADMIN_ROLE delay (LAST) ───────────────────────────────────────
+    // ── Step 8: ADMIN_ROLE delay (LAST) ───────────────────────────────────────
 
     /// @dev Set FNDN's `ADMIN_ROLE` execution delay to Root (7d). This is the last step
     ///      because every prior step relies on FNDN being able to call AM admin functions

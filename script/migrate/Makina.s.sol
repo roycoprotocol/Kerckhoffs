@@ -15,10 +15,10 @@ import { IMakinaGovernable } from "makina-core/src/interfaces/IMakinaGovernable.
  *
  * Per vault (`srRoyUSDC`, `roywstETH`), the script binds Caliber AND Machine setters
  * (everything currently gated by the on-chain `onlyRiskManagerTimelock` modifier) to two new
- * per-vault AM roles and grants those roles to FNDN with the model's delays:
+ * per-vault AM roles and grants those roles to WAY with the model's delays:
  *
- *   `<VAULT>_RISK_MANAGER`     (Critical 48h) — routine risk parameters + base token mgmt + Machine fee/cooldown setters
- *   `<VAULT>_TIMELOCK_MANAGER` (Critical 48h) — `setTimelockDuration` only (meta-timelock on the Caliber)
+ *   `<VAULT>_RISK_MANAGER`     (60h) — routine risk parameters + base token mgmt + Machine fee/cooldown setters
+ *   `<VAULT>_TIMELOCK_MANAGER` (60h) — `setTimelockDuration` only (meta-timelock on the Caliber)
  *
  * The Caliber's on-chain `_allowedInstrRoot` timelock is left untouched (see README §2 notes).
  *
@@ -67,7 +67,7 @@ contract MigrateMakina is MigrationBase, Script {
     {
         name = "Royco Makina/Caliber AccessManager wiring";
         description =
-            "Bind Caliber + Machine setters to per-vault RISK_MANAGER (Critical 48h) and TIMELOCK_MANAGER (Critical 48h) roles. Grant both to FNDN. The on-chain _allowedInstrRoot timelock is unchanged.";
+            "Bind Caliber + Machine setters to per-vault RISK_MANAGER (60h) and TIMELOCK_MANAGER (60h) roles. Grant both to WAY; cancellable via GUARDIAN_ROLE (FNDN/FNDN_VETO). The on-chain _allowedInstrRoot timelock is unchanged.";
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -97,14 +97,15 @@ contract MigrateMakina is MigrationBase, Script {
             // Machine: risk-manager-gated setters (all `onlyRiskManagerTimelock`)
             txs[t++] = buildSetTargetFunctionRole(ROYCO_FACTORY, s.machine, Selectors.machineRiskManagerSelectors(), riskRole);
 
-            // Guardian wiring — required for WAY to cancel the 48h-delayed risk/timelock manager ops.
-            // Without this, getRoleGuardian defaults to ADMIN_ROLE and only an admin can cancel.
+            // Guardian wiring — required so the guardian can cancel the 60h-delayed risk/timelock
+            // manager ops. Without this, getRoleGuardian defaults to ADMIN_ROLE and only an admin
+            // can cancel.
             txs[t++] = buildSetRoleGuardian(ROYCO_FACTORY, riskRole, GUARDIAN_ROLE);
             txs[t++] = buildSetRoleGuardian(ROYCO_FACTORY, tlRole, GUARDIAN_ROLE);
 
-            // Held by WAY (parameter-update authority). FNDN cancels via GUARDIAN_ROLE.
-            txs[t++] = buildGrantRole(ROYCO_FACTORY, riskRole, WAY, DELAY_CRITICAL);
-            txs[t++] = buildGrantRole(ROYCO_FACTORY, tlRole, WAY, DELAY_CRITICAL);
+            // Held by WAY (parameter-update authority). FNDN / FNDN_VETO cancel via GUARDIAN_ROLE.
+            txs[t++] = buildGrantRole(ROYCO_FACTORY, riskRole, WAY, DELAY_MIN);
+            txs[t++] = buildGrantRole(ROYCO_FACTORY, tlRole, WAY, DELAY_MIN);
         }
 
         require(t == txs.length, "Makina tx count mismatch");

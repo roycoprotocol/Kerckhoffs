@@ -13,7 +13,7 @@ import { RoleBehaviorBase } from "./_RoleBehaviorBase.sol";
 
 /**
  * @title MakinaMigrationTest
- * @notice Per-vault Caliber/Machine roles held by WAY @ Critical 48h, FNDN-cancellable.
+ * @notice Per-vault Caliber/Machine roles held by WAY @ 60h, FNDN-cancellable.
  *
  * Setup chain: Makina FIRST (FNDN's ADMIN_ROLE still Immediate to drive phase-2 calls), then
  * Dawn (lockdown). Both per-vault `RISK_MANAGER` and `TIMELOCK_MANAGER` roles bind every
@@ -44,8 +44,8 @@ contract MakinaMigrationTest is RoleBehaviorBase, MigrateMakina {
         StrategyStack memory s = getStrategyStack(MAINNET, _vaultName);
 
         // Holder is WAY (parameter-update authority); FNDN-cancellable via GUARDIAN_ROLE.
-        _assertMembership(_riskRole, WAY, DELAY_CRITICAL, string.concat(_vaultName, "_RISK_MANAGER @ WAY"));
-        _assertMembership(_tlRole, WAY, DELAY_CRITICAL, string.concat(_vaultName, "_TIMELOCK_MANAGER @ WAY"));
+        _assertMembership(_riskRole, WAY, DELAY_MIN, string.concat(_vaultName, "_RISK_MANAGER @ WAY"));
+        _assertMembership(_tlRole, WAY, DELAY_MIN, string.concat(_vaultName, "_TIMELOCK_MANAGER @ WAY"));
         require(am.getRoleGuardian(_riskRole) == GUARDIAN_ROLE, "RISK_MANAGER guardian mismatch");
         require(am.getRoleGuardian(_tlRole) == GUARDIAN_ROLE, "TIMELOCK_MANAGER guardian mismatch");
 
@@ -71,42 +71,42 @@ contract MakinaMigrationTest is RoleBehaviorBase, MigrateMakina {
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // Behavior — WAY @ 48h, FNDN-cancellable
+    // Behavior — WAY @ 60h, FNDN-cancellable
     // ═══════════════════════════════════════════════════════════════════════════
 
     function test_SrRoyUSDC_RiskManager_Caliber_DelayedAndCancellable() public {
         StrategyStack memory s = getStrategyStack(MAINNET, SRROYUSDC);
         bytes memory data = abi.encodeCall(ICaliber.setMaxSwapLossBps, (uint256(0)));
-        _assertDelayedRoleBehavior("srRoyUSDC RISK_MANAGER @ WAY (caliber)", SRROYUSDC_RISK_MANAGER, WAY, DELAY_CRITICAL, s.caliber, data, FNDN);
+        _assertDelayedRoleBehavior("srRoyUSDC RISK_MANAGER @ WAY (caliber)", SRROYUSDC_RISK_MANAGER, WAY, DELAY_MIN, s.caliber, data, FNDN);
     }
 
     function test_RoywstETH_RiskManager_Caliber_DelayedAndCancellable() public {
         StrategyStack memory s = getStrategyStack(MAINNET, ROYWSTETH);
         bytes memory data = abi.encodeCall(ICaliber.setMaxSwapLossBps, (uint256(0)));
-        _assertDelayedRoleBehavior("roywstETH RISK_MANAGER @ WAY (caliber)", ROYWSTETH_RISK_MANAGER, WAY, DELAY_CRITICAL, s.caliber, data, FNDN);
+        _assertDelayedRoleBehavior("roywstETH RISK_MANAGER @ WAY (caliber)", ROYWSTETH_RISK_MANAGER, WAY, DELAY_MIN, s.caliber, data, FNDN);
     }
 
     function test_SrRoyUSDC_RiskManager_Machine_DelayedAndCancellable() public {
         StrategyStack memory s = getStrategyStack(MAINNET, SRROYUSDC);
         bytes memory data = abi.encodeWithSignature("setCaliberStaleThreshold(uint256)", uint256(0));
-        _assertDelayedRoleBehavior("srRoyUSDC RISK_MANAGER @ WAY (machine)", SRROYUSDC_RISK_MANAGER, WAY, DELAY_CRITICAL, s.machine, data, FNDN);
+        _assertDelayedRoleBehavior("srRoyUSDC RISK_MANAGER @ WAY (machine)", SRROYUSDC_RISK_MANAGER, WAY, DELAY_MIN, s.machine, data, FNDN);
     }
 
     function test_RoywstETH_RiskManager_Machine_DelayedAndCancellable() public {
         StrategyStack memory s = getStrategyStack(MAINNET, ROYWSTETH);
         bytes memory data = abi.encodeWithSignature("setCaliberStaleThreshold(uint256)", uint256(0));
-        _assertDelayedRoleBehavior("roywstETH RISK_MANAGER @ WAY (machine)", ROYWSTETH_RISK_MANAGER, WAY, DELAY_CRITICAL, s.machine, data, FNDN);
+        _assertDelayedRoleBehavior("roywstETH RISK_MANAGER @ WAY (machine)", ROYWSTETH_RISK_MANAGER, WAY, DELAY_MIN, s.machine, data, FNDN);
     }
 
     function test_SrRoyUSDC_TimelockManager_DelayedAndCancellable() public {
         StrategyStack memory s = getStrategyStack(MAINNET, SRROYUSDC);
         bytes memory data = abi.encodeCall(ICaliber.setTimelockDuration, (uint256(0)));
-        _assertDelayedRoleBehavior("srRoyUSDC TIMELOCK_MANAGER @ WAY", SRROYUSDC_TIMELOCK_MANAGER, WAY, DELAY_CRITICAL, s.caliber, data, FNDN);
+        _assertDelayedRoleBehavior("srRoyUSDC TIMELOCK_MANAGER @ WAY", SRROYUSDC_TIMELOCK_MANAGER, WAY, DELAY_MIN, s.caliber, data, FNDN);
     }
 
     function test_RoywstETH_TimelockManager_DelayedAndCancellable() public {
         StrategyStack memory s = getStrategyStack(MAINNET, ROYWSTETH);
         bytes memory data = abi.encodeCall(ICaliber.setTimelockDuration, (uint256(0)));
-        _assertDelayedRoleBehavior("roywstETH TIMELOCK_MANAGER @ WAY", ROYWSTETH_TIMELOCK_MANAGER, WAY, DELAY_CRITICAL, s.caliber, data, FNDN);
+        _assertDelayedRoleBehavior("roywstETH TIMELOCK_MANAGER @ WAY", ROYWSTETH_TIMELOCK_MANAGER, WAY, DELAY_MIN, s.caliber, data, FNDN);
     }
 }

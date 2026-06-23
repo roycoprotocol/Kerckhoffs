@@ -11,20 +11,24 @@ pragma solidity ^0.8.28;
  *
  * Delays follow:
  *   Immediate (0s) — user-facing / pause / cancel / sync
- *   Standard (24h) — operational tuning that warrants monitoring
- *   Critical (48h) — parameter changes
+ *   Minimum (60h)  — uniform floor for all delayed ops (parameter changes, operational tuning).
+ *                    Every execution delay below 60h is raised to this floor.
  *   Root (7d)      — `ADMIN_ROLE` itself + UUPS upgrades
  *   Rescue (30d)   — strategy rescue, on top of the on-chain 30d timelock
  *
  * Authority topology:
- *   FNDN — `ADMIN_ROLE` (7d), `GUARDIAN_ROLE`, `ADMIN_UNPAUSER_ROLE`,
- *          `ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE`. Only FNDN can cancel ops, and only FNDN can
- *          grant/revoke roles (call-gate hardcoded to ADMIN_ROLE in OZ AM). FNDN's admin ops
- *          run at 7d and are intentionally non-cancellable by any other party.
- *   WAY  — every parameter-update role (`ADMIN_KERNEL_ROLE`, `ADMIN_ACCOUNTANT_ROLE`, etc.),
- *          plus `ADMIN_PAUSER_ROLE` (Immediate) and `ADMIN_UPGRADER_ROLE` (Root 7d). Every
- *          delayed WAY op is FNDN-cancellable via `GUARDIAN_ROLE`.
- *   DIAL — strategy `STRATEGY_ALLOCATOR` + native vault `ALLOCATOR` / `WITHDRAWAL_MANAGER`.
+ *   FNDN      — `ADMIN_ROLE` (7d, root; rarely transacts), `GUARDIAN_ROLE`,
+ *               `ADMIN_UNPAUSER_ROLE`, `ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE`. Only FNDN can
+ *               grant/revoke roles (call-gate hardcoded to ADMIN_ROLE in OZ AM). FNDN's admin
+ *               ops run at 7d and are intentionally non-cancellable by any other party.
+ *   WAY       — every parameter-update role (`ADMIN_KERNEL_ROLE`, `ADMIN_ACCOUNTANT_ROLE`,
+ *               etc.) at the 60h floor, plus `ADMIN_UPGRADER_ROLE` (Root 7d). Schedules all
+ *               delayed ops; each is cancellable via `GUARDIAN_ROLE`. No longer holds pause.
+ *   WAY_PAUSE — dedicated 1/4 multisig; sole holder of `ADMIN_PAUSER_ROLE` / `STRATEGY_PAUSER`
+ *               (Immediate). Can pause every protocol contract.
+ *   FNDN_VETO — dedicated 1/4 multisig; co-holds `GUARDIAN_ROLE` with FNDN (Immediate). Can
+ *               cancel any WAY-scheduled op.
+ *   DIAL      — strategy `STRATEGY_ALLOCATOR` + native vault `ALLOCATOR` / `WITHDRAWAL_MANAGER`.
  */
 abstract contract Roles {
     // ═══════════════════════════════════════════════════════════════════════════
@@ -32,8 +36,9 @@ abstract contract Roles {
     // ═══════════════════════════════════════════════════════════════════════════
 
     uint32 internal constant DELAY_IMMEDIATE = 0;
-    uint32 internal constant DELAY_STANDARD = 1 days;
-    uint32 internal constant DELAY_CRITICAL = 2 days;
+    /// @dev Uniform minimum delay floor (60h) for every delayed op. Replaces the former
+    ///      Standard (24h) / Critical (48h) tiers — all sub-60h delays are raised to this.
+    uint32 internal constant DELAY_MIN = 60 hours;
     /// @dev Used by `ADMIN_ROLE` (FNDN role-management) and `ADMIN_UPGRADER_ROLE` (UUPS upgrades).
     uint32 internal constant DELAY_ROOT = 7 days;
     /// @dev Reserved for `STRATEGY_RESCUE`. The Royco strategy's `rescueToken` is `restricted`
@@ -91,11 +96,11 @@ abstract contract Roles {
     // `ALLOCATOR` / `WITHDRAWAL_MANAGER` are NOT mapped — those stay native (DIAL holds
     // them on the vault directly) and aren't gated by any AM role.
 
-    /// @dev Mirrors concrete `VAULT_MANAGER`. WAY @ Critical (48h), guardian = GUARDIAN_ROLE.
+    /// @dev Mirrors concrete `VAULT_MANAGER`. WAY @ 60h, guardian = GUARDIAN_ROLE.
     uint64 internal constant VAULT_MANAGER = uint64(uint256(keccak256(abi.encode("ROYCO_VAULT_MANAGER"))));
-    /// @dev Mirrors concrete `STRATEGY_MANAGER`. WAY @ Critical (48h), guardian = GUARDIAN_ROLE.
+    /// @dev Mirrors concrete `STRATEGY_MANAGER`. WAY @ 60h, guardian = GUARDIAN_ROLE.
     uint64 internal constant STRATEGY_MANAGER = uint64(uint256(keccak256(abi.encode("ROYCO_STRATEGY_MANAGER"))));
-    /// @dev Mirrors concrete `HOOK_MANAGER`. WAY @ Critical (48h), guardian = GUARDIAN_ROLE.
+    /// @dev Mirrors concrete `HOOK_MANAGER`. WAY @ 60h, guardian = GUARDIAN_ROLE.
     uint64 internal constant HOOK_MANAGER = uint64(uint256(keccak256(abi.encode("ROYCO_HOOK_MANAGER"))));
 
     // ═══════════════════════════════════════════════════════════════════════════

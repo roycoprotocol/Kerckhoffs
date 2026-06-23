@@ -6,8 +6,10 @@ Single-page view of every contract Royco controls or depends on, plus who can ca
 
 ```mermaid
 flowchart LR
-    FNDN[FNDN multisig<br/>3-of-N]
+    FNDN[FNDN multisig<br/>root · rarely transacts]
     WAY[WAY multisig]
+    WAYPAUSE[WAY_PAUSE multisig<br/>1-of-4 · undeployed]
+    FNDNVETO[FNDN_VETO multisig<br/>1-of-4 · undeployed]
     DIAL[DIAL multisig]
     LPS[LPs<br/>per-address]
     SEC[Securitize]
@@ -24,17 +26,17 @@ flowchart LR
         UPGRADER[ADMIN_UPGRADER_ROLE · 7d]
         LPADMIN[LP_ROLE_ADMIN_ROLE]
         SYNC[SYNC_ROLE]
-        ORACLE[ADMIN_ORACLE_QUOTER_ROLE · WAY 48h / FNDN Immediate]
-        DEPLOYERADMIN[DEPLOYER_ROLE_ADMIN_ROLE · 24h]
-        KERNEL[ADMIN_KERNEL_ROLE · 48h]
-        ACCT[ADMIN_ACCOUNTANT_ROLE · 48h]
-        FEES[ADMIN_PROTOCOL_FEE_SETTER_ROLE · 48h]
-        EP[ADMIN_ENTRY_POINT_ROLE · 48h]
-        VM[VAULT_MANAGER · 48h]
-        SM[STRATEGY_MANAGER · 48h]
-        HM[HOOK_MANAGER · 48h]
-        RM["&lt;VAULT&gt;_RISK_MANAGER · 48h"]
-        TLM["&lt;VAULT&gt;_TIMELOCK_MANAGER · 48h"]
+        ORACLE[ADMIN_ORACLE_QUOTER_ROLE · WAY 60h / FNDN Immediate]
+        DEPLOYERADMIN[DEPLOYER_ROLE_ADMIN_ROLE · 60h]
+        KERNEL[ADMIN_KERNEL_ROLE · 60h]
+        ACCT[ADMIN_ACCOUNTANT_ROLE · 60h]
+        FEES[ADMIN_PROTOCOL_FEE_SETTER_ROLE · 60h]
+        EP[ADMIN_ENTRY_POINT_ROLE · 60h]
+        VM[VAULT_MANAGER · 60h]
+        SM[STRATEGY_MANAGER · 60h]
+        HM[HOOK_MANAGER · 60h]
+        RM["&lt;VAULT&gt;_RISK_MANAGER · 60h"]
+        TLM["&lt;VAULT&gt;_TIMELOCK_MANAGER · 60h"]
 
         SPAUSER[STRATEGY_PAUSER]
         SUNPAUSER[STRATEGY_UNPAUSER]
@@ -57,11 +59,15 @@ flowchart LR
     FNDN -->|holds| SRESCUE
     FNDN -->|holds Immediate| ORACLE
 
-    WAY -->|holds| PAUSER
+    FNDNVETO -->|co-holds| GUARDIAN
+
+    WAYPAUSE -->|holds| PAUSER
+    WAYPAUSE -->|holds| SPAUSER
+
     WAY -->|holds| UPGRADER
     WAY -->|holds| LPADMIN
     WAY -->|holds| SYNC
-    WAY -->|holds 48h| ORACLE
+    WAY -->|holds 60h| ORACLE
     WAY -->|holds| DEPLOYERADMIN
     WAY -->|holds| KERNEL
     WAY -->|holds| ACCT
@@ -72,7 +78,6 @@ flowchart LR
     WAY -->|holds| HM
     WAY -->|holds| RM
     WAY -->|holds| TLM
-    WAY -->|holds| SPAUSER
 
     DIAL -->|holds| SALLOC
     LPS -->|granted by LPADMIN| STLP

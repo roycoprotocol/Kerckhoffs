@@ -16,9 +16,11 @@ Every table uses the same column structure: **Role | Admin / Setter | Guardian /
 
 | Multisig | Address | Purpose |
 |---|---|---|
-| **FNDN** (Royco Foundation) | `0x7c405bbD131e42af506d14e752f2e59B19D49997` | Role management (`ADMIN_ROLE` @ 7d), guardian/cancel authority, unpause, fee collection. Same on every chain. |
-| **WAY** | `0x84d37A25e46029CE161111420E07cEb78880119e` | Parameter-update authority. Pauses immediately, updates params under delay. Same on every chain. |
+| **FNDN** (Royco Foundation) | `0x7c405bbD131e42af506d14e752f2e59B19D49997` | Root owner (`ADMIN_ROLE` @ 7d). Does not routinely transact; steps in only for role management, unpause, and fee collection. Co-holds guardian/cancel authority with FNDN_VETO. Same on every chain. |
+| **WAY** | `0x84d37A25e46029CE161111420E07cEb78880119e` | Parameter-update authority. Schedules all delayed parameter ops (60h). No longer holds pause (moved to WAY_PAUSE). Same on every chain. |
 | **DIAL** | `0xe7E4FA51280eB212254458d62081587Acd2077eE` | Strategy allocator (operations). |
+| **WAY_PAUSE** (undeployed) | _TBD — 1/4_ | Dedicated fast-response pause multisig. Sole holder of `ADMIN_PAUSER_ROLE` and `STRATEGY_PAUSER`; can pause every protocol contract at 0 delay. Placeholder pending deployment. |
+| **FNDN_VETO** (undeployed) | _TBD — 1/4_ | Dedicated fast-response veto multisig. Co-holds `GUARDIAN_ROLE` with FNDN; can cancel any WAY-scheduled op at 0 delay. Placeholder pending deployment. |
 
 Source: `src/registry/Multisigs.sol`.
 
@@ -40,7 +42,7 @@ Source: `src/registry/Multisigs.sol`.
 | Role | Admin / Setter | Guardian / Vetoable by | Holder | Delay | Description |
 |---|---|---|---|---|---|
 | **Pause / upgrade** | | | | | |
-| `ADMIN_PAUSER_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | Immediate | Pause every protocol contract. Immediate so incident response isn't blocked. |
+| `ADMIN_PAUSER_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY_PAUSE | Immediate | Pause every protocol contract. Immediate so incident response isn't blocked. Held by the dedicated 1/4 WAY_PAUSE multisig. |
 | `ADMIN_UNPAUSER_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Immediate | Unpause every protocol contract. Split from pause so only FNDN can clear an attacker-triggered pause. |
 | `ADMIN_UPGRADER_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | 7d | UUPS implementation upgrades. |
 | **LP / accounting** | | | | | |
@@ -50,32 +52,32 @@ Source: `src/registry/Multisigs.sol`.
 | `LP_ROLE_ADMIN_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | Immediate | Grants/revokes `ST_LP_ROLE` / `JT_LP_ROLE` to LPs. |
 | `SYNC_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | Immediate | Triggers accounting sync on the kernel. |
 | **Config admins** | | | | | |
-| `ADMIN_KERNEL_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | 48h | Kernel admin: `setProtocolFeeRecipient`, `setSeniorTrancheSelfLiquidationBonus`. |
-| `ADMIN_ACCOUNTANT_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | 48h | Accountant params: YDM, coverage, beta, LLTV, dust tolerances, fixed-term. |
-| `ADMIN_PROTOCOL_FEE_SETTER_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | 48h | Protocol fee % on senior / junior tranche yields. |
-| `ADMIN_ORACLE_QUOTER_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY, FNDN | 48h (WAY) / Immediate (FNDN) | Oracle / quoter settings: `setConversionRate`, `setChainlinkOracle`. WAY does routine quoter changes under 48h delay (FNDN-cancellable); FNDN can act immediately for emergency oracle re-pegs (e.g. depeg / Chainlink feed swap during incident response). |
+| `ADMIN_KERNEL_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | 60h | Kernel admin: `setProtocolFeeRecipient`, `setSeniorTrancheSelfLiquidationBonus`. |
+| `ADMIN_ACCOUNTANT_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | 60h | Accountant params: YDM, coverage, beta, LLTV, dust tolerances, fixed-term. |
+| `ADMIN_PROTOCOL_FEE_SETTER_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | 60h | Protocol fee % on senior / junior tranche yields. |
+| `ADMIN_ORACLE_QUOTER_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY, FNDN | 60h (WAY) / Immediate (FNDN) | Oracle / quoter settings: `setConversionRate`, `setChainlinkOracle`. WAY does routine quoter changes under 60h delay (FNDN-cancellable); FNDN can act immediately for emergency oracle re-pegs (e.g. depeg / Chainlink feed swap during incident response). |
 | **Entry point** | | | | | |
-| `ADMIN_ENTRY_POINT_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | 48h | `modifyTrancheConfigs`. |
+| `ADMIN_ENTRY_POINT_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | 60h | `modifyTrancheConfigs`. |
 | `ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Immediate | `collectProtocolFees`. |
 | **Deployment / guardian / transfer agent** | | | | | |
 | `DEPLOYER_ROLE` | `DEPLOYER_ROLE_ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Immediate | Deploys new Royco markets via factory. |
-| `DEPLOYER_ROLE_ADMIN_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | 24h | Grants/revokes `DEPLOYER_ROLE`. |
-| `GUARDIAN_ROLE` | `ADMIN_ROLE` | `ADMIN_ROLE` | FNDN | Immediate | Cancels delayed operations on every operational role. |
+| `DEPLOYER_ROLE_ADMIN_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | 60h | Grants/revokes `DEPLOYER_ROLE`. |
+| `GUARDIAN_ROLE` | `ADMIN_ROLE` | `ADMIN_ROLE` | FNDN, FNDN_VETO | Immediate | Cancels delayed operations on every operational role. Co-held: FNDN (root, rarely steps in) + FNDN_VETO (dedicated 1/4 fast-veto multisig). |
 | `TRANSFER_AGENT_ROLE` | `ADMIN_ROLE` | `ADMIN_ROLE` | Securitize | TBD | Tranche seizure / kernel blacklist. Outside the standard delay tiers. |
 | **Concrete vaults** (Mainnet only, per concrete role) | | | | | |
-| `VAULT_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | 48h | `updateManagementFee`, `updatePerformanceFee`, `setDepositLimits`, `setWithdrawLimits` on the concrete vault. |
-| `STRATEGY_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | 48h | `addStrategy`, `removeStrategy`, `toggleStrategyStatus` on the concrete vault. |
-| `HOOK_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | 48h | `setHooks` on the concrete vault. |
+| `VAULT_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | 60h | `updateManagementFee`, `updatePerformanceFee`, `setDepositLimits`, `setWithdrawLimits` on the concrete vault. |
+| `STRATEGY_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | 60h | `addStrategy`, `removeStrategy`, `toggleStrategyStatus` on the concrete vault. |
+| `HOOK_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | 60h | `setHooks` on the concrete vault. |
 | **Makina strategy adapter** (Mainnet only, per-vault) | | | | | |
-| `STRATEGY_PAUSER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | Immediate | Pause the strategy. |
+| `STRATEGY_PAUSER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY_PAUSE | Immediate | Pause the strategy. Held by the dedicated 1/4 WAY_PAUSE multisig. |
 | `STRATEGY_UNPAUSER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Immediate | Unpause the strategy. |
 | `STRATEGY_RESCUE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | 30d | Rescue stuck tokens from the strategy. |
 | `STRATEGY_ALLOCATOR` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | DIAL | Immediate | `allocateFunds`, `deallocateFunds`. |
 | **Makina/Caliber** (Mainnet only, per-vault) | | | | | |
-| `SRROYUSDC_RISK_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | 48h | srRoyUSDC Caliber + Machine `onlyRiskManagerTimelock` setters (see §3 selector tables). |
-| `SRROYUSDC_TIMELOCK_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | 48h | srRoyUSDC Caliber `setTimelockDuration` only (the meta-timelock on `_allowedInstrRoot`'s on-chain delay). |
-| `ROYWSTETH_RISK_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | 48h | roywstETH Caliber + Machine `onlyRiskManagerTimelock` setters. |
-| `ROYWSTETH_TIMELOCK_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | 48h | roywstETH Caliber `setTimelockDuration` only. |
+| `SRROYUSDC_RISK_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | 60h | srRoyUSDC Caliber + Machine `onlyRiskManagerTimelock` setters (see §3 selector tables). |
+| `SRROYUSDC_TIMELOCK_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | 60h | srRoyUSDC Caliber `setTimelockDuration` only (the meta-timelock on `_allowedInstrRoot`'s on-chain delay). |
+| `ROYWSTETH_RISK_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | 60h | roywstETH Caliber + Machine `onlyRiskManagerTimelock` setters. |
+| `ROYWSTETH_TIMELOCK_MANAGER` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | 60h | roywstETH Caliber `setTimelockDuration` only. |
 
 ---
 
@@ -85,9 +87,9 @@ Source: `src/registry/Multisigs.sol`.
 
 | Native concrete role | AM role mapping | Effective holder | Effective delay | Effective guardian | Notes |
 |---|---|---|---|---|---|
-| `VAULT_MANAGER` | AM `VAULT_MANAGER` (see §1) | WAY | 48h | FNDN (`GUARDIAN_ROLE`) | Primary vault management. |
-| `STRATEGY_MANAGER` | AM `STRATEGY_MANAGER` | WAY | 48h | FNDN (`GUARDIAN_ROLE`) | `addStrategy` / `removeStrategy` / `toggleStrategyStatus`. |
-| `HOOK_MANAGER` | AM `HOOK_MANAGER` | WAY | 48h | FNDN (`GUARDIAN_ROLE`) | `setHooks`. |
+| `VAULT_MANAGER` | AM `VAULT_MANAGER` (see §1) | WAY | 60h | FNDN / FNDN_VETO (`GUARDIAN_ROLE`) | Primary vault management. |
+| `STRATEGY_MANAGER` | AM `STRATEGY_MANAGER` | WAY | 60h | FNDN / FNDN_VETO (`GUARDIAN_ROLE`) | `addStrategy` / `removeStrategy` / `toggleStrategyStatus`. |
+| `HOOK_MANAGER` | AM `HOOK_MANAGER` | WAY | 60h | FNDN / FNDN_VETO (`GUARDIAN_ROLE`) | `setHooks`. |
 | `ALLOCATOR` | — (not mapped) | DIAL (native) | Immediate | — | Stays native; not gated by Royco AM. |
 | `WITHDRAWAL_MANAGER` | — (not mapped) | DIAL (native) | Immediate | — | Stays native; not gated by Royco AM. |
 | `VAULT_MANAGER_ADMIN` | AM `ADMIN_ROLE` (default; `vault.grantRole`/`revokeRole` not specifically bound) | FNDN | 7d | FNDN (self) | Adding/removing native role members on the vault. Falls through to `ADMIN_ROLE` so a new VAULT_MANAGER holder requires a 7d FNDN op — intentionally slow, intentionally non-cancellable by anyone but FNDN. |
@@ -104,8 +106,8 @@ Per `lib/makina-core/src/interfaces/IMakinaGovernable.sol` — **address slots, 
 
 | Makina slot | AM role mapping | Effective holder | Effective delay | Effective guardian | Notes |
 |---|---|---|---|---|---|
-| `Machine.riskManager` (gates `Machine.onlyRiskManager` + `Caliber.onlyRiskManager`) | AM `<VAULT>_RISK_MANAGER` (see §1) | WAY | 48h | FNDN (`GUARDIAN_ROLE`) | Re-pointed to RoycoFactory by Makina governance. Caliber's `onlyRiskManager` modifier delegates to this same Machine slot, so a single re-point covers both surfaces. |
-| `Machine.riskManagerTimelock` (gates `Machine.onlyRiskManagerTimelock` + `Caliber.onlyRiskManagerTimelock`) | AM `<VAULT>_RISK_MANAGER` + `<VAULT>_TIMELOCK_MANAGER` (see §1) | WAY | 48h | FNDN (`GUARDIAN_ROLE`) | Re-pointed to RoycoFactory by Makina governance. Caliber's modifier delegates to this Machine slot, so a single re-point covers both surfaces. |
+| `Machine.riskManager` (gates `Machine.onlyRiskManager` + `Caliber.onlyRiskManager`) | AM `<VAULT>_RISK_MANAGER` (see §1) | WAY | 60h | FNDN / FNDN_VETO (`GUARDIAN_ROLE`) | Re-pointed to RoycoFactory by Makina governance. Caliber's `onlyRiskManager` modifier delegates to this same Machine slot, so a single re-point covers both surfaces. |
+| `Machine.riskManagerTimelock` (gates `Machine.onlyRiskManagerTimelock` + `Caliber.onlyRiskManagerTimelock`) | AM `<VAULT>_RISK_MANAGER` + `<VAULT>_TIMELOCK_MANAGER` (see §1) | WAY | 60h | FNDN / FNDN_VETO (`GUARDIAN_ROLE`) | Re-pointed to RoycoFactory by Makina governance. Caliber's modifier delegates to this Machine slot, so a single re-point covers both surfaces. |
 | `Caliber.instrRootGuardian` (set, multi-member) | — (direct on-chain check) | FNDN | Immediate (during pending window) | — | Member added via Makina governance so FNDN can call `Caliber.cancelAllowedInstrRootUpdate` (Caliber.sol:539) during the on-chain `_allowedInstrRoot` timelock window. Not routed through Royco AM. |
 
 ### Selector-to-role bindings

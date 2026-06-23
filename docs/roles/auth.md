@@ -196,7 +196,7 @@ Hardcoded in OZ AM (`AccessManager._getAdminRestrictions`). Required to call:
 
 | Target | Selector | Notes |
 |---|---|---|
-| AM | `cancel(caller, target, data)` | Can cancel any scheduled op whose `getRoleGuardian(getTargetFunctionRole(target, selector)) == GUARDIAN_ROLE`. In practice: every WAY-scheduled op. |
+| AM | `cancel(caller, target, data)` | Can cancel any scheduled op whose `getRoleGuardian(getTargetFunctionRole(target, selector)) == GUARDIAN_ROLE`. In practice: every WAY-scheduled op. Co-held by FNDN (root) and FNDN_VETO (dedicated 1/4 fast-veto multisig). |
 
 ### `TRANSFER_AGENT_ROLE`
 

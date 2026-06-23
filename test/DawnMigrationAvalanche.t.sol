@@ -20,13 +20,14 @@ contract DawnMigrationAvalancheTest is RoleBehaviorBase, MigrateDawn {
     function test_PostState_FNDN_RoleDelays() public view {
         _assertMembership(ADMIN_ROLE, FNDN, DELAY_ROOT, "ADMIN_ROLE @ FNDN");
         _assertMembership(GUARDIAN_ROLE, FNDN, DELAY_IMMEDIATE, "GUARDIAN_ROLE @ FNDN");
+        _assertMembership(GUARDIAN_ROLE, FNDN_VETO, DELAY_IMMEDIATE, "GUARDIAN_ROLE @ FNDN_VETO");
         _assertMembership(ADMIN_UNPAUSER_ROLE, FNDN, DELAY_IMMEDIATE, "ADMIN_UNPAUSER_ROLE @ FNDN");
     }
 
     function test_PostState_WAY_RoleDelays() public view {
-        _assertMembership(ADMIN_PAUSER_ROLE, WAY, DELAY_IMMEDIATE, "ADMIN_PAUSER_ROLE @ WAY");
-        _assertMembership(ADMIN_KERNEL_ROLE, WAY, DELAY_CRITICAL, "ADMIN_KERNEL_ROLE @ WAY");
-        _assertMembership(ADMIN_ACCOUNTANT_ROLE, WAY, DELAY_CRITICAL, "ADMIN_ACCOUNTANT_ROLE @ WAY");
+        _assertMembership(ADMIN_PAUSER_ROLE, WAY_PAUSE, DELAY_IMMEDIATE, "ADMIN_PAUSER_ROLE @ WAY_PAUSE");
+        _assertMembership(ADMIN_KERNEL_ROLE, WAY, DELAY_MIN, "ADMIN_KERNEL_ROLE @ WAY");
+        _assertMembership(ADMIN_ACCOUNTANT_ROLE, WAY, DELAY_MIN, "ADMIN_ACCOUNTANT_ROLE @ WAY");
         _assertMembership(ADMIN_UPGRADER_ROLE, WAY, DELAY_ROOT, "ADMIN_UPGRADER_ROLE @ WAY");
     }
 
