@@ -11,18 +11,17 @@ pragma solidity ^0.8.28;
  *
  * Delays follow:
  *   Immediate (0s) — user-facing / pause / cancel / sync
- *   Minimum (60h)  — uniform floor for all delayed ops (parameter changes, operational tuning).
- *                    Every execution delay below 60h is raised to this floor.
- *   Root (7d)      — `ADMIN_ROLE` itself + UUPS upgrades
- *   Rescue (30d)   — strategy rescue, on top of the on-chain 30d timelock
+ *   Standard (72h) — uniform delay for EVERY delayed op: parameter changes, ADMIN_ROLE
+ *                    role-management, UUPS upgrades, and strategy rescue all use the same 72h
+ *                    timelock. (Formerly split into 60h / 7d root / 30d rescue tiers.)
  *
  * Authority topology:
- *   FNDN      — `ADMIN_ROLE` (7d, root; rarely transacts), `GUARDIAN_ROLE`,
+ *   FNDN      — `ADMIN_ROLE` (72h; rarely transacts), `GUARDIAN_ROLE`,
  *               `ADMIN_UNPAUSER_ROLE`, `ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE`. Only FNDN can
  *               grant/revoke roles (call-gate hardcoded to ADMIN_ROLE in OZ AM). FNDN's admin
- *               ops run at 7d and are intentionally non-cancellable by any other party.
+ *               ops run at 72h and are intentionally non-cancellable by any other party.
  *   WAY       — every parameter-update role (`ADMIN_KERNEL_ROLE`, `ADMIN_ACCOUNTANT_ROLE`,
- *               etc.) at the 60h floor, plus `ADMIN_UPGRADER_ROLE` (Root 7d). Schedules all
+ *               etc.) at the 72h delay, plus `ADMIN_UPGRADER_ROLE` (also 72h). Schedules all
  *               delayed ops; each is cancellable via `GUARDIAN_ROLE`. No longer holds pause.
  *   WAY_PAUSE — dedicated 1/4 multisig; sole holder of `ADMIN_PAUSER_ROLE` / `STRATEGY_PAUSER`
  *               (Immediate). Can pause every protocol contract.
@@ -36,15 +35,18 @@ abstract contract Roles {
     // ═══════════════════════════════════════════════════════════════════════════
 
     uint32 internal constant DELAY_IMMEDIATE = 0;
-    /// @dev Uniform minimum delay floor (60h) for every delayed op. Replaces the former
-    ///      Standard (24h) / Critical (48h) tiers — all sub-60h delays are raised to this.
-    uint32 internal constant DELAY_MIN = 60 hours;
-    /// @dev Used by `ADMIN_ROLE` (FNDN role-management) and `ADMIN_UPGRADER_ROLE` (UUPS upgrades).
-    uint32 internal constant DELAY_ROOT = 7 days;
-    /// @dev Reserved for `STRATEGY_RESCUE`. The Royco strategy's `rescueToken` is `restricted`
-    ///      with no internal timelock — this AM execution delay is the only gate; FNDN-cancellable
-    ///      via `GUARDIAN_ROLE` during the 30d window.
-    uint32 internal constant DELAY_RESCUE = 30 days;
+    /// @dev Uniform 72h delay for every delayed op (parameter changes, operational tuning).
+    ///      Standardized: `DELAY_ROOT` and `DELAY_RESCUE` are now equal to this. The three named
+    ///      constants are retained so call sites stay self-documenting and the tiers can
+    ///      re-diverge later without touching every call site.
+    uint32 internal constant DELAY_MIN = 72 hours;
+    /// @dev `ADMIN_ROLE` (FNDN role-management) + `ADMIN_UPGRADER_ROLE` (UUPS upgrades).
+    ///      Standardized to the uniform 72h delay.
+    uint32 internal constant DELAY_ROOT = 72 hours;
+    /// @dev `STRATEGY_RESCUE`. The Royco strategy's `rescueToken` is `restricted` with no internal
+    ///      timelock — this AM execution delay is the only gate; FNDN-cancellable via
+    ///      `GUARDIAN_ROLE` during the window. Standardized to the uniform 72h delay.
+    uint32 internal constant DELAY_RESCUE = 72 hours;
 
     // ═══════════════════════════════════════════════════════════════════════════
     // ACCESS MANAGER BUILT-INS
@@ -52,7 +54,7 @@ abstract contract Roles {
 
     /// @dev OZ AccessManager root admin role. Default admin of every other role
     ///      (`getRoleAdmin(R) = ADMIN_ROLE`), so `grantRole`/`revokeRole` for any operational
-    ///      role goes through ADMIN_ROLE. FNDN holds this at Root (7d).
+    ///      role goes through ADMIN_ROLE. FNDN holds this at the standard 72h delay.
     uint64 internal constant ADMIN_ROLE = 0;
 
     /// @dev OZ AccessManager open role (every address is auto-member)
@@ -96,11 +98,11 @@ abstract contract Roles {
     // `ALLOCATOR` / `WITHDRAWAL_MANAGER` are NOT mapped — those stay native (DIAL holds
     // them on the vault directly) and aren't gated by any AM role.
 
-    /// @dev Mirrors concrete `VAULT_MANAGER`. WAY @ 60h, guardian = GUARDIAN_ROLE.
+    /// @dev Mirrors concrete `VAULT_MANAGER`. WAY @ 72h, guardian = GUARDIAN_ROLE.
     uint64 internal constant VAULT_MANAGER = uint64(uint256(keccak256(abi.encode("ROYCO_VAULT_MANAGER"))));
-    /// @dev Mirrors concrete `STRATEGY_MANAGER`. WAY @ 60h, guardian = GUARDIAN_ROLE.
+    /// @dev Mirrors concrete `STRATEGY_MANAGER`. WAY @ 72h, guardian = GUARDIAN_ROLE.
     uint64 internal constant STRATEGY_MANAGER = uint64(uint256(keccak256(abi.encode("ROYCO_STRATEGY_MANAGER"))));
-    /// @dev Mirrors concrete `HOOK_MANAGER`. WAY @ 60h, guardian = GUARDIAN_ROLE.
+    /// @dev Mirrors concrete `HOOK_MANAGER`. WAY @ 72h, guardian = GUARDIAN_ROLE.
     uint64 internal constant HOOK_MANAGER = uint64(uint256(keccak256(abi.encode("ROYCO_HOOK_MANAGER"))));
 
     // ═══════════════════════════════════════════════════════════════════════════

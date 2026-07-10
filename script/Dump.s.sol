@@ -21,6 +21,7 @@ contract Dump is AccessManagerDumper, Script {
         dumpAccessManager(MAINNET);
         dumpAccessManager(AVALANCHE);
         dumpAccessManager(ARBITRUM);
+        dumpAccessManager(BASE);
     }
 
     function dump(uint256 _chainId) public {

@@ -15,9 +15,9 @@ import { MigrationBase } from "../../src/migration/MigrationBase.sol";
 /**
  * @title MigrateDawn
  * @notice Migrates the Royco Dawn surface (markets + entry point) to the canonical security
- *         model. **WAY-centric**: WAY holds every parameter-update role under a uniform 60h
+ *         model. **WAY-centric**: WAY holds every parameter-update role under a uniform 72h
  *         minimum delay. Pause is split out to the dedicated `WAY_PAUSE` multisig
- *         (`ADMIN_PAUSER_ROLE`, Immediate). FNDN holds `ADMIN_ROLE` (Root 7d, role
+ *         (`ADMIN_PAUSER_ROLE`, Immediate). FNDN holds `ADMIN_ROLE` (Root 72h, role
  *         management) and `ADMIN_UNPAUSER_ROLE` (Immediate); `GUARDIAN_ROLE` (cancellation)
  *         is co-held by FNDN and the dedicated `FNDN_VETO` multisig. Every WAY-scheduled op
  *         is cancellable by either guardian holder. FNDN's own ADMIN_ROLE-gated ops are
@@ -27,7 +27,7 @@ import { MigrationBase } from "../../src/migration/MigrationBase.sol";
  * current configuration differs from the desired configuration.
  *
  * Order:
- *   1. WAY operational role grants (Immediate / 60h / 7d) + FNDN narrow grants
+ *   1. WAY operational role grants (Immediate / 72h) + FNDN narrow grants
  *      (`ADMIN_UNPAUSER_ROLE`, `ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE`, `GUARDIAN_ROLE`).
  *   2. Emergency-multisig grants: `ADMIN_PAUSER_ROLE` → WAY_PAUSE, `GUARDIAN_ROLE` co-grant
  *      → FNDN_VETO (both Immediate).
@@ -37,13 +37,21 @@ import { MigrationBase } from "../../src/migration/MigrationBase.sol";
  *   5. Tranche binding consistency backfill.
  *   6. Unpause re-bind (`unpause` selectors → `ADMIN_UNPAUSER_ROLE`, FNDN @ Immediate).
  *   7. Backfill `labelRole` for every Dawn role on first-run.
- *   8. ADMIN_ROLE delay flip to Root (7d) on FNDN — LAST.
+ *   8. ADMIN_ROLE delay flip to Root (72h) on FNDN — LAST.
  *
  * Output: `output/migrate/dawn/{chainId}_apply_security_migration.json` (one per chain).
+ *
+ * ── ONE-TIME USE ────────────────────────────────────────────────────────────────────────────
+ * This script emits a flat, direct-call Safe batch valid ONLY while FNDN's ADMIN_ROLE execution
+ * delay is 0. Step 8 raises it to 72h — after that, admin ops require schedule → wait 72h →
+ * execute, so a regenerated batch would revert on import. `run()` calls
+ * `_assertPreMigrationAdminState` and reverts (`MigrationAlreadyApplied`) once the lockdown has
+ * happened. Dawn runs LAST (Vaults → Makina → Dawn); it is a one-shot bootstrap, not a reusable
+ * tool. Post-lockdown market onboarding is a separate schedule/execute operation.
  */
 contract MigrateDawn is MigrationBase, Script {
-    /// @dev Upper bound on diff'd batch size. Mainnet (7 markets × 2 tranches × ~8 selector
-    ///      groups + entry-point + ADMIN_ROLE flip + WAY grants) tops out around ~150 tx.
+    /// @dev Upper bound on diff'd batch size. Mainnet (9 markets × 2 tranches × ~8 selector
+    ///      groups + entry-point + ADMIN_ROLE flip + WAY grants) tops out around ~190 tx.
     uint256 internal constant _MAX_BATCH_SIZE = 256;
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -51,10 +59,11 @@ contract MigrateDawn is MigrationBase, Script {
     // ═══════════════════════════════════════════════════════════════════════════
 
     function _targetChains() internal pure override returns (uint256[] memory chains) {
-        chains = new uint256[](3);
+        chains = new uint256[](4);
         chains[0] = MAINNET;
         chains[1] = AVALANCHE;
         chains[2] = ARBITRUM;
+        chains[3] = BASE;
     }
 
     function _safeFor(
@@ -73,7 +82,8 @@ contract MigrateDawn is MigrationBase, Script {
     // ═══════════════════════════════════════════════════════════════════════════
 
     function _buildBatch(uint256 _chainId) internal view override returns (SafeTransaction[] memory) {
-        IAccessManager am = IAccessManager(ROYCO_FACTORY);
+        // Base has its own factory; everywhere else this is the CREATE2 address(_am).
+        IAccessManager am = IAccessManager(roycoFactory(_chainId));
         SafeTransaction[] memory buf = new SafeTransaction[](_MAX_BATCH_SIZE);
         uint256 n;
 
@@ -101,14 +111,14 @@ contract MigrateDawn is MigrationBase, Script {
         // Immediate
         _n = _maybeGrantRole(_buf, _n, _am, LP_ROLE_ADMIN_ROLE, WAY, DELAY_IMMEDIATE);
         _n = _maybeGrantRole(_buf, _n, _am, SYNC_ROLE, WAY, DELAY_IMMEDIATE);
-        // Minimum delay (60h)
+        // Minimum delay (72h)
         _n = _maybeGrantRole(_buf, _n, _am, DEPLOYER_ROLE_ADMIN_ROLE, WAY, DELAY_MIN);
         _n = _maybeGrantRole(_buf, _n, _am, ADMIN_KERNEL_ROLE, WAY, DELAY_MIN);
         _n = _maybeGrantRole(_buf, _n, _am, ADMIN_ACCOUNTANT_ROLE, WAY, DELAY_MIN);
         _n = _maybeGrantRole(_buf, _n, _am, ADMIN_PROTOCOL_FEE_SETTER_ROLE, WAY, DELAY_MIN);
         _n = _maybeGrantRole(_buf, _n, _am, ADMIN_ORACLE_QUOTER_ROLE, WAY, DELAY_MIN);
         _n = _maybeGrantRole(_buf, _n, _am, ADMIN_ENTRY_POINT_ROLE, WAY, DELAY_MIN);
-        // Root (7d)
+        // Root (72h)
         _n = _maybeGrantRole(_buf, _n, _am, ADMIN_UPGRADER_ROLE, WAY, DELAY_ROOT);
         return _n;
     }
@@ -150,25 +160,25 @@ contract MigrateDawn is MigrationBase, Script {
         for (uint256 i = 0; i < waOnly.length; i++) {
             (bool fndnIsMember,) = _am.hasRole(waOnly[i], FNDN);
             if (fndnIsMember) {
-                _buf[_n++] = buildRevokeRole(ROYCO_FACTORY, waOnly[i], FNDN);
+                _buf[_n++] = buildRevokeRole(address(_am), waOnly[i], FNDN);
             }
         }
         // GUARDIAN_ROLE: WAY held it under the old model; new model has FNDN + FNDN_VETO.
         (bool wayHasGuardian,) = _am.hasRole(GUARDIAN_ROLE, WAY);
         if (wayHasGuardian) {
-            _buf[_n++] = buildRevokeRole(ROYCO_FACTORY, GUARDIAN_ROLE, WAY);
+            _buf[_n++] = buildRevokeRole(address(_am), GUARDIAN_ROLE, WAY);
         }
         // ADMIN_PAUSER_ROLE: WAY held it under the old model; pause now lives on WAY_PAUSE.
         (bool wayHasPauser,) = _am.hasRole(ADMIN_PAUSER_ROLE, WAY);
         if (wayHasPauser) {
-            _buf[_n++] = buildRevokeRole(ROYCO_FACTORY, ADMIN_PAUSER_ROLE, WAY);
+            _buf[_n++] = buildRevokeRole(address(_am), ADMIN_PAUSER_ROLE, WAY);
         }
         return _n;
     }
 
     /// @dev Roles where FNDN must NOT be a holder under the new model. ADMIN_ORACLE_QUOTER_ROLE
     ///      is intentionally omitted — it's co-held by FNDN @ Immediate (emergency oracle
-    ///      re-peg) and WAY @ 60h (routine quoter changes). ADMIN_PAUSER_ROLE stays in the
+    ///      re-peg) and WAY @ 72h (routine quoter changes). ADMIN_PAUSER_ROLE stays in the
     ///      list so FNDN is revoked from it too (pause is WAY_PAUSE-only; WAY revoked above).
     function _wayOnlyRoles() internal pure returns (uint64[] memory roles) {
         roles = new uint64[](9);
@@ -205,13 +215,13 @@ contract MigrateDawn is MigrationBase, Script {
         // Guardian wiring (entry-point roles weren't auto-guardianed by the original
         // DeployEntryPoint script — backfill so FNDN can cancel WAY-scheduled ops).
         if (_am.getRoleGuardian(BURNER_ROLE) != GUARDIAN_ROLE) {
-            _buf[_n++] = buildSetRoleGuardian(ROYCO_FACTORY, BURNER_ROLE, GUARDIAN_ROLE);
+            _buf[_n++] = buildSetRoleGuardian(address(_am), BURNER_ROLE, GUARDIAN_ROLE);
         }
         if (_am.getRoleGuardian(ADMIN_ENTRY_POINT_ROLE) != GUARDIAN_ROLE) {
-            _buf[_n++] = buildSetRoleGuardian(ROYCO_FACTORY, ADMIN_ENTRY_POINT_ROLE, GUARDIAN_ROLE);
+            _buf[_n++] = buildSetRoleGuardian(address(_am), ADMIN_ENTRY_POINT_ROLE, GUARDIAN_ROLE);
         }
         if (_am.getRoleGuardian(ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE) != GUARDIAN_ROLE) {
-            _buf[_n++] = buildSetRoleGuardian(ROYCO_FACTORY, ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE, GUARDIAN_ROLE);
+            _buf[_n++] = buildSetRoleGuardian(address(_am), ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE, GUARDIAN_ROLE);
         }
         return _n;
     }
@@ -232,9 +242,10 @@ contract MigrateDawn is MigrationBase, Script {
         seizeSel[0] = IRoycoVaultTranche.seizeShares.selector;
         seizeSel[1] = IRoycoVaultTranche.seizeAndRedeemShares.selector;
 
-        bytes4[] memory lpSel = new bytes4[](2);
-        lpSel[0] = IRoycoVaultTranche.deposit.selector;
-        lpSel[1] = IRoycoVaultTranche.redeem.selector;
+        // Deposits are OPEN to everyone → PUBLIC_ROLE on every tranche. Redemptions stay gated
+        // per-tranche (ST_LP_ROLE / JT_LP_ROLE), still routed through the EntryPoint / LPs.
+        bytes4[] memory depositSel = _one(IRoycoVaultTranche.deposit.selector);
+        bytes4[] memory redeemSel = _one(IRoycoVaultTranche.redeem.selector);
 
         bytes4[] memory pauseSel = _one(IRoycoAuth.pause.selector);
         bytes4[] memory upgradeSel = _one(UUPSUpgradeable.upgradeToAndCall.selector);
@@ -245,8 +256,10 @@ contract MigrateDawn is MigrationBase, Script {
             _n = _maybeSetTargetFunctionRole(_buf, _n, _am, m.juniorTranche, burnSel, BURNER_ROLE);
             _n = _maybeSetTargetFunctionRole(_buf, _n, _am, m.seniorTranche, seizeSel, TRANSFER_AGENT_ROLE);
             _n = _maybeSetTargetFunctionRole(_buf, _n, _am, m.juniorTranche, seizeSel, TRANSFER_AGENT_ROLE);
-            _n = _maybeSetTargetFunctionRole(_buf, _n, _am, m.seniorTranche, lpSel, ST_LP_ROLE);
-            _n = _maybeSetTargetFunctionRole(_buf, _n, _am, m.juniorTranche, lpSel, JT_LP_ROLE);
+            _n = _maybeSetTargetFunctionRole(_buf, _n, _am, m.seniorTranche, depositSel, PUBLIC_ROLE);
+            _n = _maybeSetTargetFunctionRole(_buf, _n, _am, m.juniorTranche, depositSel, PUBLIC_ROLE);
+            _n = _maybeSetTargetFunctionRole(_buf, _n, _am, m.seniorTranche, redeemSel, ST_LP_ROLE);
+            _n = _maybeSetTargetFunctionRole(_buf, _n, _am, m.juniorTranche, redeemSel, JT_LP_ROLE);
             _n = _maybeSetTargetFunctionRole(_buf, _n, _am, m.seniorTranche, pauseSel, ADMIN_PAUSER_ROLE);
             _n = _maybeSetTargetFunctionRole(_buf, _n, _am, m.juniorTranche, pauseSel, ADMIN_PAUSER_ROLE);
             _n = _maybeSetTargetFunctionRole(_buf, _n, _am, m.seniorTranche, upgradeSel, ADMIN_UPGRADER_ROLE);
@@ -259,7 +272,7 @@ contract MigrateDawn is MigrationBase, Script {
 
     function _diffUnpauseRebind(SafeTransaction[] memory _buf, uint256 _n, IAccessManager _am, uint256 _chainId) internal view returns (uint256) {
         if (_am.getRoleGuardian(ADMIN_UNPAUSER_ROLE) != GUARDIAN_ROLE) {
-            _buf[_n++] = buildSetRoleGuardian(ROYCO_FACTORY, ADMIN_UNPAUSER_ROLE, GUARDIAN_ROLE);
+            _buf[_n++] = buildSetRoleGuardian(address(_am), ADMIN_UNPAUSER_ROLE, GUARDIAN_ROLE);
         }
         bytes4[] memory unpauseSel = _one(IRoycoAuth.unpause.selector);
         address[] memory targets = _pausableTargets(_chainId);
@@ -299,33 +312,69 @@ contract MigrateDawn is MigrationBase, Script {
         (bool labelsLikelySet,) = _am.hasRole(ADMIN_KERNEL_ROLE, WAY);
         if (labelsLikelySet) return _n;
 
-        _buf[_n++] = buildLabelRole(ROYCO_FACTORY, ADMIN_PAUSER_ROLE, "ADMIN_PAUSER_ROLE");
-        _buf[_n++] = buildLabelRole(ROYCO_FACTORY, ADMIN_UNPAUSER_ROLE, "ADMIN_UNPAUSER_ROLE");
-        _buf[_n++] = buildLabelRole(ROYCO_FACTORY, ADMIN_UPGRADER_ROLE, "ADMIN_UPGRADER_ROLE");
-        _buf[_n++] = buildLabelRole(ROYCO_FACTORY, ST_LP_ROLE, "ST_LP_ROLE");
-        _buf[_n++] = buildLabelRole(ROYCO_FACTORY, JT_LP_ROLE, "JT_LP_ROLE");
-        _buf[_n++] = buildLabelRole(ROYCO_FACTORY, BURNER_ROLE, "BURNER_ROLE");
-        _buf[_n++] = buildLabelRole(ROYCO_FACTORY, SYNC_ROLE, "SYNC_ROLE");
-        _buf[_n++] = buildLabelRole(ROYCO_FACTORY, ADMIN_KERNEL_ROLE, "ADMIN_KERNEL_ROLE");
-        _buf[_n++] = buildLabelRole(ROYCO_FACTORY, ADMIN_ACCOUNTANT_ROLE, "ADMIN_ACCOUNTANT_ROLE");
-        _buf[_n++] = buildLabelRole(ROYCO_FACTORY, ADMIN_PROTOCOL_FEE_SETTER_ROLE, "ADMIN_PROTOCOL_FEE_SETTER_ROLE");
-        _buf[_n++] = buildLabelRole(ROYCO_FACTORY, ADMIN_ORACLE_QUOTER_ROLE, "ADMIN_ORACLE_QUOTER_ROLE");
-        _buf[_n++] = buildLabelRole(ROYCO_FACTORY, ADMIN_ENTRY_POINT_ROLE, "ADMIN_ENTRY_POINT_ROLE");
-        _buf[_n++] = buildLabelRole(ROYCO_FACTORY, ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE, "ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE");
-        _buf[_n++] = buildLabelRole(ROYCO_FACTORY, DEPLOYER_ROLE, "DEPLOYER_ROLE");
-        _buf[_n++] = buildLabelRole(ROYCO_FACTORY, LP_ROLE_ADMIN_ROLE, "LP_ROLE_ADMIN_ROLE");
-        _buf[_n++] = buildLabelRole(ROYCO_FACTORY, DEPLOYER_ROLE_ADMIN_ROLE, "DEPLOYER_ROLE_ADMIN_ROLE");
-        _buf[_n++] = buildLabelRole(ROYCO_FACTORY, GUARDIAN_ROLE, "GUARDIAN_ROLE");
-        _buf[_n++] = buildLabelRole(ROYCO_FACTORY, TRANSFER_AGENT_ROLE, "TRANSFER_AGENT_ROLE");
+        _buf[_n++] = buildLabelRole(address(_am), ADMIN_PAUSER_ROLE, "ADMIN_PAUSER_ROLE");
+        _buf[_n++] = buildLabelRole(address(_am), ADMIN_UNPAUSER_ROLE, "ADMIN_UNPAUSER_ROLE");
+        _buf[_n++] = buildLabelRole(address(_am), ADMIN_UPGRADER_ROLE, "ADMIN_UPGRADER_ROLE");
+        _buf[_n++] = buildLabelRole(address(_am), ST_LP_ROLE, "ST_LP_ROLE");
+        _buf[_n++] = buildLabelRole(address(_am), JT_LP_ROLE, "JT_LP_ROLE");
+        _buf[_n++] = buildLabelRole(address(_am), BURNER_ROLE, "BURNER_ROLE");
+        _buf[_n++] = buildLabelRole(address(_am), SYNC_ROLE, "SYNC_ROLE");
+        _buf[_n++] = buildLabelRole(address(_am), ADMIN_KERNEL_ROLE, "ADMIN_KERNEL_ROLE");
+        _buf[_n++] = buildLabelRole(address(_am), ADMIN_ACCOUNTANT_ROLE, "ADMIN_ACCOUNTANT_ROLE");
+        _buf[_n++] = buildLabelRole(address(_am), ADMIN_PROTOCOL_FEE_SETTER_ROLE, "ADMIN_PROTOCOL_FEE_SETTER_ROLE");
+        _buf[_n++] = buildLabelRole(address(_am), ADMIN_ORACLE_QUOTER_ROLE, "ADMIN_ORACLE_QUOTER_ROLE");
+        _buf[_n++] = buildLabelRole(address(_am), ADMIN_ENTRY_POINT_ROLE, "ADMIN_ENTRY_POINT_ROLE");
+        _buf[_n++] = buildLabelRole(address(_am), ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE, "ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE");
+        _buf[_n++] = buildLabelRole(address(_am), DEPLOYER_ROLE, "DEPLOYER_ROLE");
+        _buf[_n++] = buildLabelRole(address(_am), LP_ROLE_ADMIN_ROLE, "LP_ROLE_ADMIN_ROLE");
+        _buf[_n++] = buildLabelRole(address(_am), DEPLOYER_ROLE_ADMIN_ROLE, "DEPLOYER_ROLE_ADMIN_ROLE");
+        _buf[_n++] = buildLabelRole(address(_am), GUARDIAN_ROLE, "GUARDIAN_ROLE");
+        _buf[_n++] = buildLabelRole(address(_am), TRANSFER_AGENT_ROLE, "TRANSFER_AGENT_ROLE");
         return _n;
+    }
+
+    // ── Post-state assertion: guardian wiring ─────────────────────────────────
+
+    /// @dev Custom error so a failure names the offending role id.
+    error GuardianWiringMissing(uint64 role, uint64 actualGuardian);
+
+    /// @dev Every WAY-held role that schedules DELAYED ops. The model requires each to be guarded
+    ///      by `GUARDIAN_ROLE` so FNDN / FNDN_VETO can cancel a scheduled op (see
+    ///      `docs/roles/assignments.md`). The migration sets some of these guardians explicitly
+    ///      (entry-point roles, step 4) and INHERITS the rest from the original factory deploy.
+    function _delayedWayRoles() internal pure returns (uint64[] memory roles) {
+        roles = new uint64[](7);
+        roles[0] = ADMIN_KERNEL_ROLE;
+        roles[1] = ADMIN_ACCOUNTANT_ROLE;
+        roles[2] = ADMIN_PROTOCOL_FEE_SETTER_ROLE;
+        roles[3] = ADMIN_ORACLE_QUOTER_ROLE;
+        roles[4] = ADMIN_ENTRY_POINT_ROLE;
+        roles[5] = DEPLOYER_ROLE_ADMIN_ROLE;
+        roles[6] = ADMIN_UPGRADER_ROLE;
+    }
+
+    /// @notice Asserts every delayed WAY role is cancellable via `GUARDIAN_ROLE`. Makes the
+    ///         "guardians were wired at factory deploy" assumption explicit: generating a batch
+    ///         against a factory where it doesn't hold (e.g. a new chain) reverts here instead of
+    ///         silently emitting a topology where WAY's scheduled ops aren't FNDN-cancellable.
+    function _assertGuardianWiring(IAccessManager _am) internal view {
+        uint64[] memory roles = _delayedWayRoles();
+        for (uint256 i = 0; i < roles.length; i++) {
+            uint64 g = _am.getRoleGuardian(roles[i]);
+            if (g != GUARDIAN_ROLE) revert GuardianWiringMissing(roles[i], g);
+        }
+    }
+
+    function _assertPostState(uint256 _chainId) internal view override {
+        _assertGuardianWiring(IAccessManager(roycoFactory(_chainId)));
     }
 
     // ── Step 8: ADMIN_ROLE delay (LAST) ───────────────────────────────────────
 
-    /// @dev Set FNDN's `ADMIN_ROLE` execution delay to Root (7d). This is the last step
+    /// @dev Set FNDN's `ADMIN_ROLE` execution delay to Root (72h). This is the last step
     ///      because every prior step relies on FNDN being able to call AM admin functions
     ///      immediately. After this, FNDN's admin ops (grantRole, setRoleAdmin,
-    ///      setTargetFunctionRole, etc.) all run at 7d. Default cancel-gate keeps these
+    ///      setTargetFunctionRole, etc.) all run at 72h. Default cancel-gate keeps these
     ///      cancellable only by FNDN itself — not WAY — by design.
     function _diffAdminRoleDelay(SafeTransaction[] memory _buf, uint256 _n, IAccessManager _am) internal view returns (uint256) {
         return _maybeGrantRole(_buf, _n, _am, ADMIN_ROLE, FNDN, DELAY_ROOT);
@@ -349,7 +398,7 @@ contract MigrateDawn is MigrationBase, Script {
     {
         (bool isMember, uint32 currentDelay) = _am.hasRole(_role, _holder);
         if (isMember && currentDelay == _desiredDelay) return _n;
-        _buf[_n++] = buildGrantRole(ROYCO_FACTORY, _role, _holder, _desiredDelay);
+        _buf[_n++] = buildGrantRole(address(_am), _role, _holder, _desiredDelay);
         return _n;
     }
 
@@ -378,7 +427,7 @@ contract MigrateDawn is MigrationBase, Script {
                 missing[m++] = _selectors[i];
             }
         }
-        _buf[_n++] = buildSetTargetFunctionRole(ROYCO_FACTORY, _target, missing, _desiredRole);
+        _buf[_n++] = buildSetTargetFunctionRole(address(_am), _target, missing, _desiredRole);
         return _n;
     }
 
@@ -412,7 +461,7 @@ contract MigrateDawn is MigrationBase, Script {
     {
         name = "Royco security migration (Dawn surface, WAY-centric)";
         description =
-            "Diff-based: WAY holds parameter-update + pause + upgrade roles; FNDN holds ADMIN_ROLE (7d), GUARDIAN_ROLE, ADMIN_UNPAUSER_ROLE, ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE. Re-running against a fully-applied chain produces a 0-tx batch.";
+            "Diff-based: WAY holds parameter-update + pause + upgrade roles; FNDN holds ADMIN_ROLE (72h), GUARDIAN_ROLE, ADMIN_UNPAUSER_ROLE, ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE. Re-running against a fully-applied chain produces a 0-tx batch.";
     }
 
     function _toString(uint256 _v) private pure returns (string memory s) {

@@ -61,7 +61,47 @@ Every privileged operation follows the same shape:
 3. **Run it** locally — `forge script script/...` produces the JSON and runs the simulation in one go.
 4. **Operator imports the JSON** into the Safe UI, signs, executes.
 
+### Human-auditable output
+
+Every emitted batch is self-describing, so signers and auditors never have to hand-decode
+calldata. `SafeBatchDecoder` (`src/safe/SafeBatchDecoder.sol`) is the single decoder that drives
+this, and `writeAuditableSafeTransactionJson` asserts every transaction round-trips (decoded args
+re-encode to the exact `data`) before writing. Each emitted JSON therefore carries, per
+transaction:
+
+- `contractMethod` + `contractInputsValues` — the standard Safe Transaction Builder decoded
+  fields, so the **Safe UI renders the method name and typed args at signing time** (not raw
+  calldata). These stay canonical (role as a number, address as hex) because the Safe UI
+  validates them by re-encoding to `data`.
+- The raw `to` / `value` / `data` are untouched.
+
+The **human labels** — role names, actor/contract names (`FNDN`, `WAY`, `sNUSD.ST`,
+`RoycoFactory(AM)`), human delays (`72h`, `immediate`), a one-line effect per tx, plus a batch summary
+(chain, tx count, `keccak256` batch hash) — live in `meta.description`, which the Safe UI shows
+and which travels in the same file.
+
+**Independently verify any batch** (works on already-generated files) with the standalone
+decoder, which prints the fully-labeled table and asserts both the round-trip and that the file's
+`contractInputsValues` match the values decoded from `data`:
+
+```bash
+forge script script/DecodeBatch.s.sol --sig "run(string)" -- output/migrate/dawn/1_apply_security_migration.json
+```
+
 For incident-response (pause / unpause / cancel), the same shape applies but the script will typically just emit a single tx and skip the diff.
+
+### One-time use — the migration scripts are NOT reusable
+
+The three migration scripts (`Dawn.s.sol`, `Vaults.s.sol`, `Makina.s.sol`) each emit a **flat, direct-call** Safe batch (`grantRole` / `setTargetFunctionRole` / `setRoleGuardian`, all `ADMIN_ROLE`-gated) that FNDN executes as ordinary Safe transactions. That is only valid while **FNDN's `ADMIN_ROLE` execution delay is still 0**. The Dawn migration's final step raises it to 72h (`DELAY_ROOT`), locking down role management. After that lockdown:
+
+- Every `ADMIN_ROLE`-gated op must go through `schedule()` → wait 72h → `execute()`. A freshly generated direct-call batch would revert on import.
+- The scripts **refuse to run** (`_assertPreMigrationAdminState` reverts with `MigrationAlreadyApplied`) so you cannot accidentally generate an invalid batch.
+
+Consequences:
+
+1. **Run order is fixed: `Vaults` → `Makina` → `Dawn`.** Dawn is last because it performs the lockdown. Vaults and Makina must be executed while FNDN can still call admin functions immediately.
+2. **These scripts are for the current on-chain state only.** They are a one-shot bootstrap of the security model — not a standing tool. Do not re-run them and do not re-import a previously generated JSON.
+3. **Onboarding a new market/vault/chain after lockdown is a different operation.** It must be authored as a `schedule`/`execute` flow (or a temporary FNDN delay reduction), not by re-running these scripts. See the per-script headers.
 
 ## Setup
 
@@ -76,9 +116,15 @@ Submodules pulled into `lib/`:
 - `royco-dawn` — Royco Dawn Markets contracts (read-only reference)
 - `concrete-earn-v2-bug-bounty` — concrete vaults
 - `royco-vault-makina-strategy` — Royco's Makina strategy adapter
-- `makina-core` — Makina Caliber + Machine
+- `openzeppelin-contracts`
 
-Remappings live in `remappings.txt`. Only forge-std + the four submodules above are accessible.
+**Makina Caliber + Machine** (`makina-core`) is **not** a direct submodule. The `makina-core/`
+remapping resolves to the copy vendored under `royco-vault-makina-strategy/lib/makina-core/`
+(see `remappings.txt`) — that nested copy is the single source of truth and the one that
+compiles. Do not add a top-level `lib/makina-core`; a second, drifting copy is exactly what this
+setup avoids. Any code/comment that cites a `makina-core` line number means that vendored copy.
+
+Remappings live in `remappings.txt`.
 
 ### Environment variables
 

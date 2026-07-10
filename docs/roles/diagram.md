@@ -8,39 +8,39 @@ Single-page view of every contract Royco controls or depends on, plus who can ca
 flowchart LR
     FNDN[FNDN multisig<br/>root · rarely transacts]
     WAY[WAY multisig]
-    WAYPAUSE[WAY_PAUSE multisig<br/>1-of-4 · undeployed]
-    FNDNVETO[FNDN_VETO multisig<br/>1-of-4 · undeployed]
+    WAYPAUSE[WAY_PAUSE multisig<br/>1-of-4]
+    FNDNVETO[FNDN_VETO multisig<br/>1-of-4]
     DIAL[DIAL multisig]
     LPS[LPs<br/>per-address]
     SEC[Securitize]
     MAKINA[Makina governance<br/>off-chain to Royco]
 
     subgraph AM[RoycoFactory · OpenZeppelin AccessManager]
-        ADMIN[ADMIN_ROLE · 7d]
+        ADMIN[ADMIN_ROLE · 72h]
         GUARDIAN[GUARDIAN_ROLE]
         UNPAUSER[ADMIN_UNPAUSER_ROLE]
         EPCLAIM[ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE]
         DEPLOYER[DEPLOYER_ROLE]
 
         PAUSER[ADMIN_PAUSER_ROLE]
-        UPGRADER[ADMIN_UPGRADER_ROLE · 7d]
+        UPGRADER[ADMIN_UPGRADER_ROLE · 72h]
         LPADMIN[LP_ROLE_ADMIN_ROLE]
         SYNC[SYNC_ROLE]
-        ORACLE[ADMIN_ORACLE_QUOTER_ROLE · WAY 60h / FNDN Immediate]
-        DEPLOYERADMIN[DEPLOYER_ROLE_ADMIN_ROLE · 60h]
-        KERNEL[ADMIN_KERNEL_ROLE · 60h]
-        ACCT[ADMIN_ACCOUNTANT_ROLE · 60h]
-        FEES[ADMIN_PROTOCOL_FEE_SETTER_ROLE · 60h]
-        EP[ADMIN_ENTRY_POINT_ROLE · 60h]
-        VM[VAULT_MANAGER · 60h]
-        SM[STRATEGY_MANAGER · 60h]
-        HM[HOOK_MANAGER · 60h]
-        RM["&lt;VAULT&gt;_RISK_MANAGER · 60h"]
-        TLM["&lt;VAULT&gt;_TIMELOCK_MANAGER · 60h"]
+        ORACLE[ADMIN_ORACLE_QUOTER_ROLE · WAY 72h / FNDN Immediate]
+        DEPLOYERADMIN[DEPLOYER_ROLE_ADMIN_ROLE · 72h]
+        KERNEL[ADMIN_KERNEL_ROLE · 72h]
+        ACCT[ADMIN_ACCOUNTANT_ROLE · 72h]
+        FEES[ADMIN_PROTOCOL_FEE_SETTER_ROLE · 72h]
+        EP[ADMIN_ENTRY_POINT_ROLE · 72h]
+        VM[VAULT_MANAGER · 72h]
+        SM[STRATEGY_MANAGER · 72h]
+        HM[HOOK_MANAGER · 72h]
+        RM["&lt;VAULT&gt;_RISK_MANAGER · 72h"]
+        TLM["&lt;VAULT&gt;_TIMELOCK_MANAGER · 72h"]
 
         SPAUSER[STRATEGY_PAUSER]
         SUNPAUSER[STRATEGY_UNPAUSER]
-        SRESCUE[STRATEGY_RESCUE · 30d]
+        SRESCUE[STRATEGY_RESCUE · 72h]
         SALLOC[STRATEGY_ALLOCATOR]
 
         STLP[ST_LP_ROLE]
@@ -67,7 +67,7 @@ flowchart LR
     WAY -->|holds| UPGRADER
     WAY -->|holds| LPADMIN
     WAY -->|holds| SYNC
-    WAY -->|holds 60h| ORACLE
+    WAY -->|holds 72h| ORACLE
     WAY -->|holds| DEPLOYERADMIN
     WAY -->|holds| KERNEL
     WAY -->|holds| ACCT

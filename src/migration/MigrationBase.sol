@@ -3,7 +3,7 @@ pragma solidity ^0.8.28;
 
 import { console2 } from "forge-std/console2.sol";
 
-import { AccessManagerDumper } from "../access/AccessManagerDumper.sol";
+import { SafeBatchDecoder } from "../safe/SafeBatchDecoder.sol";
 import { SafeSimulator } from "../safe/SafeSimulator.sol";
 
 /**
@@ -23,7 +23,7 @@ import { SafeSimulator } from "../safe/SafeSimulator.sol";
  * Inherits the registry, AM dumper, and Safe simulator so leaf scripts compose against a single
  * base.
  */
-abstract contract MigrationBase is AccessManagerDumper, SafeSimulator {
+abstract contract MigrationBase is SafeBatchDecoder, SafeSimulator {
     /// @dev Default grace-period warp after the batch executes. Mirrors
     ///      `lib/royco-dawn/script/update/access/ApplySecurityMigration.s.sol:248` (1 day + 1s)
     ///      so that any "delay reduction" grace period elapses before assertions run.
@@ -57,6 +57,18 @@ abstract contract MigrationBase is AccessManagerDumper, SafeSimulator {
         internal
         virtual { }
 
+    /// @notice Optional post-simulation assertion hook, run on the forked post-state (after the
+    ///         grace-period warp) during production generation. Use it to assert model
+    ///         invariants that the diff builder assumes but does not itself enforce, so that
+    ///         generating a batch against a misconfigured factory (e.g. a freshly deployed
+    ///         chain) fails loudly instead of emitting a silently-wrong batch. Default: no-op.
+    function _assertPostState(
+        uint256 /* chainId */
+    )
+        internal
+        view
+        virtual { }
+
     // ═══════════════════════════════════════════════════════════════════════════
     // ENTRY POINT
     // ═══════════════════════════════════════════════════════════════════════════
@@ -71,6 +83,10 @@ abstract contract MigrationBase is AccessManagerDumper, SafeSimulator {
 
     function _processChain(uint256 _chainId) internal {
         vm.createSelectFork(_getRpcUrl(_chainId));
+
+        // One-time-use guard: refuse to (re)generate a direct-call batch against a system whose
+        // ADMIN_ROLE has already been locked down. See AccessManagerDumper._assertPreMigrationAdminState.
+        _assertPreMigrationAdminState(_chainId);
 
         console2.log("");
         console2.log("################################################################################");
@@ -96,15 +112,18 @@ abstract contract MigrationBase is AccessManagerDumper, SafeSimulator {
         _replayBatch(_safeFor(_chainId), txs);
         vm.warp(vm.getBlockTimestamp() + _MIGRATION_WARP_SECONDS);
 
+        // ── Post-state assertions (fail generation on a misconfigured factory) ─
+        _assertPostState(_chainId);
+
         // ── Post-state ───────────────────────────────────────────────────────
         console2.log("");
         console2.log(">>> Post-state");
         dumpAccessManager(_chainId);
 
-        // ── Write JSON ───────────────────────────────────────────────────────
+        // ── Write JSON (auditable: decoded contractMethod/inputs + meta narration) ─
         (string memory name, string memory desc) = _batchMeta(_chainId);
         string memory path = string.concat(_outputPath(_chainId), ".json");
-        writeSafeTransactionJson(txs, path, name, desc);
+        writeAuditableSafeTransactionJson(txs, _chainId, path, name, desc);
 
         console2.log("");
         console2.log("  Output:", path);

@@ -17,8 +17,8 @@ import { IMakinaGovernable } from "makina-core/src/interfaces/IMakinaGovernable.
  * (everything currently gated by the on-chain `onlyRiskManagerTimelock` modifier) to two new
  * per-vault AM roles and grants those roles to WAY with the model's delays:
  *
- *   `<VAULT>_RISK_MANAGER`     (60h) — routine risk parameters + base token mgmt + Machine fee/cooldown setters
- *   `<VAULT>_TIMELOCK_MANAGER` (60h) — `setTimelockDuration` only (meta-timelock on the Caliber)
+ *   `<VAULT>_RISK_MANAGER`     (72h) — routine risk parameters + base token mgmt + Machine fee/cooldown setters
+ *   `<VAULT>_TIMELOCK_MANAGER` (72h) — `setTimelockDuration` only (meta-timelock on the Caliber)
  *
  * The Caliber's on-chain `_allowedInstrRoot` timelock is left untouched (see README §2 notes).
  *
@@ -35,6 +35,12 @@ import { IMakinaGovernable } from "makina-core/src/interfaces/IMakinaGovernable.
  * the strategy lives under the concrete vault — Makina migration handles only Caliber + Machine.
  *
  * Output: `output/migrate/makina/{chainId}_caliber.json` (combined batch for both vaults).
+ *
+ * ── ONE-TIME USE ────────────────────────────────────────────────────────────────────────────
+ * The batch grants/wires roles via FNDN's ADMIN_ROLE directly, so this must run BEFORE Dawn's
+ * ADMIN_ROLE lockdown (order: Vaults → Makina → Dawn). `run()` (via MigrationBase) calls
+ * `_assertPreMigrationAdminState` and reverts (`MigrationAlreadyApplied`) if the lockdown has
+ * already happened. One-shot bootstrap for the current state — not a reusable tool.
  */
 contract MigrateMakina is MigrationBase, Script {
     function _targetChains() internal pure override returns (uint256[] memory chains) {
@@ -67,7 +73,7 @@ contract MigrateMakina is MigrationBase, Script {
     {
         name = "Royco Makina/Caliber AccessManager wiring";
         description =
-            "Bind Caliber + Machine setters to per-vault RISK_MANAGER (60h) and TIMELOCK_MANAGER (60h) roles. Grant both to WAY; cancellable via GUARDIAN_ROLE (FNDN/FNDN_VETO). The on-chain _allowedInstrRoot timelock is unchanged.";
+            "Bind Caliber + Machine setters to per-vault RISK_MANAGER (72h) and TIMELOCK_MANAGER (72h) roles. Grant both to WAY; cancellable via GUARDIAN_ROLE (FNDN/FNDN_VETO). The on-chain _allowedInstrRoot timelock is unchanged.";
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -76,6 +82,9 @@ contract MigrateMakina is MigrationBase, Script {
 
     function _buildBatch(uint256 _chainId) internal view override returns (SafeTransaction[] memory) {
         string[] memory vaults = vaultNames(_chainId);
+        // Resolve the AM per chain (Base has its own factory). Mainnet-only today, but never
+        // hardcode ROYCO_FACTORY here — that would silently target the wrong AM off mainnet.
+        address factory = roycoFactory(_chainId);
 
         // Per vault: 2 labelRole + 3 setTargetFunctionRole + 2 setRoleGuardian + 2 grantRole = 9 txs
         SafeTransaction[] memory txs = new SafeTransaction[](9 * vaults.length);
@@ -85,27 +94,27 @@ contract MigrateMakina is MigrationBase, Script {
             (uint64 riskRole, uint64 tlRole, string memory riskLabel, string memory tlLabel) = _vaultRoleIds(vaults[i]);
             StrategyStack memory s = getStrategyStack(_chainId, vaults[i]);
 
-            txs[t++] = buildLabelRole(ROYCO_FACTORY, riskRole, riskLabel);
-            txs[t++] = buildLabelRole(ROYCO_FACTORY, tlRole, tlLabel);
+            txs[t++] = buildLabelRole(factory, riskRole, riskLabel);
+            txs[t++] = buildLabelRole(factory, tlRole, tlLabel);
 
             // Caliber: risk-manager-gated setters + meta-timelock setter
-            txs[t++] = buildSetTargetFunctionRole(ROYCO_FACTORY, s.caliber, Selectors.caliberRiskManagerSelectors(), riskRole);
+            txs[t++] = buildSetTargetFunctionRole(factory, s.caliber, Selectors.caliberRiskManagerSelectors(), riskRole);
             bytes4[] memory tlSel = new bytes4[](1);
             tlSel[0] = ICaliber.setTimelockDuration.selector;
-            txs[t++] = buildSetTargetFunctionRole(ROYCO_FACTORY, s.caliber, tlSel, tlRole);
+            txs[t++] = buildSetTargetFunctionRole(factory, s.caliber, tlSel, tlRole);
 
             // Machine: risk-manager-gated setters (all `onlyRiskManagerTimelock`)
-            txs[t++] = buildSetTargetFunctionRole(ROYCO_FACTORY, s.machine, Selectors.machineRiskManagerSelectors(), riskRole);
+            txs[t++] = buildSetTargetFunctionRole(factory, s.machine, Selectors.machineRiskManagerSelectors(), riskRole);
 
-            // Guardian wiring — required so the guardian can cancel the 60h-delayed risk/timelock
+            // Guardian wiring — required so the guardian can cancel the 72h-delayed risk/timelock
             // manager ops. Without this, getRoleGuardian defaults to ADMIN_ROLE and only an admin
             // can cancel.
-            txs[t++] = buildSetRoleGuardian(ROYCO_FACTORY, riskRole, GUARDIAN_ROLE);
-            txs[t++] = buildSetRoleGuardian(ROYCO_FACTORY, tlRole, GUARDIAN_ROLE);
+            txs[t++] = buildSetRoleGuardian(factory, riskRole, GUARDIAN_ROLE);
+            txs[t++] = buildSetRoleGuardian(factory, tlRole, GUARDIAN_ROLE);
 
             // Held by WAY (parameter-update authority). FNDN / FNDN_VETO cancel via GUARDIAN_ROLE.
-            txs[t++] = buildGrantRole(ROYCO_FACTORY, riskRole, WAY, DELAY_MIN);
-            txs[t++] = buildGrantRole(ROYCO_FACTORY, tlRole, WAY, DELAY_MIN);
+            txs[t++] = buildGrantRole(factory, riskRole, WAY, DELAY_MIN);
+            txs[t++] = buildGrantRole(factory, tlRole, WAY, DELAY_MIN);
         }
 
         require(t == txs.length, "Makina tx count mismatch");
@@ -122,8 +131,9 @@ contract MigrateMakina is MigrationBase, Script {
     ///      1. **Re-point `_riskManagerTimelock` on each Machine to `ROYCO_FACTORY`** so the
     ///         on-chain `onlyRiskManagerTimelock` modifier on both Machine and Caliber accepts
     ///         calls relayed via the Royco AM. Caliber doesn't inherit `MakinaGovernable` — its
-    ///         modifier delegates to the Machine's slot (`Caliber.sol:115-119`), so a single
-    ///         Machine update covers both. Mocked via `vm.store`.
+    ///         modifier delegates to the Machine's slot (vendored
+    ///         `royco-vault-makina-strategy/lib/makina-core/src/caliber/Caliber.sol:116`), so a
+    ///         single Machine update covers both. Mocked via `vm.store`.
     ///      2. **Add FNDN as an `instrRootGuardian` on each Caliber** so FNDN can call
     ///         `cancelAllowedInstrRootUpdate` during the on-chain timelock window. This requires
     ///         `Caliber.addInstrRootGuardian(FNDN)`, which is `restricted` (Makina AM). Mocked
@@ -137,8 +147,10 @@ contract MigrateMakina is MigrationBase, Script {
         string[] memory vaults = vaultNames(_chainId);
         for (uint256 i = 0; i < vaults.length; i++) {
             StrategyStack memory s = getStrategyStack(_chainId, vaults[i]);
-            _writeMachineGovernableSlot(s.machine, _SLOT_RISK_MANAGER, ROYCO_FACTORY, string.concat(vaults[i], " machine.riskManager"));
-            _writeMachineGovernableSlot(s.machine, _SLOT_RISK_MANAGER_TIMELOCK, ROYCO_FACTORY, string.concat(vaults[i], " machine.riskManagerTimelock"));
+            _writeMachineGovernableSlot(s.machine, _SLOT_RISK_MANAGER, roycoFactory(_chainId), string.concat(vaults[i], " machine.riskManager"));
+            _writeMachineGovernableSlot(
+                s.machine, _SLOT_RISK_MANAGER_TIMELOCK, roycoFactory(_chainId), string.concat(vaults[i], " machine.riskManagerTimelock")
+            );
             _mockCaliberInstrRootGuardian(s.caliber, FNDN, string.concat(vaults[i], " caliber"));
         }
     }
@@ -149,7 +161,8 @@ contract MigrateMakina is MigrationBase, Script {
         console2.log(string.concat("    [OK] ", _label, " FNDN recognised as instrRootGuardian (cancelAllowedInstrRootUpdate)"));
     }
 
-    /// @dev MakinaGovernableStorage layout (`MakinaGovernable.sol:14-22`):
+    /// @dev MakinaGovernableStorage layout (vendored
+    ///      `royco-vault-makina-strategy/lib/makina-core/src/utils/MakinaGovernable.sol:14-22`):
     ///      slot+0 _mechanic, +1 _securityCouncil, +2 _riskManager, +3 _riskManagerTimelock, ...
     ///      ERC-7201 base slot:
     ///      `keccak256(abi.encode(uint256(keccak256("makina.storage.MakinaGovernable")) - 1)) & ~bytes32(uint256(0xff))`

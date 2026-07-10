@@ -34,6 +34,9 @@ abstract contract Markets is Factory {
     string internal constant SYRUP_USDC = "syrupUSDC";
     string internal constant APYUSD = "ApyUSD";
     string internal constant PARETO_FALCONX = "ParetoFalconX";
+    string internal constant EEARN = "eEARN";
+    string internal constant DMG = "DMG";
+    string internal constant SUSN = "sUSN";
 
     // ═══════════════════════════════════════════════════════════════════════════
     // TYPES
@@ -79,12 +82,18 @@ abstract contract Markets is Factory {
         _addMarket(MAINNET, STCUSD, 0x9911F227E9428964D8A35B852513919C8DF92038);
         _addMarket(MAINNET, PARETO_FALCONX, 0x15bb63C07740ff972F76716cAcC5766f0C641791);
         _addMarket(MAINNET, APYUSD, 0xcFbdEA0990F21b103c8D123d0D5273B4ea269cb4);
+        _addMarket(MAINNET, EEARN, 0x36c1d7CaFa9A220fc1450fA070277aED69F8c9B2);
+        _addMarket(MAINNET, DMG, 0x753fB559B67DcED89020ef222bF87099776d1676);
 
         // ── Avalanche ────────────────────────────────────────────────────────
         _addMarket(AVALANCHE, SAVUSD, 0x7240FF91b471217FF93349184ABE9f102Ca1955C);
 
         // ── Arbitrum ─────────────────────────────────────────────────────────
         _addMarket(ARBITRUM, SUSDAI, 0xFdb17E53eA5d342124b8473188BCB9F05F1949CA);
+
+        // ── Base ─────────────────────────────────────────────────────────────
+        // Note: Base uses its own factory (`ROYCO_FACTORY_BASE`, see Factory.sol).
+        _addMarket(BASE, SUSN, 0x3FBC599C113923439Ca6878B7A9b5433Cc3F4116);
     }
 
     /// @dev Per-chain syncer addresses, mirrored from
@@ -92,6 +101,9 @@ abstract contract Markets is Factory {
         _syncers[MAINNET] = 0xc46367BBdbC62F1825a46549062a3A88D8668D52;
         _syncers[AVALANCHE] = 0x2E9fCb5Ea139d2fDb5CcDc5BdF16357Da68d872C;
         _syncers[ARBITRUM] = 0x8DCC7107e3AD82B60144bE68bE9C4809c84b9E06;
+        // TODO(base): no deployed Base syncer address published yet (upstream
+        // SyncerDeploymentConfig only has deployment config, not an address). Scripts
+        // treat a zero syncer as "not deployed" and skip it.
     }
 
     function _addMarket(uint256 _chainId, string memory _name, address _kernel) internal {

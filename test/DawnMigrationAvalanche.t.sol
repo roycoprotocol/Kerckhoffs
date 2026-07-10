@@ -46,4 +46,8 @@ contract DawnMigrationAvalancheTest is RoleBehaviorBase, MigrateDawn {
         SafeTransaction[] memory rerun = _buildBatch(AVALANCHE);
         require(rerun.length == 0, "re-applying migration on AVAX should produce 0 txs");
     }
+
+    function test_PostState_GuardianWiring() public view {
+        _assertGuardianWiring(am);
+    }
 }

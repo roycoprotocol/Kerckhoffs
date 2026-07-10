@@ -7,7 +7,7 @@ Conventions:
 - "per vault" = once per concrete vault on Mainnet (`srRoyUSDC`, `roywstETH`).
 - "AM" = `RoycoFactory` (the OpenZeppelin AccessManager).
 - Functions on the AM itself (e.g. `setRoleAdmin`) are listed under `ADMIN_ROLE`.
-- Selectors not bound to a specific role default to `ADMIN_ROLE` (FNDN @ 7d).
+- Selectors not bound to a specific role default to `ADMIN_ROLE` (FNDN @ 72h).
 
 ---
 
@@ -36,7 +36,8 @@ Hardcoded in OZ AM (`AccessManager._getAdminRestrictions`). Required to call:
 
 | Target | Selector | Notes |
 |---|---|---|
-| EntryPoint | `requestDeposit`, `executeDeposit`, `executeDeposits`, `cancelDepositRequest`, `cancelDepositRequests`, `requestRedemption`, `executeRedemption`, `executeRedemptions`, `cancelRedemptionRequest`, `cancelRedemptionRequests` | LP user-facing flow. The actual gate is at the tranche layer (`ST_LP_ROLE` / `JT_LP_ROLE`). |
+| EntryPoint | `requestDeposit`, `executeDeposit`, `executeDeposits`, `cancelDepositRequest`, `cancelDepositRequests`, `requestRedemption`, `executeRedemption`, `executeRedemptions`, `cancelRedemptionRequest`, `cancelRedemptionRequests` | LP user-facing flow. Tranche `deposit` is open (`PUBLIC_ROLE`); tranche `redeem` is gated at the tranche layer (`ST_LP_ROLE` / `JT_LP_ROLE`). |
+| Tranches (per market) | `deposit` (senior + junior) | Deposits are open to anyone — `deposit` on every senior/junior tranche is bound to `PUBLIC_ROLE`. |
 
 ---
 
@@ -79,18 +80,19 @@ Hardcoded in OZ AM (`AccessManager._getAdminRestrictions`). Required to call:
 
 ## LP / accounting
 
+Note: `deposit` on every tranche is bound to `PUBLIC_ROLE` (deposits are open to anyone); only
+`redeem` is gated per-tranche by `ST_LP_ROLE` / `JT_LP_ROLE`.
+
 ### `ST_LP_ROLE`
 
 | Target | Selector |
 |---|---|
-| Senior tranche (per market) | `deposit` |
 | Senior tranche (per market) | `redeem` |
 
 ### `JT_LP_ROLE`
 
 | Target | Selector |
 |---|---|
-| Junior tranche (per market) | `deposit` |
 | Junior tranche (per market) | `redeem` |
 
 ### `BURNER_ROLE`

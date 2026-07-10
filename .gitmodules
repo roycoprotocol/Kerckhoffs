@@ -10,9 +10,6 @@
 [submodule "lib/royco-vault-makina-strategy"]
 	path = lib/royco-vault-makina-strategy
 	url = https://github.com/roycoprotocol/royco-vault-makina-strategy
-[submodule "lib/makina-core"]
-	path = lib/makina-core
-	url = https://github.com/MakinaHQ/makina-core
 [submodule "lib/openzeppelin-contracts"]
 	path = lib/openzeppelin-contracts
 	url = https://github.com/openzeppelin/openzeppelin-contracts

@@ -36,7 +36,7 @@ contract DawnMigrationTest is RoleBehaviorBase, MigrateDawn {
     // ═══════════════════════════════════════════════════════════════════════════
 
     function test_PostState_FNDN_RoleDelays() public view {
-        // FNDN holds: ADMIN_ROLE @ 7d (role management), GUARDIAN_ROLE @ Immediate (cancel),
+        // FNDN holds: ADMIN_ROLE @ 72h (role management), GUARDIAN_ROLE @ Immediate (cancel),
         //             ADMIN_UNPAUSER_ROLE @ Immediate, ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE @ Immediate,
         //             DEPLOYER_ROLE @ Immediate (market deployment), ADMIN_ORACLE_QUOTER_ROLE @ Immediate
         //             (emergency oracle re-pegs; co-held with WAY).
@@ -127,14 +127,22 @@ contract DawnMigrationTest is RoleBehaviorBase, MigrateDawn {
             require(
                 am.getTargetFunctionRole(m.juniorTranche, IRoycoVaultTranche.seizeShares.selector) == TRANSFER_AGENT_ROLE, "JT seize not TRANSFER_AGENT_ROLE"
             );
-            require(am.getTargetFunctionRole(m.seniorTranche, IRoycoVaultTranche.deposit.selector) == ST_LP_ROLE, "ST deposit not ST_LP_ROLE");
-            require(am.getTargetFunctionRole(m.juniorTranche, IRoycoVaultTranche.deposit.selector) == JT_LP_ROLE, "JT deposit not JT_LP_ROLE");
+            // Deposits are open (PUBLIC_ROLE); redemptions stay gated per-tranche.
+            require(am.getTargetFunctionRole(m.seniorTranche, IRoycoVaultTranche.deposit.selector) == PUBLIC_ROLE, "ST deposit not PUBLIC_ROLE");
+            require(am.getTargetFunctionRole(m.juniorTranche, IRoycoVaultTranche.deposit.selector) == PUBLIC_ROLE, "JT deposit not PUBLIC_ROLE");
+            require(am.getTargetFunctionRole(m.seniorTranche, IRoycoVaultTranche.redeem.selector) == ST_LP_ROLE, "ST redeem not ST_LP_ROLE");
+            require(am.getTargetFunctionRole(m.juniorTranche, IRoycoVaultTranche.redeem.selector) == JT_LP_ROLE, "JT redeem not JT_LP_ROLE");
         }
     }
 
     function test_PostState_Idempotency() public {
         SafeTransaction[] memory rerun = _buildBatch(MAINNET);
         require(rerun.length == 0, "re-applying migration should produce 0 txs (diff converged)");
+    }
+
+    function test_PostState_GuardianWiring() public view {
+        // Every delayed WAY role must be cancellable via GUARDIAN_ROLE (reverts if not).
+        _assertGuardianWiring(am);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -227,11 +235,11 @@ contract DawnMigrationTest is RoleBehaviorBase, MigrateDawn {
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // ROLE BEHAVIOR — ADMIN_ROLE (FNDN, 7d, intentionally non-cancellable by others)
+    // ROLE BEHAVIOR — ADMIN_ROLE (FNDN, 72h, intentionally non-cancellable by others)
     // ═══════════════════════════════════════════════════════════════════════════
 
     function test_AdminRole_DelayedAndExecutable_FNDN() public {
-        // FNDN can grant a role via ADMIN_ROLE @ 7d. No one but FNDN can cancel.
+        // FNDN can grant a role via ADMIN_ROLE @ 72h. No one but FNDN can cancel.
         bytes memory data = abi.encodeCall(IAccessManager.grantRole, (ADMIN_PAUSER_ROLE, address(0xDEAD), 0));
         bytes32 opId = am.hashOperation(FNDN, address(am), data);
 
@@ -266,9 +274,10 @@ contract DawnMigrationTest is RoleBehaviorBase, MigrateDawn {
     // ═══════════════════════════════════════════════════════════════════════════
 
     function test_StLpRole_Behavior() public view {
+        // ST_LP_ROLE now gates redemption (deposits are public); the EntryPoint holds it.
         address senior = getMarketAddresses(MAINNET, marketNames(MAINNET)[0]).seniorTranche;
         _assertMembership(ST_LP_ROLE, ep, DELAY_IMMEDIATE, "ST_LP_ROLE @ entryPoint");
-        (bool immediate, uint32 delay) = am.canCall(ep, senior, IRoycoVaultTranche.deposit.selector);
+        (bool immediate, uint32 delay) = am.canCall(ep, senior, IRoycoVaultTranche.redeem.selector);
         require(immediate, "ST_LP_ROLE: canCall not immediate");
         require(delay == 0, "ST_LP_ROLE: delay non-zero");
     }
@@ -276,9 +285,19 @@ contract DawnMigrationTest is RoleBehaviorBase, MigrateDawn {
     function test_JtLpRole_Behavior() public view {
         address junior = getMarketAddresses(MAINNET, marketNames(MAINNET)[0]).juniorTranche;
         _assertMembership(JT_LP_ROLE, ep, DELAY_IMMEDIATE, "JT_LP_ROLE @ entryPoint");
-        (bool immediate, uint32 delay) = am.canCall(ep, junior, IRoycoVaultTranche.deposit.selector);
+        (bool immediate, uint32 delay) = am.canCall(ep, junior, IRoycoVaultTranche.redeem.selector);
         require(immediate, "JT_LP_ROLE: canCall not immediate");
         require(delay == 0, "JT_LP_ROLE: delay non-zero");
+    }
+
+    function test_PublicDeposit_AnyoneCanDeposit() public view {
+        // Deposits are open: a random address (holding no LP role) can call deposit on both tranches.
+        MarketAddresses memory m = getMarketAddresses(MAINNET, marketNames(MAINNET)[0]);
+        address rando = address(0xD3AD);
+        (bool stImmediate, uint32 stDelay) = am.canCall(rando, m.seniorTranche, IRoycoVaultTranche.deposit.selector);
+        (bool jtImmediate, uint32 jtDelay) = am.canCall(rando, m.juniorTranche, IRoycoVaultTranche.deposit.selector);
+        require(stImmediate && stDelay == 0, "ST deposit not public");
+        require(jtImmediate && jtDelay == 0, "JT deposit not public");
     }
 
     function test_BurnerRole_Behavior() public view {

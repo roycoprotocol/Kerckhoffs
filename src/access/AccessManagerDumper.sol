@@ -39,6 +39,35 @@ abstract contract AccessManagerDumper is Roles, Multisigs, Markets, Vaults, Stra
 
     string internal constant _DUMP_OUTPUT_DIRECTORY = "output/dump/";
 
+    /// @dev Raised by the one-time-use guard when a migration is asked to (re)generate a batch
+    ///      against a system whose ADMIN_ROLE has already been locked down.
+    error MigrationAlreadyApplied(uint256 chainId, uint32 fndnAdminDelay);
+    error UnexpectedPreState(uint256 chainId, string what);
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ONE-TIME-USE GUARD
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// @notice Asserts the on-chain state is the pre-migration state these scripts were built
+    ///         for, and reverts otherwise. MUST be called (on the correct fork) at the start of
+    ///         every production `run()` / `_processChain`.
+    ///
+    /// @dev Every migration in this repo emits a FLAT, direct-call Safe batch (grantRole /
+    ///      setTargetFunctionRole / setRoleGuardian, all ADMIN_ROLE-gated) that FNDN executes as
+    ///      ordinary Safe calls. That is only valid while FNDN's ADMIN_ROLE execution delay is
+    ///      still 0. The Dawn migration's final step raises it to 72h (`DELAY_ROOT`); after that,
+    ///      every admin op must go through `schedule()` → wait 72h → `execute()`, so a freshly
+    ///      generated direct-call batch would revert on import. These scripts are therefore
+    ///      ONE-TIME-USE, for the current state only, and must run in the order
+    ///      Vaults → Makina → Dawn (Dawn last, since it performs the lockdown). This guard makes
+    ///      the scripts refuse to generate a batch once that lockdown has happened.
+    function _assertPreMigrationAdminState(uint256 _chainId) internal view {
+        IAccessManager am = IAccessManager(roycoFactory(_chainId));
+        (bool isMember, uint32 delay) = am.hasRole(ADMIN_ROLE, FNDN);
+        if (!isMember) revert UnexpectedPreState(_chainId, "FNDN is not ADMIN_ROLE member");
+        if (delay != DELAY_IMMEDIATE) revert MigrationAlreadyApplied(_chainId, delay);
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════
     // PUBLIC ENTRY
     // ═══════════════════════════════════════════════════════════════════════════
@@ -51,12 +80,12 @@ abstract contract AccessManagerDumper is Roles, Multisigs, Markets, Vaults, Stra
             vm.createSelectFork(_getRpcUrl(_chainId));
         }
 
-        IAccessManager am = IAccessManager(ROYCO_FACTORY);
+        IAccessManager am = IAccessManager(roycoFactory(_chainId));
 
         console2.log("");
         console2.log("================================================================================");
         console2.log("AccessManager dump | chain:", _chainName(_chainId), _chainId);
-        console2.log("  AccessManager:", ROYCO_FACTORY);
+        console2.log("  AccessManager:", roycoFactory(_chainId));
         console2.log("================================================================================");
 
         _dumpRoles(am, _chainId);

@@ -11,7 +11,7 @@ build_info = true
 evm_version = "prague"
 via_ir = true
 deny = "never"
-fs_permissions = [{ access = "read", path = "./out" }, { access = "read-write", path = "./output" }]
+fs_permissions = [{ access = "read", path = "./out" }, { access = "read-write", path = "./output" }, { access = "read-write", path = "./app/metadata" }]
 solc_version = "0.8.28"
 
 

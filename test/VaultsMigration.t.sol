@@ -17,12 +17,12 @@ import { RoleBehaviorBase } from "./_RoleBehaviorBase.sol";
  * @notice Verifies the Vaults migration:
  *   - AM holds every native AccessControl role on each vault (Phase 1).
  *   - Every vault selector (management + native admin) routes through `VAULT_MANAGER` held
- *     by WAY @ 60h, FNDN-cancellable.
- *   - Strategy roles: WAY pauses Immediate, FNDN unpauses Immediate, FNDN rescues @ 30d
+ *     by WAY @ 72h, FNDN-cancellable.
+ *   - Strategy roles: WAY pauses Immediate, FNDN unpauses Immediate, FNDN rescues @ 72h
  *     (FNDN-cancellable), DIAL allocates Immediate.
  *
  * Setup chain: Vaults FIRST (so FNDN's ADMIN_ROLE is still Immediate to drive phase-2 calls),
- * then Dawn (lockdown raises FNDN's ADMIN_ROLE to 7d).
+ * then Dawn (lockdown raises FNDN's ADMIN_ROLE to 72h).
  */
 contract VaultsMigrationTest is RoleBehaviorBase, MigrateVaults {
     function setUp() public {
@@ -69,7 +69,7 @@ contract VaultsMigrationTest is RoleBehaviorBase, MigrateVaults {
     }
 
     function test_PostState_ConcreteVaultRoles_HoldersAndGuardians() public view {
-        // Three per-concrete-role AM roles, each WAY @ 60h, FNDN-cancellable.
+        // Three per-concrete-role AM roles, each WAY @ 72h, FNDN-cancellable.
         _assertMembership(VAULT_MANAGER, WAY, DELAY_MIN, "VAULT_MANAGER @ WAY");
         _assertMembership(STRATEGY_MANAGER, WAY, DELAY_MIN, "STRATEGY_MANAGER @ WAY");
         _assertMembership(HOOK_MANAGER, WAY, DELAY_MIN, "HOOK_MANAGER @ WAY");
@@ -121,7 +121,7 @@ contract VaultsMigrationTest is RoleBehaviorBase, MigrateVaults {
         }
         // vault.grantRole / vault.revokeRole are intentionally NOT bound to a specific role —
         // they fall through to the default (`ADMIN_ROLE`), so adding new holders to a native
-        // vault role requires FNDN's 7d ADMIN_ROLE flow.
+        // vault role requires FNDN's 72h ADMIN_ROLE flow.
         require(am.getTargetFunctionRole(v.vault, IConcreteVault.grantRole.selector) == ADMIN_ROLE, "vault.grantRole should default to ADMIN_ROLE");
         require(am.getTargetFunctionRole(v.vault, IConcreteVault.revokeRole.selector) == ADMIN_ROLE, "vault.revokeRole should default to ADMIN_ROLE");
     }
@@ -142,7 +142,7 @@ contract VaultsMigrationTest is RoleBehaviorBase, MigrateVaults {
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // VAULT_MANAGER behavior — WAY @ 60h, FNDN-cancellable
+    // VAULT_MANAGER behavior — WAY @ 72h, FNDN-cancellable
     // ═══════════════════════════════════════════════════════════════════════════
 
     function test_VaultManagement_srRoyUSDC_DelayedAndCancellable() public {
@@ -159,13 +159,13 @@ contract VaultsMigrationTest is RoleBehaviorBase, MigrateVaults {
         _assertDelayedRoleBehavior(string.concat(ROYWSTETH, " VAULT_MANAGER"), VAULT_MANAGER, WAY, DELAY_MIN, v.vault, data, FNDN);
     }
 
-    // vault.grantRole / vault.revokeRole default to ADMIN_ROLE (FNDN @ 7d). Verify a delayed
+    // vault.grantRole / vault.revokeRole default to ADMIN_ROLE (FNDN @ 72h). Verify a delayed
     // FNDN call works. (Cancellable only by FNDN itself, since AM admin selector cancel-gate
     // wasn't wired in the new model — see DawnMigrationTest::test_AdminRole_*.)
     function test_VaultGrantRole_srRoyUSDC_FNDNGated() public view {
         VaultAddresses memory v = getVaultAddresses(MAINNET, SRROYUSDC);
         (bool immediate, uint32 delay) = am.canCall(FNDN, v.vault, IConcreteVault.grantRole.selector);
-        require(!immediate, "vault.grantRole should be delayed for FNDN (ADMIN_ROLE @ 7d)");
+        require(!immediate, "vault.grantRole should be delayed for FNDN (ADMIN_ROLE @ 72h)");
         require(delay == DELAY_ROOT, "vault.grantRole delay mismatch");
     }
 

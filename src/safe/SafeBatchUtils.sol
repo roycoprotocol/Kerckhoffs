@@ -155,7 +155,7 @@ abstract contract SafeBatchUtils is CommonBase {
     }
 
     /// @dev Returns everything in `_path` up to (but excluding) the last `/`. Returns "" if no `/` found.
-    function _parentDir(string memory _path) private pure returns (string memory) {
+    function _parentDir(string memory _path) internal pure returns (string memory) {
         bytes memory b = bytes(_path);
         for (uint256 i = b.length; i > 0; i--) {
             if (

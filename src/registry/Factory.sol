@@ -5,11 +5,14 @@ import { CommonBase } from "forge-std/Base.sol";
 
 /**
  * @title Factory
- * @notice The Royco factory address (the single AccessManager) plus chain IDs and RPC resolution.
+ * @notice The Royco factory address (the per-chain AccessManager) plus chain IDs and RPC
+ *         resolution.
  *
- * `ROYCO_FACTORY` is deployed via CREATE2 and is the same address on every chain. Per the
- * security model, this is the single control plane for all role authorization across Dawn,
- * vaults, strategies, and Makina/Caliber.
+ * `ROYCO_FACTORY` is deployed via CREATE2 and is the same address on Mainnet / Avalanche /
+ * Arbitrum. Base has its own factory at a different address (`ROYCO_FACTORY_BASE`) — always
+ * resolve via `roycoFactory(chainId)` in chain-generic code. Per the security model, the
+ * factory is the single control plane for all role authorization across Dawn, vaults,
+ * strategies, and Makina/Caliber on its chain.
  */
 abstract contract Factory is CommonBase {
     // ═══════════════════════════════════════════════════════════════════════════
@@ -25,8 +28,18 @@ abstract contract Factory is CommonBase {
     // FACTORY ADDRESS
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// @dev Deployed via CREATE2 — same address on every chain
+    /// @dev Deployed via CREATE2 — same address on Mainnet / Avalanche / Arbitrum
     address internal constant ROYCO_FACTORY = 0x7cC6fB28eC7b5e7afC3cB3986141797ffc27253C;
+
+    /// @dev Base factory — deployed separately, NOT the CREATE2 address. Mirrors
+    ///      `lib/royco-dawn/script/config/SyncerDeploymentConfig.sol :: ROYCO_FACTORY_BASE`.
+    address internal constant ROYCO_FACTORY_BASE = 0x568c9709DaA2f7B7cc66AbC3E41DA0f0A339551A;
+
+    /// @notice Resolves the RoycoFactory (AccessManager) address for the given chain.
+    function roycoFactory(uint256 _chainId) public pure returns (address) {
+        if (_chainId == BASE) return ROYCO_FACTORY_BASE;
+        return ROYCO_FACTORY;
+    }
 
     // ═══════════════════════════════════════════════════════════════════════════
     // RPC URL RESOLUTION

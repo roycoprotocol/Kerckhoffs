@@ -10,7 +10,7 @@ import { MigrateDawn } from "../script/migrate/Dawn.s.sol";
  * @title AdminNotCancellableTest
  * @notice Inverse of the previous "cancel-gate hack" test. Under the new WAY-centric model,
  *         FNDN's `ADMIN_ROLE`-gated ops (grantRole, setRoleAdmin, setTargetFunctionRole, etc.)
- *         run at 7d delay and are **intentionally NOT cancellable by anyone but FNDN itself**.
+ *         run at 72h delay and are **intentionally NOT cancellable by anyone but FNDN itself**.
  *         No `setTargetFunctionRole(AM, [admin selectors], ...)` writes are made; default cancel
  *         guardian for those selectors is `getRoleGuardian(ADMIN_ROLE) = ADMIN_ROLE` → only
  *         FNDN can cancel.
@@ -69,7 +69,7 @@ contract AdminNotCancellableTest is Test, MigrateDawn {
     function _assertOnlyFNDNCanCancel(bytes memory data) internal {
         bytes32 opId = am.hashOperation(FNDN, address(am), data);
         vm.prank(FNDN);
-        am.schedule(address(am), data, uint48(block.timestamp + 7 days));
+        am.schedule(address(am), data, uint48(block.timestamp + DELAY_ROOT));
         require(am.getSchedule(opId) != 0, "schedule did not queue");
 
         // WAY cannot cancel.

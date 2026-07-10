@@ -13,7 +13,7 @@ import { RoleBehaviorBase } from "./_RoleBehaviorBase.sol";
 
 /**
  * @title MakinaMigrationTest
- * @notice Per-vault Caliber/Machine roles held by WAY @ 60h, FNDN-cancellable.
+ * @notice Per-vault Caliber/Machine roles held by WAY @ 72h, FNDN-cancellable.
  *
  * Setup chain: Makina FIRST (FNDN's ADMIN_ROLE still Immediate to drive phase-2 calls), then
  * Dawn (lockdown). Both per-vault `RISK_MANAGER` and `TIMELOCK_MANAGER` roles bind every
@@ -71,7 +71,7 @@ contract MakinaMigrationTest is RoleBehaviorBase, MigrateMakina {
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // Behavior — WAY @ 60h, FNDN-cancellable
+    // Behavior — WAY @ 72h, FNDN-cancellable
     // ═══════════════════════════════════════════════════════════════════════════
 
     function test_SrRoyUSDC_RiskManager_Caliber_DelayedAndCancellable() public {

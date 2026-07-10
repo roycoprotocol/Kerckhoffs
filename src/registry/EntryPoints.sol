@@ -20,6 +20,7 @@ abstract contract EntryPoints is Factory {
         _entryPoints[MAINNET] = ENTRY_POINT;
         _entryPoints[AVALANCHE] = ENTRY_POINT;
         _entryPoints[ARBITRUM] = ENTRY_POINT;
+        _entryPoints[BASE] = ENTRY_POINT;
     }
 
     function entryPoint(uint256 _chainId) public view returns (address) {
