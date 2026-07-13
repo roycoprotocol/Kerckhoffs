@@ -22,14 +22,19 @@ import { IMakinaGovernable } from "makina-core/src/interfaces/IMakinaGovernable.
  *
  * The Caliber's on-chain `_allowedInstrRoot` timelock is left untouched (see README §2 notes).
  *
- * **Out-of-band prerequisite (Makina governance).** The on-chain `_riskManagerTimelock` slot on
- * each Caliber and Machine must point at `ROYCO_FACTORY` for the AM-side bindings to take effect.
- * `setRiskManagerTimelock(...)` is `restricted` — gated by the *Makina* AM, not Royco's — and
- * Royco does not currently hold permission to call it. The migration script does NOT include
- * this call in the emitted Safe JSON. It IS included in the local fork simulation (via
- * `_preSimulate` pranking the contract's `authority()`) so that we can verify the post-state
- * assuming Makina governance executes the change. Tracking this with Makina is a separate
- * workstream.
+ * **Out-of-band prerequisite (Makina governance).** BOTH the `_riskManager` (slot 2) AND the
+ * `_riskManagerTimelock` (slot 3) slots on each Machine must point at `ROYCO_FACTORY` for the
+ * AM-side bindings to take effect. Both are required because the migration binds
+ * `onlyRiskManager`-gated setters too: `Machine.setShareLimit` and `Caliber.scheduleAllowedInstrRootUpdate`
+ * resolve against `_riskManager` (slot 2), while every other bound setter resolves against
+ * `_riskManagerTimelock` (slot 3). Re-pointing only slot 3 would leave `setShareLimit` /
+ * `scheduleAllowedInstrRootUpdate` gated by the OLD riskManager (WAY couldn't call them; the prior
+ * authority would retain them). `setRiskManager(...)` / `setRiskManagerTimelock(...)` are
+ * `restricted` — gated by the *Makina* AM, not Royco's — and Royco does not currently hold
+ * permission to call them. The migration script does NOT include these calls in the emitted Safe
+ * JSON. They ARE included in the local fork simulation (via `_preSimulate` writing both slots) so
+ * that we can verify the post-state assuming Makina governance executes the change. Tracking this
+ * with Makina is a separate workstream.
  *
  * The strategy contract (sits under the vault) is wired in `script/migrate/Vaults.s.sol`, since
  * the strategy lives under the concrete vault — Makina migration handles only Caliber + Machine.
@@ -128,12 +133,15 @@ contract MigrateMakina is MigrationBase, Script {
     /// @dev Two simulation-only prerequisites that depend on Makina governance and so are NOT
     ///      included in the emitted Safe JSON:
     ///
-    ///      1. **Re-point `_riskManagerTimelock` on each Machine to `ROYCO_FACTORY`** so the
-    ///         on-chain `onlyRiskManagerTimelock` modifier on both Machine and Caliber accepts
-    ///         calls relayed via the Royco AM. Caliber doesn't inherit `MakinaGovernable` — its
-    ///         modifier delegates to the Machine's slot (vendored
-    ///         `royco-vault-makina-strategy/lib/makina-core/src/caliber/Caliber.sol:116`), so a
-    ///         single Machine update covers both. Mocked via `vm.store`.
+    ///      1. **Re-point BOTH `_riskManager` (slot 2) and `_riskManagerTimelock` (slot 3) on each
+    ///         Machine to `ROYCO_FACTORY`** so the on-chain `onlyRiskManager` / `onlyRiskManagerTimelock`
+    ///         modifiers on both Machine and Caliber accept calls relayed via the Royco AM. Both slots
+    ///         are needed: `onlyRiskManager` setters (`Machine.setShareLimit`,
+    ///         `Caliber.scheduleAllowedInstrRootUpdate`) read slot 2; every other bound setter reads
+    ///         slot 3. Caliber doesn't inherit `MakinaGovernable` — its modifiers delegate to the
+    ///         Machine's slots (vendored
+    ///         `royco-vault-makina-strategy/lib/makina-core/src/caliber/Caliber.sol:109-121`), so a
+    ///         single Machine update per slot covers both contracts. Mocked via `vm.store`.
     ///      2. **Add FNDN as an `instrRootGuardian` on each Caliber** so FNDN can call
     ///         `cancelAllowedInstrRootUpdate` during the on-chain timelock window. This requires
     ///         `Caliber.addInstrRootGuardian(FNDN)`, which is `restricted` (Makina AM). Mocked

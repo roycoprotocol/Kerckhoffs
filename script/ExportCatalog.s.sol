@@ -83,7 +83,17 @@ contract ExportCatalog is AccessManagerDumper, Script {
         out[5] = _actor(_chainId, "a5", "EntryPoint", "entrypoint", entryPoint(_chainId), false);
     }
 
-    function _actor(uint256 _chainId, string memory _tag, string memory _name, string memory _category, address _addr, bool _pending) internal returns (string memory) {
+    function _actor(
+        uint256 _chainId,
+        string memory _tag,
+        string memory _name,
+        string memory _category,
+        address _addr,
+        bool _pending
+    )
+        internal
+        returns (string memory)
+    {
         string memory k = string.concat("act", vm.toString(_chainId), _tag);
         vm.serializeString(k, "name", _name);
         vm.serializeString(k, "category", _category);

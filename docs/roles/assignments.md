@@ -57,7 +57,7 @@ Source: `src/registry/Multisigs.sol`.
 | `ADMIN_PROTOCOL_FEE_SETTER_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | 72h | Protocol fee % on senior / junior tranche yields. |
 | `ADMIN_ORACLE_QUOTER_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY, FNDN | 72h (WAY) / Immediate (FNDN) | Oracle / quoter settings: `setConversionRate`, `setChainlinkOracle`. WAY does routine quoter changes under 72h delay (FNDN-cancellable); FNDN can act immediately for emergency oracle re-pegs (e.g. depeg / Chainlink feed swap during incident response). |
 | **Entry point** | | | | | |
-| `ADMIN_ENTRY_POINT_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | 72h | `modifyTrancheConfigs`. |
+| `ADMIN_ENTRY_POINT_ROLE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | WAY | 24h | `modifyTrancheConfigs`. Shorter tier than the 72h floor — lower-risk tranche-config tuning. |
 | `ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE` | `ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Immediate | `collectProtocolFees`. |
 | **Deployment / guardian / transfer agent** | | | | | |
 | `DEPLOYER_ROLE` | `DEPLOYER_ROLE_ADMIN_ROLE` | `GUARDIAN_ROLE` | FNDN | Immediate | Deploys new Royco markets via factory. |

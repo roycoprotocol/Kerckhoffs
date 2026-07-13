@@ -117,7 +117,8 @@ contract MigrateDawn is MigrationBase, Script {
         _n = _maybeGrantRole(_buf, _n, _am, ADMIN_ACCOUNTANT_ROLE, WAY, DELAY_MIN);
         _n = _maybeGrantRole(_buf, _n, _am, ADMIN_PROTOCOL_FEE_SETTER_ROLE, WAY, DELAY_MIN);
         _n = _maybeGrantRole(_buf, _n, _am, ADMIN_ORACLE_QUOTER_ROLE, WAY, DELAY_MIN);
-        _n = _maybeGrantRole(_buf, _n, _am, ADMIN_ENTRY_POINT_ROLE, WAY, DELAY_MIN);
+        // Short delay (24h)
+        _n = _maybeGrantRole(_buf, _n, _am, ADMIN_ENTRY_POINT_ROLE, WAY, DELAY_SHORT);
         // Root (72h)
         _n = _maybeGrantRole(_buf, _n, _am, ADMIN_UPGRADER_ROLE, WAY, DELAY_ROOT);
         return _n;

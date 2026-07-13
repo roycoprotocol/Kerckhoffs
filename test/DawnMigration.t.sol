@@ -62,7 +62,7 @@ contract DawnMigrationTest is RoleBehaviorBase, MigrateDawn {
         _assertMembership(ADMIN_ACCOUNTANT_ROLE, WAY, DELAY_MIN, "ADMIN_ACCOUNTANT_ROLE @ WAY");
         _assertMembership(ADMIN_PROTOCOL_FEE_SETTER_ROLE, WAY, DELAY_MIN, "ADMIN_PROTOCOL_FEE_SETTER_ROLE @ WAY");
         _assertMembership(ADMIN_ORACLE_QUOTER_ROLE, WAY, DELAY_MIN, "ADMIN_ORACLE_QUOTER_ROLE @ WAY");
-        _assertMembership(ADMIN_ENTRY_POINT_ROLE, WAY, DELAY_MIN, "ADMIN_ENTRY_POINT_ROLE @ WAY");
+        _assertMembership(ADMIN_ENTRY_POINT_ROLE, WAY, DELAY_SHORT, "ADMIN_ENTRY_POINT_ROLE @ WAY");
         _assertMembership(ADMIN_UPGRADER_ROLE, WAY, DELAY_ROOT, "ADMIN_UPGRADER_ROLE @ WAY");
     }
 
@@ -195,7 +195,7 @@ contract DawnMigrationTest is RoleBehaviorBase, MigrateDawn {
 
     function test_AdminEntryPointRole_Behavior_WAY() public {
         bytes memory data = abi.encodeCall(IRoycoEntryPoint.modifyTrancheConfigs, (new address[](0), new IRoycoEntryPoint.TrancheConfig[](0)));
-        _assertDelayedRoleBehavior("ADMIN_ENTRY_POINT_ROLE @ WAY", ADMIN_ENTRY_POINT_ROLE, WAY, DELAY_MIN, ep, data, FNDN);
+        _assertDelayedRoleBehavior("ADMIN_ENTRY_POINT_ROLE @ WAY", ADMIN_ENTRY_POINT_ROLE, WAY, DELAY_SHORT, ep, data, FNDN);
     }
 
     function test_AdminKernelRole_Behavior_WAY() public {

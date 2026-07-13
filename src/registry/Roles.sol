@@ -21,8 +21,9 @@ pragma solidity ^0.8.28;
  *               grant/revoke roles (call-gate hardcoded to ADMIN_ROLE in OZ AM). FNDN's admin
  *               ops run at 72h and are intentionally non-cancellable by any other party.
  *   WAY       — every parameter-update role (`ADMIN_KERNEL_ROLE`, `ADMIN_ACCOUNTANT_ROLE`,
- *               etc.) at the 72h delay, plus `ADMIN_UPGRADER_ROLE` (also 72h). Schedules all
- *               delayed ops; each is cancellable via `GUARDIAN_ROLE`. No longer holds pause.
+ *               etc.) at the 72h delay, plus `ADMIN_UPGRADER_ROLE` (also 72h) and
+ *               `ADMIN_ENTRY_POINT_ROLE` at the shorter 24h tier. Schedules all delayed ops;
+ *               each is cancellable via `GUARDIAN_ROLE`. No longer holds pause.
  *   WAY_PAUSE — dedicated 1/4 multisig; sole holder of `ADMIN_PAUSER_ROLE` / `STRATEGY_PAUSER`
  *               (Immediate). Can pause every protocol contract.
  *   FNDN_VETO — dedicated 1/4 multisig; co-holds `GUARDIAN_ROLE` with FNDN (Immediate). Can
@@ -35,8 +36,12 @@ abstract contract Roles {
     // ═══════════════════════════════════════════════════════════════════════════
 
     uint32 internal constant DELAY_IMMEDIATE = 0;
-    /// @dev Uniform 72h delay for every delayed op (parameter changes, operational tuning).
-    ///      Standardized: `DELAY_ROOT` and `DELAY_RESCUE` are now equal to this. The three named
+    /// @dev Shorter delay tier (24h) for lower-risk operational roles that don't warrant the full
+    ///      72h. Currently `ADMIN_ENTRY_POINT_ROLE` (entry-point tranche-config tuning). Still
+    ///      `GUARDIAN_ROLE`-cancellable by FNDN / FNDN_VETO during the window.
+    uint32 internal constant DELAY_SHORT = 24 hours;
+    /// @dev Uniform 72h delay for most delayed ops (parameter changes, operational tuning).
+    ///      Standardized: `DELAY_ROOT` and `DELAY_RESCUE` are now equal to this. The named
     ///      constants are retained so call sites stay self-documenting and the tiers can
     ///      re-diverge later without touching every call site.
     uint32 internal constant DELAY_MIN = 72 hours;

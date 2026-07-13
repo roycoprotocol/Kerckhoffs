@@ -70,9 +70,9 @@
     "holders": [{ "actor": "WAY", "executionDelaySeconds": 216000 }, { "actor": "FNDN", "executionDelaySeconds": 0 }]
   },
   "ADMIN_ENTRY_POINT_ROLE": {
-    "description": "modifyTrancheConfigs on the EntryPoint.",
+    "description": "modifyTrancheConfigs on the EntryPoint. Shorter 24h delay tier (below the 72h floor) for lower-risk tranche-config tuning.",
     "grantDelaySeconds": 0, "admin": "ADMIN_ROLE", "guardian": "GUARDIAN_ROLE",
-    "holders": [{ "actor": "WAY", "executionDelaySeconds": 216000 }]
+    "holders": [{ "actor": "WAY", "executionDelaySeconds": 86400 }]
   },
   "ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE": {
     "description": "collectProtocolFees on the EntryPoint.",

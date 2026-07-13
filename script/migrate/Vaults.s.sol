@@ -219,10 +219,13 @@ contract MigrateVaults is SafeBatchDecoder, SafeSimulator, Script {
     function _simulateNative(address _vault, SafeTransaction[] memory _txs) internal {
         for (uint256 i = 0; i < _txs.length; i++) {
             address caller = _resolveNativeCaller(_vault, _txs[i]);
-            if (caller == address(0)) {
-                console2.log("  [SKIP] native tx index unable to resolve caller:", i);
-                continue;
-            }
+            // Fail loudly rather than skip: an unresolved caller means the role's admin has no
+            // members, so this grant/revoke has no valid sender and the REAL atomic Safe batch —
+            // which still contains this tx — would revert on execution. Skipping would mask that.
+            require(
+                caller != address(0),
+                string.concat("phase1: unresolved native caller at tx ", vm.toString(i), " (role admin has no members; batch would revert)")
+            );
             vm.prank(caller);
             (bool ok, bytes memory ret) = _txs[i].to.call(_txs[i].data);
             if (!ok) {
@@ -267,24 +270,30 @@ contract MigrateVaults is SafeBatchDecoder, SafeSimulator, Script {
     ///       specific AM role and fall through to the default (`ADMIN_ROLE`), so adding new
     ///       holders to a native vault role requires FNDN's 72h ADMIN_ROLE flow.
     ///       `ALLOCATOR` / `WITHDRAWAL_MANAGER` stay native (Immediate, DIAL).
-    ///   (b) **Strategy-level** wiring for the makina-strategy adapter:
+    ///   (b) **Strategy-level** wiring for the makina-strategy adapter (only its `restricted`
+    ///       functions — `pause`/`unpause`/`rescueToken` — are AM-governed):
     ///         - `STRATEGY_PAUSER` → WAY_PAUSE @ Immediate (WAY revoked)
     ///         - `STRATEGY_UNPAUSER` → FNDN @ Immediate
     ///         - `STRATEGY_RESCUE` → FNDN @ 72h (single AM-side delay; `rescueToken` is
     ///           `restricted` with no internal timelock, so this is the only gate)
-    ///         - `STRATEGY_ALLOCATOR` → DIAL @ Immediate
     ///       Guardian explicitly set to `GUARDIAN_ROLE` for the only delayed strategy role
     ///       (`STRATEGY_RESCUE`) so its scheduled op is FNDN-cancellable.
+    ///
+    ///       NOTE: allocation is NOT wired here. `allocateFunds`/`deallocateFunds` on the strategy
+    ///       are gated by the strategy's immutable `onlyRoycoVault` check (msg.sender == the vault),
+    ///       NOT by `restricted`, so an AM role/binding on them is inert (a relayed call reverts:
+    ///       msg.sender = the AM ≠ the vault). DIAL's allocation authority is the vault's native
+    ///       `ALLOCATOR` role (left native in phase 1), via `vault.allocate → strategy.allocateFunds`.
     function _buildPhase2AM(uint256 _chainId, address _vault, address _strategy, string memory _vaultName) internal pure returns (SafeTransaction[] memory) {
-        require(DIAL != address(0), "DIAL multisig must be set before applying vault migration");
         // Per-chain AM (Base has its own factory). Never hardcode ROYCO_FACTORY here.
         address factory = roycoFactory(_chainId);
 
         // Vault: 3 labels + 3 setTargetFunctionRole + 3 setRoleGuardian + 3 grants = 12
-        // Strategy: 4 labels + 4 setTargetFunctionRole + 1 setRoleGuardian (RESCUE) + 4 grants
-        //           + 1 revoke (WAY from STRATEGY_PAUSER) = 14
+        // Strategy: 3 labels + 3 setTargetFunctionRole + 1 setRoleGuardian (RESCUE) + 3 grants
+        //           + 1 revoke (WAY from STRATEGY_PAUSER) = 11
+        //           (STRATEGY_ALLOCATOR omitted — inert; allocation is the vault's native ALLOCATOR)
         uint256 vaultTxs = 12;
-        uint256 strategyTxs = 4 + 4 + 1 + 4 + 1;
+        uint256 strategyTxs = 3 + 3 + 1 + 3 + 1;
         SafeTransaction[] memory txs = new SafeTransaction[](vaultTxs + strategyTxs);
         uint256 t;
 
@@ -309,17 +318,15 @@ contract MigrateVaults is SafeBatchDecoder, SafeSimulator, Script {
         txs[t++] = buildLabelRole(factory, STRATEGY_PAUSER, string.concat(_vaultName, "_STRATEGY_PAUSER"));
         txs[t++] = buildLabelRole(factory, STRATEGY_UNPAUSER, string.concat(_vaultName, "_STRATEGY_UNPAUSER"));
         txs[t++] = buildLabelRole(factory, STRATEGY_RESCUE, string.concat(_vaultName, "_STRATEGY_RESCUE"));
-        txs[t++] = buildLabelRole(factory, STRATEGY_ALLOCATOR, string.concat(_vaultName, "_STRATEGY_ALLOCATOR"));
 
         // ── Strategy selector bindings ───────────────────────────────────────
         txs[t++] = buildSetTargetFunctionRole(factory, _strategy, _one(IRoycoAuth.pause.selector), STRATEGY_PAUSER);
         txs[t++] = buildSetTargetFunctionRole(factory, _strategy, _one(IRoycoAuth.unpause.selector), STRATEGY_UNPAUSER);
         txs[t++] = buildSetTargetFunctionRole(factory, _strategy, _one(IStrategyTemplate.rescueToken.selector), STRATEGY_RESCUE);
-        txs[t++] = buildSetTargetFunctionRole(factory, _strategy, Selectors.strategyAllocatorSelectors(), STRATEGY_ALLOCATOR);
 
         // ── Strategy guardian wiring (delayed role only) ──────────────────────
-        // STRATEGY_PAUSER, STRATEGY_UNPAUSER, STRATEGY_ALLOCATOR are all Immediate; only
-        // STRATEGY_RESCUE has a delay (72h) so only it needs cancel-gate wiring.
+        // STRATEGY_PAUSER and STRATEGY_UNPAUSER are Immediate; only STRATEGY_RESCUE has a delay
+        // (72h) so only it needs cancel-gate wiring.
         txs[t++] = buildSetRoleGuardian(factory, STRATEGY_RESCUE, GUARDIAN_ROLE);
 
         // ── Strategy grants ──────────────────────────────────────────────────
@@ -329,7 +336,6 @@ contract MigrateVaults is SafeBatchDecoder, SafeSimulator, Script {
         txs[t++] = buildRevokeRole(factory, STRATEGY_PAUSER, WAY);
         txs[t++] = buildGrantRole(factory, STRATEGY_UNPAUSER, FNDN, DELAY_IMMEDIATE);
         txs[t++] = buildGrantRole(factory, STRATEGY_RESCUE, FNDN, DELAY_RESCUE);
-        txs[t++] = buildGrantRole(factory, STRATEGY_ALLOCATOR, DIAL, DELAY_IMMEDIATE);
 
         require(t == txs.length, "phase2 tx count mismatch");
         return txs;

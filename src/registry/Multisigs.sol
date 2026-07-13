@@ -14,9 +14,10 @@ import { Factory } from "./Factory.sol";
  *   `GUARDIAN_ROLE` with FNDN_VETO. Same address as the legacy `ROOT_MULTISIG`.
  * - **WAY** — every parameter-update role: `LP_ROLE_ADMIN_ROLE`, `SYNC_ROLE` (Immediate);
  *   `DEPLOYER_ROLE_ADMIN_ROLE`, `ADMIN_KERNEL_ROLE`, `ADMIN_ACCOUNTANT_ROLE`,
- *   `ADMIN_PROTOCOL_FEE_SETTER_ROLE`, `ADMIN_ORACLE_QUOTER_ROLE`, `ADMIN_ENTRY_POINT_ROLE`,
+ *   `ADMIN_PROTOCOL_FEE_SETTER_ROLE`, `ADMIN_ORACLE_QUOTER_ROLE`,
  *   `VAULT_MANAGER` / `STRATEGY_MANAGER` / `HOOK_MANAGER`, per-vault `*_RISK_MANAGER` /
- *   `*_TIMELOCK_MANAGER` (all 72h); `ADMIN_UPGRADER_ROLE` (72h). Schedules all delayed ops;
+ *   `*_TIMELOCK_MANAGER` (all 72h); `ADMIN_ENTRY_POINT_ROLE` (24h); `ADMIN_UPGRADER_ROLE` (72h).
+ *   Schedules all delayed ops;
  *   each is cancellable via `GUARDIAN_ROLE`. No longer holds pause (moved to WAY_PAUSE).
  *   Same address as the legacy `EXECUTOR_MULTISIG` / `WCE_MULTISIG`.
  * - **WAY_PAUSE** (1/4) — sole holder of `ADMIN_PAUSER_ROLE` and `STRATEGY_PAUSER`

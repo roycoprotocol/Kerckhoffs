@@ -18,8 +18,9 @@ import { RoleBehaviorBase } from "./_RoleBehaviorBase.sol";
  *   - AM holds every native AccessControl role on each vault (Phase 1).
  *   - Every vault selector (management + native admin) routes through `VAULT_MANAGER` held
  *     by WAY @ 72h, FNDN-cancellable.
- *   - Strategy roles: WAY pauses Immediate, FNDN unpauses Immediate, FNDN rescues @ 72h
- *     (FNDN-cancellable), DIAL allocates Immediate.
+ *   - Strategy roles: WAY_PAUSE pauses Immediate, FNDN unpauses Immediate, FNDN rescues @ 72h
+ *     (FNDN-cancellable). Allocation is NOT an AM role — strategy allocate/deallocate are
+ *     onlyRoycoVault; DIAL allocates via the vault's native ALLOCATOR.
  *
  * Setup chain: Vaults FIRST (so FNDN's ADMIN_ROLE is still Immediate to drive phase-2 calls),
  * then Dawn (lockdown raises FNDN's ADMIN_ROLE to 72h).
@@ -137,7 +138,8 @@ contract VaultsMigrationTest is RoleBehaviorBase, MigrateVaults {
         require(!wayHasStrategyPauser, string.concat(_vaultName, " WAY should not hold STRATEGY_PAUSER"));
         _assertMembership(STRATEGY_UNPAUSER, FNDN, DELAY_IMMEDIATE, string.concat(_vaultName, " STRATEGY_UNPAUSER @ FNDN"));
         _assertMembership(STRATEGY_RESCUE, FNDN, DELAY_RESCUE, string.concat(_vaultName, " STRATEGY_RESCUE @ FNDN"));
-        _assertMembership(STRATEGY_ALLOCATOR, DIAL, DELAY_IMMEDIATE, string.concat(_vaultName, " STRATEGY_ALLOCATOR @ DIAL"));
+        // STRATEGY_ALLOCATOR intentionally not wired: strategy allocate/deallocate are onlyRoycoVault,
+        // not `restricted`, so an AM role is inert. Allocation is the vault's native ALLOCATOR (DIAL).
         require(am.getRoleGuardian(STRATEGY_RESCUE) == GUARDIAN_ROLE, "STRATEGY_RESCUE guardian mismatch");
     }
 
@@ -219,12 +221,6 @@ contract VaultsMigrationTest is RoleBehaviorBase, MigrateVaults {
         _assertDelayedRoleBehavior(string.concat(SRROYUSDC, " STRATEGY_RESCUE @ FNDN"), STRATEGY_RESCUE, FNDN, DELAY_RESCUE, s.strategy, data, FNDN);
     }
 
-    function test_StrategyAllocatorRole_srRoyUSDC_DIAL_Immediate() public {
-        StrategyStack memory s = getStrategyStack(MAINNET, SRROYUSDC);
-        bytes memory data = abi.encodeCall(IStrategyTemplate.allocateFunds, (""));
-        _assertImmediateRoleBehavior(string.concat(SRROYUSDC, " STRATEGY_ALLOCATOR @ DIAL"), STRATEGY_ALLOCATOR, DIAL, s.strategy, data);
-    }
-
     function test_StrategyPauserRole_roywstETH_WAY_PAUSE_Immediate() public {
         StrategyStack memory s = getStrategyStack(MAINNET, ROYWSTETH);
         bytes memory data = abi.encodeCall(IRoycoAuth.pause, ());
@@ -241,11 +237,5 @@ contract VaultsMigrationTest is RoleBehaviorBase, MigrateVaults {
         StrategyStack memory s = getStrategyStack(MAINNET, ROYWSTETH);
         bytes memory data = abi.encodeCall(IStrategyTemplate.rescueToken, (address(0xDEAD), uint256(0)));
         _assertDelayedRoleBehavior(string.concat(ROYWSTETH, " STRATEGY_RESCUE @ FNDN"), STRATEGY_RESCUE, FNDN, DELAY_RESCUE, s.strategy, data, FNDN);
-    }
-
-    function test_StrategyAllocatorRole_roywstETH_DIAL_Immediate() public {
-        StrategyStack memory s = getStrategyStack(MAINNET, ROYWSTETH);
-        bytes memory data = abi.encodeCall(IStrategyTemplate.allocateFunds, (""));
-        _assertImmediateRoleBehavior(string.concat(ROYWSTETH, " STRATEGY_ALLOCATOR @ DIAL"), STRATEGY_ALLOCATOR, DIAL, s.strategy, data);
     }
 }
