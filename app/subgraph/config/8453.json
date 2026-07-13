@@ -1,0 +1,8 @@
+{
+  "network": "base",
+  "chainId": 8453,
+  "factory": "0x568c9709DaA2f7B7cc66AbC3E41DA0f0A339551A",
+  "factoryStartBlock": 48111449,
+  "startBlocksResolved": true,
+  "vaults": []
+}

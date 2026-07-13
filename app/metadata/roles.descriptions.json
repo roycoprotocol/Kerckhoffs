@@ -1,0 +1,156 @@
+{
+  "_comment": "Canonical EXPECTED model per role, keyed by role name. Mirrors docs/roles/assignments.md; the dashboard diffs live on-chain state against this to compute drift. Update in the same PR as assignments.md/auth.md. delaySeconds: Immediate=0, 60h=216000, 7d=604800, 30d=2592000.",
+  "ADMIN_ROLE": {
+    "description": "OZ AccessManager root admin. Default admin of every other role; gates grantRole/revokeRole plus all AM self-admin setters and UUPS upgrades. FNDN-only, non-cancellable by any other party.",
+    "grantDelaySeconds": 0, "admin": "ADMIN_ROLE", "guardian": "ADMIN_ROLE",
+    "holders": [{ "actor": "FNDN", "executionDelaySeconds": 604800 }]
+  },
+  "PUBLIC_ROLE": {
+    "description": "Open role — every address is auto-member. Bound to the EntryPoint LP selectors; the real gate is the tranche layer via ST_LP_ROLE / JT_LP_ROLE.",
+    "grantDelaySeconds": 0, "admin": "ADMIN_ROLE", "guardian": "ADMIN_ROLE", "holders": []
+  },
+  "ADMIN_PAUSER_ROLE": {
+    "description": "Pause every protocol contract. Immediate so incident response isn't blocked. Held by the dedicated 1/4 WAY_PAUSE multisig.",
+    "grantDelaySeconds": 0, "admin": "ADMIN_ROLE", "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "WAY_PAUSE", "executionDelaySeconds": 0 }]
+  },
+  "ADMIN_UNPAUSER_ROLE": {
+    "description": "Unpause every protocol contract. Split from pause so only FNDN can clear an attacker-triggered pause.",
+    "grantDelaySeconds": 0, "admin": "ADMIN_ROLE", "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "FNDN", "executionDelaySeconds": 0 }]
+  },
+  "ADMIN_UPGRADER_ROLE": {
+    "description": "UUPS implementation upgrades across all Dawn contracts.",
+    "grantDelaySeconds": 0, "admin": "ADMIN_ROLE", "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "WAY", "executionDelaySeconds": 604800 }]
+  },
+  "ST_LP_ROLE": {
+    "description": "Senior tranche LP ops (deposit, redeem).",
+    "grantDelaySeconds": 0, "admin": "LP_ROLE_ADMIN_ROLE", "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "EntryPoint", "executionDelaySeconds": 0 }]
+  },
+  "JT_LP_ROLE": {
+    "description": "Junior tranche LP ops (deposit, redeem).",
+    "grantDelaySeconds": 0, "admin": "LP_ROLE_ADMIN_ROLE", "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "EntryPoint", "executionDelaySeconds": 0 }]
+  },
+  "BURNER_ROLE": {
+    "description": "Yield-forfeiture (burn/burnFrom on tranches) during redemption.",
+    "grantDelaySeconds": 0, "admin": "ADMIN_ROLE", "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "EntryPoint", "executionDelaySeconds": 0 }]
+  },
+  "LP_ROLE_ADMIN_ROLE": {
+    "description": "Grants/revokes ST_LP_ROLE / JT_LP_ROLE to LPs.",
+    "grantDelaySeconds": 0, "admin": "ADMIN_ROLE", "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "WAY", "executionDelaySeconds": 0 }]
+  },
+  "SYNC_ROLE": {
+    "description": "Triggers accounting sync on the kernel and the syncer batch functions.",
+    "grantDelaySeconds": 0, "admin": "ADMIN_ROLE", "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "WAY", "executionDelaySeconds": 0 }]
+  },
+  "ADMIN_KERNEL_ROLE": {
+    "description": "Kernel admin: setProtocolFeeRecipient, setSeniorTrancheSelfLiquidationBonus.",
+    "grantDelaySeconds": 0, "admin": "ADMIN_ROLE", "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "WAY", "executionDelaySeconds": 216000 }]
+  },
+  "ADMIN_ACCOUNTANT_ROLE": {
+    "description": "Accountant params: YDM, coverage, beta, LLTV, dust tolerances, fixed-term.",
+    "grantDelaySeconds": 0, "admin": "ADMIN_ROLE", "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "WAY", "executionDelaySeconds": 216000 }]
+  },
+  "ADMIN_PROTOCOL_FEE_SETTER_ROLE": {
+    "description": "Protocol fee % on senior / junior tranche yields.",
+    "grantDelaySeconds": 0, "admin": "ADMIN_ROLE", "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "WAY", "executionDelaySeconds": 216000 }]
+  },
+  "ADMIN_ORACLE_QUOTER_ROLE": {
+    "description": "Oracle / quoter settings (setConversionRate, setChainlinkOracle). WAY does routine changes at 60h; FNDN can act immediately for emergency re-pegs.",
+    "grantDelaySeconds": 0, "admin": "ADMIN_ROLE", "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "WAY", "executionDelaySeconds": 216000 }, { "actor": "FNDN", "executionDelaySeconds": 0 }]
+  },
+  "ADMIN_ENTRY_POINT_ROLE": {
+    "description": "modifyTrancheConfigs on the EntryPoint.",
+    "grantDelaySeconds": 0, "admin": "ADMIN_ROLE", "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "WAY", "executionDelaySeconds": 216000 }]
+  },
+  "ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE": {
+    "description": "collectProtocolFees on the EntryPoint.",
+    "grantDelaySeconds": 0, "admin": "ADMIN_ROLE", "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "FNDN", "executionDelaySeconds": 0 }]
+  },
+  "DEPLOYER_ROLE": {
+    "description": "Deploys new Royco markets via the factory.",
+    "grantDelaySeconds": 0, "admin": "DEPLOYER_ROLE_ADMIN_ROLE", "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "FNDN", "executionDelaySeconds": 0 }]
+  },
+  "DEPLOYER_ROLE_ADMIN_ROLE": {
+    "description": "Grants/revokes DEPLOYER_ROLE.",
+    "grantDelaySeconds": 0, "admin": "ADMIN_ROLE", "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "WAY", "executionDelaySeconds": 216000 }]
+  },
+  "GUARDIAN_ROLE": {
+    "description": "Cancels delayed operations on every operational role. Co-held by FNDN (root) and FNDN_VETO (dedicated 1/4 fast-veto multisig).",
+    "grantDelaySeconds": 0, "admin": "ADMIN_ROLE", "guardian": "ADMIN_ROLE",
+    "holders": [{ "actor": "FNDN", "executionDelaySeconds": 0 }, { "actor": "FNDN_VETO", "executionDelaySeconds": 0 }]
+  },
+  "TRANSFER_AGENT_ROLE": {
+    "description": "Tranche seizure / kernel blacklist. Held by Securitize; outside the standard delay tiers.",
+    "grantDelaySeconds": 0, "admin": "ADMIN_ROLE", "guardian": "ADMIN_ROLE", "holders": []
+  },
+  "VAULT_MANAGER": {
+    "description": "updateManagementFee, updatePerformanceFee, setDepositLimits, setWithdrawLimits on the concrete vault.",
+    "grantDelaySeconds": 0, "admin": "ADMIN_ROLE", "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "WAY", "executionDelaySeconds": 216000 }]
+  },
+  "STRATEGY_MANAGER": {
+    "description": "addStrategy, removeStrategy, toggleStrategyStatus on the concrete vault.",
+    "grantDelaySeconds": 0, "admin": "ADMIN_ROLE", "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "WAY", "executionDelaySeconds": 216000 }]
+  },
+  "HOOK_MANAGER": {
+    "description": "setHooks on the concrete vault.",
+    "grantDelaySeconds": 0, "admin": "ADMIN_ROLE", "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "WAY", "executionDelaySeconds": 216000 }]
+  },
+  "STRATEGY_PAUSER": {
+    "description": "Pause the Makina strategy adapter. Held by the dedicated 1/4 WAY_PAUSE multisig.",
+    "grantDelaySeconds": 0, "admin": "ADMIN_ROLE", "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "WAY_PAUSE", "executionDelaySeconds": 0 }]
+  },
+  "STRATEGY_UNPAUSER": {
+    "description": "Unpause the Makina strategy adapter.",
+    "grantDelaySeconds": 0, "admin": "ADMIN_ROLE", "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "FNDN", "executionDelaySeconds": 0 }]
+  },
+  "STRATEGY_RESCUE": {
+    "description": "Rescue stuck tokens from the strategy. 30d AM execution delay is the only gate (rescueToken has no internal timelock); FNDN-cancellable via GUARDIAN_ROLE.",
+    "grantDelaySeconds": 0, "admin": "ADMIN_ROLE", "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "FNDN", "executionDelaySeconds": 2592000 }]
+  },
+  "STRATEGY_ALLOCATOR": {
+    "description": "allocateFunds, deallocateFunds on the strategy.",
+    "grantDelaySeconds": 0, "admin": "ADMIN_ROLE", "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "DIAL", "executionDelaySeconds": 0 }]
+  },
+  "SRROYUSDC_RISK_MANAGER": {
+    "description": "srRoyUSDC Caliber + Machine onlyRiskManager(Timelock) setters.",
+    "grantDelaySeconds": 0, "admin": "ADMIN_ROLE", "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "WAY", "executionDelaySeconds": 216000 }]
+  },
+  "SRROYUSDC_TIMELOCK_MANAGER": {
+    "description": "srRoyUSDC Caliber setTimelockDuration only.",
+    "grantDelaySeconds": 0, "admin": "ADMIN_ROLE", "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "WAY", "executionDelaySeconds": 216000 }]
+  },
+  "ROYWSTETH_RISK_MANAGER": {
+    "description": "roywstETH Caliber + Machine onlyRiskManager(Timelock) setters.",
+    "grantDelaySeconds": 0, "admin": "ADMIN_ROLE", "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "WAY", "executionDelaySeconds": 216000 }]
+  },
+  "ROYWSTETH_TIMELOCK_MANAGER": {
+    "description": "roywstETH Caliber setTimelockDuration only.",
+    "grantDelaySeconds": 0, "admin": "ADMIN_ROLE", "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "WAY", "executionDelaySeconds": 216000 }]
+  }
+}

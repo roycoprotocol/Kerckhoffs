@@ -1,0 +1,269 @@
+{
+  "chainId": 42161,
+  "source": "onchain snapshot via rpc.ankr.com",
+  "factory": "0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c",
+  "atBlock": 482428830,
+  "roles": [
+    {
+      "id": "0",
+      "name": "ADMIN_ROLE",
+      "adminRole": "0",
+      "adminRoleName": "ADMIN_ROLE",
+      "guardianRole": "0",
+      "guardianRoleName": "ADMIN_ROLE",
+      "grantDelaySeconds": 0,
+      "holders": [
+        {
+          "address": "0x7c405bbd131e42af506d14e752f2e59b19d49997",
+          "actor": "FNDN",
+          "executionDelaySeconds": 0
+        }
+      ]
+    },
+    {
+      "id": "7925626764789623619",
+      "name": "ADMIN_PAUSER_ROLE",
+      "adminRole": "0",
+      "adminRoleName": "ADMIN_ROLE",
+      "guardianRole": "3153718263372025530",
+      "guardianRoleName": "GUARDIAN_ROLE",
+      "grantDelaySeconds": 0,
+      "holders": [
+        {
+          "address": "0x7c405bbd131e42af506d14e752f2e59b19d49997",
+          "actor": "FNDN",
+          "executionDelaySeconds": 0
+        }
+      ]
+    },
+    {
+      "id": "17817129721670429102",
+      "name": "ADMIN_UPGRADER_ROLE",
+      "adminRole": "0",
+      "adminRoleName": "ADMIN_ROLE",
+      "guardianRole": "3153718263372025530",
+      "guardianRoleName": "GUARDIAN_ROLE",
+      "grantDelaySeconds": 0,
+      "holders": [
+        {
+          "address": "0x7c405bbd131e42af506d14e752f2e59b19d49997",
+          "actor": "FNDN",
+          "executionDelaySeconds": 172800
+        }
+      ]
+    },
+    {
+      "id": "9623252227852051139",
+      "name": "ST_LP_ROLE",
+      "adminRole": "12118832287418532003",
+      "adminRoleName": "LP_ROLE_ADMIN_ROLE",
+      "guardianRole": "3153718263372025530",
+      "guardianRoleName": "GUARDIAN_ROLE",
+      "grantDelaySeconds": 0,
+      "holders": [
+        {
+          "address": "0x63da1229be88fb4d20210147954a1a3e05f2581b",
+          "actor": "EntryPoint",
+          "executionDelaySeconds": 0
+        }
+      ]
+    },
+    {
+      "id": "16055754263579004741",
+      "name": "JT_LP_ROLE",
+      "adminRole": "12118832287418532003",
+      "adminRoleName": "LP_ROLE_ADMIN_ROLE",
+      "guardianRole": "3153718263372025530",
+      "guardianRoleName": "GUARDIAN_ROLE",
+      "grantDelaySeconds": 0,
+      "holders": [
+        {
+          "address": "0x63da1229be88fb4d20210147954a1a3e05f2581b",
+          "actor": "EntryPoint",
+          "executionDelaySeconds": 0
+        }
+      ]
+    },
+    {
+      "id": "18208673593576913896",
+      "name": "BURNER_ROLE",
+      "adminRole": "0",
+      "adminRoleName": "ADMIN_ROLE",
+      "guardianRole": "0",
+      "guardianRoleName": "ADMIN_ROLE",
+      "grantDelaySeconds": 0,
+      "holders": [
+        {
+          "address": "0x63da1229be88fb4d20210147954a1a3e05f2581b",
+          "actor": "EntryPoint",
+          "executionDelaySeconds": 0
+        }
+      ]
+    },
+    {
+      "id": "15053450870919821405",
+      "name": "SYNC_ROLE",
+      "adminRole": "0",
+      "adminRoleName": "ADMIN_ROLE",
+      "guardianRole": "3153718263372025530",
+      "guardianRoleName": "GUARDIAN_ROLE",
+      "grantDelaySeconds": 0,
+      "holders": [
+        {
+          "address": "0x7c405bbd131e42af506d14e752f2e59b19d49997",
+          "actor": "FNDN",
+          "executionDelaySeconds": 0
+        }
+      ]
+    },
+    {
+      "id": "6805807443307967810",
+      "name": "ADMIN_KERNEL_ROLE",
+      "adminRole": "0",
+      "adminRoleName": "ADMIN_ROLE",
+      "guardianRole": "3153718263372025530",
+      "guardianRoleName": "GUARDIAN_ROLE",
+      "grantDelaySeconds": 0,
+      "holders": [
+        {
+          "address": "0x7c405bbd131e42af506d14e752f2e59b19d49997",
+          "actor": "FNDN",
+          "executionDelaySeconds": 172800
+        }
+      ]
+    },
+    {
+      "id": "18089890734229314815",
+      "name": "ADMIN_ENTRY_POINT_ROLE",
+      "adminRole": "0",
+      "adminRoleName": "ADMIN_ROLE",
+      "guardianRole": "0",
+      "guardianRoleName": "ADMIN_ROLE",
+      "grantDelaySeconds": 0,
+      "holders": [
+        {
+          "address": "0x7c405bbd131e42af506d14e752f2e59b19d49997",
+          "actor": "FNDN",
+          "executionDelaySeconds": 86400
+        },
+        {
+          "address": "0x84d37a25e46029ce161111420e07ceb78880119e",
+          "actor": "WAY",
+          "executionDelaySeconds": 0
+        }
+      ]
+    },
+    {
+      "id": "3947436291410369121",
+      "name": "ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE",
+      "adminRole": "0",
+      "adminRoleName": "ADMIN_ROLE",
+      "guardianRole": "0",
+      "guardianRoleName": "ADMIN_ROLE",
+      "grantDelaySeconds": 0,
+      "holders": [
+        {
+          "address": "0x7c405bbd131e42af506d14e752f2e59b19d49997",
+          "actor": "FNDN",
+          "executionDelaySeconds": 0
+        }
+      ]
+    },
+    {
+      "id": "1194442435508212435",
+      "name": "ADMIN_ACCOUNTANT_ROLE",
+      "adminRole": "0",
+      "adminRoleName": "ADMIN_ROLE",
+      "guardianRole": "3153718263372025530",
+      "guardianRoleName": "GUARDIAN_ROLE",
+      "grantDelaySeconds": 0,
+      "holders": [
+        {
+          "address": "0x7c405bbd131e42af506d14e752f2e59b19d49997",
+          "actor": "FNDN",
+          "executionDelaySeconds": 172800
+        }
+      ]
+    },
+    {
+      "id": "14297485179608767180",
+      "name": "ADMIN_PROTOCOL_FEE_SETTER_ROLE",
+      "adminRole": "0",
+      "adminRoleName": "ADMIN_ROLE",
+      "guardianRole": "3153718263372025530",
+      "guardianRoleName": "GUARDIAN_ROLE",
+      "grantDelaySeconds": 0,
+      "holders": [
+        {
+          "address": "0x7c405bbd131e42af506d14e752f2e59b19d49997",
+          "actor": "FNDN",
+          "executionDelaySeconds": 172800
+        }
+      ]
+    },
+    {
+      "id": "5790196268886763633",
+      "name": "ADMIN_ORACLE_QUOTER_ROLE",
+      "adminRole": "0",
+      "adminRoleName": "ADMIN_ROLE",
+      "guardianRole": "3153718263372025530",
+      "guardianRoleName": "GUARDIAN_ROLE",
+      "grantDelaySeconds": 0,
+      "holders": [
+        {
+          "address": "0x7c405bbd131e42af506d14e752f2e59b19d49997",
+          "actor": "FNDN",
+          "executionDelaySeconds": 0
+        }
+      ]
+    },
+    {
+      "id": "12118832287418532003",
+      "name": "LP_ROLE_ADMIN_ROLE",
+      "adminRole": "0",
+      "adminRoleName": "ADMIN_ROLE",
+      "guardianRole": "3153718263372025530",
+      "guardianRoleName": "GUARDIAN_ROLE",
+      "grantDelaySeconds": 0,
+      "holders": [
+        {
+          "address": "0x7c405bbd131e42af506d14e752f2e59b19d49997",
+          "actor": "FNDN",
+          "executionDelaySeconds": 0
+        }
+      ]
+    },
+    {
+      "id": "11875770835546705225",
+      "name": "DEPLOYER_ROLE_ADMIN_ROLE",
+      "adminRole": "0",
+      "adminRoleName": "ADMIN_ROLE",
+      "guardianRole": "3153718263372025530",
+      "guardianRoleName": "GUARDIAN_ROLE",
+      "grantDelaySeconds": 0,
+      "holders": [
+        {
+          "address": "0x7c405bbd131e42af506d14e752f2e59b19d49997",
+          "actor": "FNDN",
+          "executionDelaySeconds": 0
+        }
+      ]
+    },
+    {
+      "id": "3153718263372025530",
+      "name": "GUARDIAN_ROLE",
+      "adminRole": "0",
+      "adminRoleName": "ADMIN_ROLE",
+      "guardianRole": "0",
+      "guardianRoleName": "ADMIN_ROLE",
+      "grantDelaySeconds": 0,
+      "holders": [
+        {
+          "address": "0x84d37a25e46029ce161111420e07ceb78880119e",
+          "actor": "WAY",
+          "executionDelaySeconds": 0
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "name": "@royco/access-subgraph",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Goldsky subgraph indexing Royco's OZ AccessManager + Concrete vault AccessControl",
+  "type": "module",
+  "scripts": {
+    "extract-abis": "node scripts/extract-abis.mjs",
+    "render": "node scripts/render.mjs",
+    "render:mainnet": "node scripts/render.mjs 1",
+    "render:avalanche": "node scripts/render.mjs 43114",
+    "render:arbitrum": "node scripts/render.mjs 42161",
+    "render:base": "node scripts/render.mjs 8453",
+    "dump-roles": "node scripts/dump-roles.mjs",
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "prepare:mainnet": "npm run render:mainnet && npm run codegen && npm run build",
+    "test": "graph test",
+    "deploy:mainnet": "npm run render:mainnet && npm run codegen && goldsky subgraph deploy royco-access-mainnet/0.1.0 --path .",
+    "deploy:avalanche": "npm run render:avalanche && npm run codegen && goldsky subgraph deploy royco-access-avalanche/0.1.0 --path .",
+    "deploy:arbitrum": "npm run render:arbitrum && npm run codegen && goldsky subgraph deploy royco-access-arbitrum/0.1.0 --path .",
+    "deploy:base": "npm run render:base && npm run codegen && goldsky subgraph deploy royco-access-base/0.1.0 --path ."
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "0.97.1",
+    "@graphprotocol/graph-ts": "0.38.0"
+  },
+  "devDependencies": {
+    "matchstick-as": "0.6.0",
+    "mustache": "4.2.0"
+  }
+}

@@ -1,0 +1,160 @@
+"""
+The AccessManager (RoycoFactory) for this chain. Singleton, id = chainId.
+"""
+type Manager @entity(immutable: false) {
+  id: ID!
+  address: Bytes!
+  expiration: BigInt!
+  minSetback: BigInt!
+}
+
+"""
+An AccessManager role. id = uint64 role id rendered as a decimal string.
+adminRole/guardianRole default to 0 (ADMIN_ROLE) until an explicit change event is seen.
+"""
+type Role @entity(immutable: false) {
+  id: ID!
+  onChainLabel: String
+  adminRole: BigInt!
+  guardianRole: BigInt!
+  grantDelay: BigInt!
+  members: [RoleMember!]! @derivedFrom(field: "role")
+  functions: [TargetFunction!]! @derivedFrom(field: "role")
+  events: [RoleEvent!]! @derivedFrom(field: "role")
+}
+
+"""
+Current membership of (role, account). Rows are retained after revocation (active=false) so the
+holder set is `members(where: {active: true})`.
+"""
+type RoleMember @entity(immutable: false) {
+  id: ID! # "{roleId}-{account}"
+  role: Role!
+  account: Account!
+  executionDelay: BigInt!
+  active: Boolean!
+  grantedAt: BigInt
+  revokedAt: BigInt
+  pendingDelayEffective: BigInt
+  grantTx: Bytes
+}
+
+enum RoleEventKind {
+  Granted
+  Revoked
+  ExecutionDelayChanged
+  AdminChanged
+  GuardianChanged
+  GrantDelayChanged
+  Labeled
+}
+
+"""
+Immutable historical record of any role-level change. The membership timeline.
+"""
+type RoleEvent @entity(immutable: true) {
+  id: ID! # "{txHash}-{logIndex}"
+  role: Role!
+  account: Account
+  kind: RoleEventKind!
+  oldValue: String
+  newValue: String
+  effectiveAt: BigInt # `since` for grant / delay events
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  txHash: Bytes!
+}
+
+"""
+A contract gated by the AccessManager.
+"""
+type TargetContract @entity(immutable: false) {
+  id: ID! # address
+  address: Bytes!
+  closed: Boolean!
+  adminDelay: BigInt!
+  functions: [TargetFunction!]! @derivedFrom(field: "target")
+}
+
+"""
+A (target, selector) -> role binding: the capability edge.
+"""
+type TargetFunction @entity(immutable: false) {
+  id: ID! # "{target}-{selector}"
+  target: TargetContract!
+  selector: Bytes!
+  role: Role!
+  updatedAt: BigInt!
+  txHash: Bytes!
+}
+
+enum OperationStatus {
+  Scheduled
+  Executed
+  Canceled
+}
+
+"""
+A scheduled (timelocked) operation. id = "{operationId}-{nonce}" where operationId =
+hashOperation(caller, target, data). The nonce is included so a re-scheduled op (same hash, new
+nonce) is a distinct row rather than overwriting the prior lifecycle; Executed/Canceled events carry
+the nonce, so the key is reconstructable.
+"""
+type Operation @entity(immutable: false) {
+  id: ID!
+  operationId: Bytes!
+  nonce: BigInt!
+  caller: Bytes!
+  target: Bytes!
+  data: Bytes!
+  schedule: BigInt! # unix ts when it becomes executable
+  status: OperationStatus!
+  scheduledAt: BigInt!
+  executedAt: BigInt
+  canceledAt: BigInt
+  scheduleTx: Bytes!
+  executeTx: Bytes
+  cancelTx: Bytes
+}
+
+"""
+Any address that has ever held an AM role or a native vault role.
+"""
+type Account @entity(immutable: false) {
+  id: ID! # address
+  roles: [RoleMember!]! @derivedFrom(field: "account")
+  nativeRoles: [NativeRoleMember!]! @derivedFrom(field: "account")
+}
+
+# ── Native OZ AccessControl on the Concrete vaults (bytes32 roles) ──────────────
+
+"""
+A native AccessControl role on a Concrete vault. id = "{vault}-{roleHash}".
+"""
+type NativeRole @entity(immutable: false) {
+  id: ID!
+  vault: Bytes!
+  roleHash: Bytes!
+  adminRoleHash: Bytes!
+  members: [NativeRoleMember!]! @derivedFrom(field: "nativeRole")
+}
+
+type NativeRoleMember @entity(immutable: false) {
+  id: ID! # "{vault}-{roleHash}-{account}"
+  nativeRole: NativeRole!
+  account: Account!
+  active: Boolean!
+  grantedAt: BigInt
+  revokedAt: BigInt
+}
+
+type NativeRoleEvent @entity(immutable: true) {
+  id: ID! # "{txHash}-{logIndex}"
+  nativeRole: NativeRole!
+  account: Bytes!
+  sender: Bytes!
+  kind: String!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  txHash: Bytes!
+}

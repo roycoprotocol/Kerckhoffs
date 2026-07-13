@@ -1,0 +1,217 @@
+{
+  "actors": [
+    {
+      "address": "0x7c405bbD131e42af506d14e752f2e59B19D49997",
+      "category": "multisig",
+      "name": "FNDN",
+      "pendingDeployment": false
+    },
+    {
+      "address": "0x84d37A25e46029CE161111420E07cEb78880119e",
+      "category": "multisig",
+      "name": "WAY",
+      "pendingDeployment": false
+    },
+    {
+      "address": "0xe7E4FA51280eB212254458d62081587Acd2077eE",
+      "category": "multisig",
+      "name": "DIAL",
+      "pendingDeployment": false
+    },
+    {
+      "address": "0xC7605B1891B449B0051d55D083B49D6b46D164bb",
+      "category": "multisig",
+      "name": "WAY_PAUSE",
+      "pendingDeployment": false
+    },
+    {
+      "address": "0xc5Df006FA0647EFF1A55CCF5749ce17772F4d8CB",
+      "category": "multisig",
+      "name": "FNDN_VETO",
+      "pendingDeployment": false
+    },
+    {
+      "address": "0x63dA1229be88Fb4D20210147954a1a3e05f2581B",
+      "category": "entrypoint",
+      "name": "EntryPoint",
+      "pendingDeployment": false
+    }
+  ],
+  "chainId": 42161,
+  "chainName": "Arbitrum",
+  "expiration": 604800,
+  "factory": "0x7cC6fB28eC7b5e7afC3cB3986141797ffc27253C",
+  "generatedAtBlock": 25502986,
+  "makinaSlots": [],
+  "minSetback": 432000,
+  "roles": [
+    {
+      "id": "0",
+      "name": "ADMIN_ROLE"
+    },
+    {
+      "id": "7925626764789623619",
+      "name": "ADMIN_PAUSER_ROLE"
+    },
+    {
+      "id": "10054419464311379566",
+      "name": "ADMIN_UNPAUSER_ROLE"
+    },
+    {
+      "id": "17817129721670429102",
+      "name": "ADMIN_UPGRADER_ROLE"
+    },
+    {
+      "id": "9623252227852051139",
+      "name": "ST_LP_ROLE"
+    },
+    {
+      "id": "16055754263579004741",
+      "name": "JT_LP_ROLE"
+    },
+    {
+      "id": "18208673593576913896",
+      "name": "BURNER_ROLE"
+    },
+    {
+      "id": "15053450870919821405",
+      "name": "SYNC_ROLE"
+    },
+    {
+      "id": "6805807443307967810",
+      "name": "ADMIN_KERNEL_ROLE"
+    },
+    {
+      "id": "6300902259487099312",
+      "name": "TRANSFER_AGENT_ROLE"
+    },
+    {
+      "id": "18089890734229314815",
+      "name": "ADMIN_ENTRY_POINT_ROLE"
+    },
+    {
+      "id": "3947436291410369121",
+      "name": "ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE"
+    },
+    {
+      "id": "1194442435508212435",
+      "name": "ADMIN_ACCOUNTANT_ROLE"
+    },
+    {
+      "id": "14297485179608767180",
+      "name": "ADMIN_PROTOCOL_FEE_SETTER_ROLE"
+    },
+    {
+      "id": "5790196268886763633",
+      "name": "ADMIN_ORACLE_QUOTER_ROLE"
+    },
+    {
+      "id": "6507856881284443453",
+      "name": "DEPLOYER_ROLE"
+    },
+    {
+      "id": "12118832287418532003",
+      "name": "LP_ROLE_ADMIN_ROLE"
+    },
+    {
+      "id": "11875770835546705225",
+      "name": "DEPLOYER_ROLE_ADMIN_ROLE"
+    },
+    {
+      "id": "3153718263372025530",
+      "name": "GUARDIAN_ROLE"
+    },
+    {
+      "id": "11452681425251394499",
+      "name": "STRATEGY_PAUSER"
+    },
+    {
+      "id": "5615552891458788855",
+      "name": "STRATEGY_UNPAUSER"
+    },
+    {
+      "id": "5085675420049522850",
+      "name": "STRATEGY_RESCUE"
+    },
+    {
+      "id": "15277387785437310784",
+      "name": "STRATEGY_ALLOCATOR"
+    },
+    {
+      "id": "6359708774850158159",
+      "name": "SRROYUSDC_RISK_MANAGER"
+    },
+    {
+      "id": "11474785291283288494",
+      "name": "SRROYUSDC_TIMELOCK_MANAGER"
+    },
+    {
+      "id": "12159166457409087352",
+      "name": "ROYWSTETH_RISK_MANAGER"
+    },
+    {
+      "id": "14149459376679876623",
+      "name": "ROYWSTETH_TIMELOCK_MANAGER"
+    },
+    {
+      "id": "15875865955164154843",
+      "name": "VAULT_MANAGER"
+    },
+    {
+      "id": "4487222393053400099",
+      "name": "STRATEGY_MANAGER"
+    },
+    {
+      "id": "14177249393595990130",
+      "name": "HOOK_MANAGER"
+    },
+    {
+      "id": "18446744073709551615",
+      "name": "PUBLIC_ROLE"
+    }
+  ],
+  "targets": [
+    {
+      "address": "0xFdb17E53eA5d342124b8473188BCB9F05F1949CA",
+      "category": "market",
+      "name": "sUSDai.kernel",
+      "parent": "sUSDai",
+      "type": "kernel"
+    },
+    {
+      "address": "0x1b282c9CDB63378788Bbfd059a7cd44bc9Cba738",
+      "category": "market",
+      "name": "sUSDai.accountant",
+      "parent": "sUSDai",
+      "type": "accountant"
+    },
+    {
+      "address": "0x90465aad4e426948A4ea342AC49A1A38200B7017",
+      "category": "market",
+      "name": "sUSDai.seniorTranche",
+      "parent": "sUSDai",
+      "type": "seniorTranche"
+    },
+    {
+      "address": "0xeB60a64039289a4c07879147073A1Ec5AEA91553",
+      "category": "market",
+      "name": "sUSDai.juniorTranche",
+      "parent": "sUSDai",
+      "type": "juniorTranche"
+    },
+    {
+      "address": "0x8DCC7107e3AD82B60144bE68bE9C4809c84b9E06",
+      "category": "syncer",
+      "name": "syncer",
+      "parent": "",
+      "type": "syncer"
+    },
+    {
+      "address": "0x63dA1229be88Fb4D20210147954a1a3e05f2581B",
+      "category": "entrypoint",
+      "name": "entryPoint",
+      "parent": "",
+      "type": "entryPoint"
+    }
+  ]
+}

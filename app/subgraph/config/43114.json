@@ -1,0 +1,8 @@
+{
+  "network": "avalanche",
+  "chainId": 43114,
+  "factory": "0x7cC6fB28eC7b5e7afC3cB3986141797ffc27253C",
+  "factoryStartBlock": 80312789,
+  "startBlocksResolved": true,
+  "vaults": []
+}

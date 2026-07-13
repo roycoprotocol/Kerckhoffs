@@ -1,0 +1,32 @@
+{
+  "_comment": "Hand-maintained address book for addresses NOT derived from the on-chain registries (external protocols, LPs, agents, and the AccessManager itself). Merged over the catalog-derived labels at resolve time. Keyed by chainId, then lowercased address. category: factory|multisig|external|agent|lp|protocol.",
+  "1": {
+    "0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c": {
+      "label": "RoycoFactory",
+      "category": "factory",
+      "tags": ["AccessManager"],
+      "note": "The OZ AccessManager / control plane. Target of every AM self-admin op."
+    }
+  },
+  "43114": {
+    "0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c": {
+      "label": "RoycoFactory",
+      "category": "factory",
+      "tags": ["AccessManager"]
+    }
+  },
+  "42161": {
+    "0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c": {
+      "label": "RoycoFactory",
+      "category": "factory",
+      "tags": ["AccessManager"]
+    }
+  },
+  "8453": {
+    "0x568c9709daa2f7b7cc66abc3e41da0f0a339551a": {
+      "label": "RoycoFactory (Base)",
+      "category": "factory",
+      "tags": ["AccessManager"]
+    }
+  }
+}

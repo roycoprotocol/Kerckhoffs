@@ -1,0 +1,83 @@
+specVersion: 1.2.0
+description: Royco access-control (OZ AccessManager + Concrete vault AccessControl) indexer
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: AccessManager
+    network: {{network}}
+    source:
+      address: "{{factory}}"
+      abi: AccessManager
+      startBlock: {{factoryStartBlock}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      file: ./src/accessManager.ts
+      entities:
+        - Manager
+        - Role
+        - RoleMember
+        - RoleEvent
+        - TargetContract
+        - TargetFunction
+        - Operation
+        - Account
+      abis:
+        - name: AccessManager
+          file: ./abis/AccessManager.json
+      eventHandlers:
+        - event: RoleGranted(indexed uint64,indexed address,uint32,uint48,bool)
+          handler: handleRoleGranted
+        - event: RoleRevoked(indexed uint64,indexed address)
+          handler: handleRoleRevoked
+        - event: RoleAdminChanged(indexed uint64,indexed uint64)
+          handler: handleRoleAdminChanged
+        - event: RoleGuardianChanged(indexed uint64,indexed uint64)
+          handler: handleRoleGuardianChanged
+        - event: RoleGrantDelayChanged(indexed uint64,uint32,uint48)
+          handler: handleRoleGrantDelayChanged
+        - event: RoleLabel(indexed uint64,string)
+          handler: handleRoleLabel
+        - event: TargetFunctionRoleUpdated(indexed address,bytes4,indexed uint64)
+          handler: handleTargetFunctionRoleUpdated
+        - event: TargetAdminDelayUpdated(indexed address,uint32,uint48)
+          handler: handleTargetAdminDelayUpdated
+        - event: TargetClosed(indexed address,bool)
+          handler: handleTargetClosed
+        - event: OperationScheduled(indexed bytes32,indexed uint32,uint48,address,address,bytes)
+          handler: handleOperationScheduled
+        - event: OperationExecuted(indexed bytes32,indexed uint32)
+          handler: handleOperationExecuted
+        - event: OperationCanceled(indexed bytes32,indexed uint32)
+          handler: handleOperationCanceled
+{{#vaults}}
+  - kind: ethereum
+    name: AccessControl_{{name}}
+    network: {{network}}
+    source:
+      address: "{{address}}"
+      abi: AccessControl
+      startBlock: {{startBlock}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      file: ./src/accessControl.ts
+      entities:
+        - NativeRole
+        - NativeRoleMember
+        - NativeRoleEvent
+        - Account
+      abis:
+        - name: AccessControl
+          file: ./abis/AccessControl.json
+      eventHandlers:
+        - event: RoleGranted(indexed bytes32,indexed address,indexed address)
+          handler: handleNativeRoleGranted
+        - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
+          handler: handleNativeRoleRevoked
+        - event: RoleAdminChanged(indexed bytes32,indexed bytes32,indexed bytes32)
+          handler: handleNativeRoleAdminChanged
+{{/vaults}}

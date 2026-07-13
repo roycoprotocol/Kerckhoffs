@@ -1,0 +1,11 @@
+{
+  "network": "mainnet",
+  "chainId": 1,
+  "factory": "0x7cC6fB28eC7b5e7afC3cB3986141797ffc27253C",
+  "factoryStartBlock": 24650849,
+  "startBlocksResolved": true,
+  "vaults": [
+    { "name": "srRoyUSDC", "address": "0xcD9f5907F92818bC06c9Ad70217f089E190d2a32", "startBlock": 24176149 },
+    { "name": "roywstETH", "address": "0x41Ce72E04D349Eb957bdc373baA9c69207032c56", "startBlock": 24585152 }
+  ]
+}

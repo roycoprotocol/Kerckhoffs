@@ -1,0 +1,8 @@
+node_modules/
+generated/
+build/
+# subgraph.yaml is rendered from subgraph.template.yaml + config/<chainId>.json
+subgraph.yaml
+# matchstick build cache
+tests/.bin/
+tests/.latest.json

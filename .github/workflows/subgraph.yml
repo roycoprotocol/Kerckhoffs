@@ -1,0 +1,60 @@
+name: Subgraph
+
+permissions: {}
+
+on:
+  push:
+    paths:
+      - "app/subgraph/**"
+      - ".github/workflows/subgraph.yml"
+  pull_request:
+    paths:
+      - "app/subgraph/**"
+      - ".github/workflows/subgraph.yml"
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    name: codegen + build + matchstick
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: app/subgraph
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Build contracts (for ABIs)
+        run: forge build
+        working-directory: .
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Extract ABIs from out/
+        run: npm run extract-abis
+
+      # Render + codegen + build for every chain (matrix of one job for simplicity).
+      - name: Render + codegen + build (all chains)
+        run: |
+          for c in 1 43114 42161 8453; do
+            echo "::group::chain $c"
+            node scripts/render.mjs "$c"
+            npm run codegen
+            npm run build
+            echo "::endgroup::"
+          done
+
+      - name: Matchstick unit tests
+        run: npm test

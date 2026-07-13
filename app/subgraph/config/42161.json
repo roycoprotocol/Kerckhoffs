@@ -1,0 +1,8 @@
+{
+  "network": "arbitrum-one",
+  "chainId": 42161,
+  "factory": "0x7cC6fB28eC7b5e7afC3cB3986141797ffc27253C",
+  "factoryStartBlock": 441493793,
+  "startBlocksResolved": true,
+  "vaults": []
+}
