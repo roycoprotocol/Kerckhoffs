@@ -1,11 +1,25 @@
 specVersion: 1.2.0
-description: Royco access-control (OZ AccessManager + Concrete vault AccessControl) indexer
+description: Royco access-control (Dawn + Day OZ AccessManagers + Concrete vault AccessControl) indexer
+{{#graft}}
+# Graft: copy the base deployment's store up to `block`, then index forward. Used when only the
+# Day data sources change (e.g. repointing to the final Day deployment) so the Dawn history —
+# arbitrum's especially — is not re-indexed from scratch. Remove once a clean full sync is wanted.
+features:
+  - grafting
+graft:
+  base: {{base}}
+  block: {{block}}
+{{/graft}}
 schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum
     name: AccessManager
     network: {{network}}
+    context:
+      kind:
+        type: String
+        data: "dawn"
     source:
       address: "{{factory}}"
       abi: AccessManager
@@ -24,7 +38,69 @@ dataSources:
         - TargetFunction
         - Operation
         - Account
+        - Market
+        - MarketComponent
       abis:
+        - name: AccessManager
+          file: ./abis/AccessManager.json
+      eventHandlers:
+        - event: MarketDeployed((address,address,address,address),(string,string,string,string,address,address,address,address,bytes,bytes,bytes,bytes,bytes32,bytes32,bytes32,bytes32,(address,bytes4[],uint64[])[]))
+          handler: handleMarketDeployed
+        - event: RoleGranted(indexed uint64,indexed address,uint32,uint48,bool)
+          handler: handleRoleGranted
+        - event: RoleRevoked(indexed uint64,indexed address)
+          handler: handleRoleRevoked
+        - event: RoleAdminChanged(indexed uint64,indexed uint64)
+          handler: handleRoleAdminChanged
+        - event: RoleGuardianChanged(indexed uint64,indexed uint64)
+          handler: handleRoleGuardianChanged
+        - event: RoleGrantDelayChanged(indexed uint64,uint32,uint48)
+          handler: handleRoleGrantDelayChanged
+        - event: RoleLabel(indexed uint64,string)
+          handler: handleRoleLabel
+        - event: TargetFunctionRoleUpdated(indexed address,bytes4,indexed uint64)
+          handler: handleTargetFunctionRoleUpdated
+        - event: TargetAdminDelayUpdated(indexed address,uint32,uint48)
+          handler: handleTargetAdminDelayUpdated
+        - event: TargetClosed(indexed address,bool)
+          handler: handleTargetClosed
+        - event: OperationScheduled(indexed bytes32,indexed uint32,uint48,address,address,bytes)
+          handler: handleOperationScheduled
+        - event: OperationExecuted(indexed bytes32,indexed uint32)
+          handler: handleOperationExecuted
+        - event: OperationCanceled(indexed bytes32,indexed uint32)
+          handler: handleOperationCanceled
+{{#dayManager}}
+  - kind: ethereum
+    name: DayAccessManager
+    network: {{network}}
+    context:
+      kind:
+        type: String
+        data: "day"
+    source:
+      address: "{{address}}"
+      abi: RoycoAccessManager
+      startBlock: {{startBlock}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      file: ./src/dayAccessManager.ts
+      entities:
+        - Manager
+        - Role
+        - RoleMember
+        - RoleEvent
+        - TargetContract
+        - TargetFunction
+        - Operation
+        - Account
+      abis:
+        - name: RoycoAccessManager
+          file: ./abis/RoycoAccessManager.json
+        # helpers.ts getOrInitManager binds by the name "AccessManager" — the runtime resolves
+        # ABIs per data source, so the Day source must declare it too.
         - name: AccessManager
           file: ./abis/AccessManager.json
       eventHandlers:
@@ -52,6 +128,32 @@ dataSources:
           handler: handleOperationExecuted
         - event: OperationCanceled(indexed bytes32,indexed uint32)
           handler: handleOperationCanceled
+        - event: TargetConfiguredAtGenesis(indexed address)
+          handler: handleTargetConfiguredAtGenesis
+{{/dayManager}}
+{{#dayFactory}}
+  - kind: ethereum
+    name: DayFactory
+    network: {{network}}
+    source:
+      address: "{{address}}"
+      abi: DayFactory
+      startBlock: {{startBlock}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      file: ./src/dayFactory.ts
+      entities:
+        - Market
+        - MarketComponent
+      abis:
+        - name: DayFactory
+          file: ./abis/DayFactory.json
+      eventHandlers:
+        - event: MarketDeploymentCompleted(indexed address,indexed address,(address,address,address,address,address,address,address,bytes))
+          handler: handleMarketDeploymentCompleted
+{{/dayFactory}}
 {{#vaults}}
   - kind: ethereum
     name: AccessControl_{{name}}

@@ -2,8 +2,8 @@
   "chainId": 1,
   "source": "onchain read via rpc.ankr.com",
   "factory": "0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c",
-  "atBlock": 25495744,
-  "generatedRoles": 18,
+  "atBlock": 25546022,
+  "generatedRoles": 19,
   "roles": [
     {
       "id": "16055754263579004741",
@@ -121,8 +121,8 @@
       "grantDelaySeconds": 0,
       "holders": [
         {
-          "address": "0x7c405bbd131e42af506d14e752f2e59b19d49997",
-          "actor": "FNDN",
+          "address": "0x84d37a25e46029ce161111420e07ceb78880119e",
+          "actor": "WAY",
           "executionDelaySeconds": 0
         },
         {
@@ -314,8 +314,50 @@
       ]
     },
     {
-      "id": "18089890734229314815",
-      "name": "ADMIN_ENTRY_POINT_ROLE",
+      "id": "5790196268886763633",
+      "name": "ADMIN_ORACLE_QUOTER_ROLE",
+      "adminRole": "0",
+      "adminRoleName": "ADMIN_ROLE",
+      "guardianRole": "3153718263372025530",
+      "guardianRoleName": "GUARDIAN_ROLE",
+      "grantDelaySeconds": 0,
+      "holders": [
+        {
+          "address": "0x7c405bbd131e42af506d14e752f2e59b19d49997",
+          "actor": "FNDN",
+          "executionDelaySeconds": 0
+        },
+        {
+          "address": "0x84d37a25e46029ce161111420e07ceb78880119e",
+          "actor": "WAY",
+          "executionDelaySeconds": 259200
+        }
+      ]
+    },
+    {
+      "id": "6507856881284443453",
+      "name": "DEPLOYER_ROLE",
+      "adminRole": "11875770835546705225",
+      "adminRoleName": "DEPLOYER_ROLE_ADMIN_ROLE",
+      "guardianRole": "3153718263372025530",
+      "guardianRoleName": "GUARDIAN_ROLE",
+      "grantDelaySeconds": 0,
+      "holders": [
+        {
+          "address": "0x7c405bbd131e42af506d14e752f2e59b19d49997",
+          "actor": "FNDN",
+          "executionDelaySeconds": 0
+        },
+        {
+          "address": "0x35518d5e1fd8105fc325c5c171c329c3b10b254c",
+          "actor": null,
+          "executionDelaySeconds": 0
+        }
+      ]
+    },
+    {
+      "id": "3153718263372025530",
+      "name": "GUARDIAN_ROLE",
       "adminRole": "0",
       "adminRoleName": "ADMIN_ROLE",
       "guardianRole": "0",
@@ -325,11 +367,11 @@
         {
           "address": "0x7c405bbd131e42af506d14e752f2e59b19d49997",
           "actor": "FNDN",
-          "executionDelaySeconds": 86400
+          "executionDelaySeconds": 0
         },
         {
-          "address": "0x84d37a25e46029ce161111420e07ceb78880119e",
-          "actor": "WAY",
+          "address": "0xc5df006fa0647eff1a55ccf5749ce17772f4d8cb",
+          "actor": null,
           "executionDelaySeconds": 0
         }
       ]
@@ -344,8 +386,8 @@
       "grantDelaySeconds": 0,
       "holders": [
         {
-          "address": "0x7c405bbd131e42af506d14e752f2e59b19d49997",
-          "actor": "FNDN",
+          "address": "0x84d37a25e46029ce161111420e07ceb78880119e",
+          "actor": "WAY",
           "executionDelaySeconds": 0
         },
         {
@@ -365,9 +407,25 @@
       "grantDelaySeconds": 0,
       "holders": [
         {
-          "address": "0x7c405bbd131e42af506d14e752f2e59b19d49997",
-          "actor": "FNDN",
-          "executionDelaySeconds": 172800
+          "address": "0x84d37a25e46029ce161111420e07ceb78880119e",
+          "actor": "WAY",
+          "executionDelaySeconds": 259200
+        }
+      ]
+    },
+    {
+      "id": "18089890734229314815",
+      "name": "ADMIN_ENTRY_POINT_ROLE",
+      "adminRole": "0",
+      "adminRoleName": "ADMIN_ROLE",
+      "guardianRole": "3153718263372025530",
+      "guardianRoleName": "GUARDIAN_ROLE",
+      "grantDelaySeconds": 0,
+      "holders": [
+        {
+          "address": "0x84d37a25e46029ce161111420e07ceb78880119e",
+          "actor": "WAY",
+          "executionDelaySeconds": 86400
         }
       ]
     },
@@ -376,8 +434,8 @@
       "name": "ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE",
       "adminRole": "0",
       "adminRoleName": "ADMIN_ROLE",
-      "guardianRole": "0",
-      "guardianRoleName": "ADMIN_ROLE",
+      "guardianRole": "3153718263372025530",
+      "guardianRoleName": "GUARDIAN_ROLE",
       "grantDelaySeconds": 0,
       "holders": [
         {
@@ -397,25 +455,9 @@
       "grantDelaySeconds": 0,
       "holders": [
         {
-          "address": "0x7c405bbd131e42af506d14e752f2e59b19d49997",
-          "actor": "FNDN",
-          "executionDelaySeconds": 172800
-        }
-      ]
-    },
-    {
-      "id": "5790196268886763633",
-      "name": "ADMIN_ORACLE_QUOTER_ROLE",
-      "adminRole": "0",
-      "adminRoleName": "ADMIN_ROLE",
-      "guardianRole": "3153718263372025530",
-      "guardianRoleName": "GUARDIAN_ROLE",
-      "grantDelaySeconds": 0,
-      "holders": [
-        {
-          "address": "0x7c405bbd131e42af506d14e752f2e59b19d49997",
-          "actor": "FNDN",
-          "executionDelaySeconds": 0
+          "address": "0x84d37a25e46029ce161111420e07ceb78880119e",
+          "actor": "WAY",
+          "executionDelaySeconds": 259200
         }
       ]
     },
@@ -429,8 +471,8 @@
       "grantDelaySeconds": 0,
       "holders": [
         {
-          "address": "0x7c405bbd131e42af506d14e752f2e59b19d49997",
-          "actor": "FNDN",
+          "address": "0xc7605b1891b449b0051d55d083b49d6b46d164bb",
+          "actor": null,
           "executionDelaySeconds": 0
         }
       ]
@@ -445,9 +487,9 @@
       "grantDelaySeconds": 0,
       "holders": [
         {
-          "address": "0x7c405bbd131e42af506d14e752f2e59b19d49997",
-          "actor": "FNDN",
-          "executionDelaySeconds": 86400
+          "address": "0x84d37a25e46029ce161111420e07ceb78880119e",
+          "actor": "WAY",
+          "executionDelaySeconds": 259200
         }
       ]
     },
@@ -468,8 +510,8 @@
       ]
     },
     {
-      "id": "17817129721670429102",
-      "name": "ADMIN_UPGRADER_ROLE",
+      "id": "10054419464311379566",
+      "name": "ADMIN_UNPAUSER_ROLE",
       "adminRole": "0",
       "adminRoleName": "ADMIN_ROLE",
       "guardianRole": "3153718263372025530",
@@ -479,7 +521,23 @@
         {
           "address": "0x7c405bbd131e42af506d14e752f2e59b19d49997",
           "actor": "FNDN",
-          "executionDelaySeconds": 172800
+          "executionDelaySeconds": 0
+        }
+      ]
+    },
+    {
+      "id": "17817129721670429102",
+      "name": "ADMIN_UPGRADER_ROLE",
+      "adminRole": "0",
+      "adminRoleName": "ADMIN_ROLE",
+      "guardianRole": "3153718263372025530",
+      "guardianRoleName": "GUARDIAN_ROLE",
+      "grantDelaySeconds": 0,
+      "holders": [
+        {
+          "address": "0x84d37a25e46029ce161111420e07ceb78880119e",
+          "actor": "WAY",
+          "executionDelaySeconds": 259200
         }
       ]
     },
@@ -488,28 +546,12 @@
       "name": "BURNER_ROLE",
       "adminRole": "0",
       "adminRoleName": "ADMIN_ROLE",
-      "guardianRole": "0",
-      "guardianRoleName": "ADMIN_ROLE",
-      "grantDelaySeconds": 0,
-      "holders": [
-        {
-          "address": "0x63da1229be88fb4d20210147954a1a3e05f2581b",
-          "actor": null,
-          "executionDelaySeconds": 0
-        }
-      ]
-    },
-    {
-      "id": "6507856881284443453",
-      "name": "DEPLOYER_ROLE",
-      "adminRole": "11875770835546705225",
-      "adminRoleName": "DEPLOYER_ROLE_ADMIN_ROLE",
       "guardianRole": "3153718263372025530",
       "guardianRoleName": "GUARDIAN_ROLE",
       "grantDelaySeconds": 0,
       "holders": [
         {
-          "address": "0x35518d5e1fd8105fc325c5c171c329c3b10b254c",
+          "address": "0x63da1229be88fb4d20210147954a1a3e05f2581b",
           "actor": null,
           "executionDelaySeconds": 0
         }
@@ -525,25 +567,9 @@
       "grantDelaySeconds": 0,
       "holders": [
         {
-          "address": "0x7c405bbd131e42af506d14e752f2e59b19d49997",
-          "actor": "FNDN",
-          "executionDelaySeconds": 0
-        }
-      ]
-    },
-    {
-      "id": "3153718263372025530",
-      "name": "GUARDIAN_ROLE",
-      "adminRole": "0",
-      "adminRoleName": "ADMIN_ROLE",
-      "guardianRole": "0",
-      "guardianRoleName": "ADMIN_ROLE",
-      "grantDelaySeconds": 0,
-      "holders": [
-        {
           "address": "0x84d37a25e46029ce161111420e07ceb78880119e",
           "actor": "WAY",
-          "executionDelaySeconds": 0
+          "executionDelaySeconds": 259200
         }
       ]
     },

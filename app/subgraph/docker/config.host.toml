@@ -1,0 +1,32 @@
+# Host-native graph-node config (Apple Silicon: official docker images are amd64-only and the
+# qemu-emulated mapping runtime OOMs on trigger-heavy blocks — run graph-node natively instead,
+# against the dockerized postgres/ipfs from docker-compose.yml).
+# RPC URLs are expanded from the environment (source docker/.env).
+[store]
+[store.primary]
+connection = "postgresql://graph-node:let-me-in@localhost:5432/graph-node"
+pool_size = 10
+
+[deployment]
+[[deployment.rule]]
+shard = "primary"
+indexers = ["default"]
+
+[chains]
+ingestor = "default"
+
+[chains.mainnet]
+shard = "primary"
+provider = [{ label = "mainnet", url = "${MAINNET_RPC_URL}", features = ["archive"] }]
+
+[chains.avalanche]
+shard = "primary"
+provider = [{ label = "avalanche", url = "${AVALANCHE_RPC_URL}", features = ["archive"] }]
+
+[chains.arbitrum-one]
+shard = "primary"
+provider = [{ label = "arbitrum", url = "${ARBITRUM_RPC_URL}", features = ["archive"] }]
+
+[chains.base]
+shard = "primary"
+provider = [{ label = "base", url = "${BASE_RPC_URL}", features = ["archive"] }]

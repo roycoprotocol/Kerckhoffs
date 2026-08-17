@@ -3,9 +3,29 @@
   "chainId": 1,
   "factory": "0x7cC6fB28eC7b5e7afC3cB3986141797ffc27253C",
   "factoryStartBlock": 24650849,
+  "dayManager": {
+    "address": "0x82EecE4a736db0767370d2DfFdE9BDF6e38AaeB8",
+    "startBlock": 25759227
+  },
+  "dayFactory": {
+    "address": "0xaAAaaAAAaE46cA12Bf3810DF8C13c5E8A4400812",
+    "startBlock": 25759227
+  },
   "startBlocksResolved": true,
   "vaults": [
-    { "name": "srRoyUSDC", "address": "0xcD9f5907F92818bC06c9Ad70217f089E190d2a32", "startBlock": 24176149 },
-    { "name": "roywstETH", "address": "0x41Ce72E04D349Eb957bdc373baA9c69207032c56", "startBlock": 24585152 }
-  ]
+    {
+      "name": "srRoyUSDC",
+      "address": "0xcD9f5907F92818bC06c9Ad70217f089E190d2a32",
+      "startBlock": 24176149
+    },
+    {
+      "name": "roywstETH",
+      "address": "0x41Ce72E04D349Eb957bdc373baA9c69207032c56",
+      "startBlock": 24585152
+    }
+  ],
+  "graft": {
+    "base": "QmV7hoVSk4JH9cUrkCmJ1KPpoTKea5ZTes6XNYFahkqgr9",
+    "block": 25759226
+  }
 }

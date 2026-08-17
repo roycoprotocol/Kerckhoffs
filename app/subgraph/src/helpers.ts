@@ -1,4 +1,4 @@
-import { BigInt, Bytes, Address, ethereum } from "@graphprotocol/graph-ts";
+import { BigInt, Bytes, Address, ethereum, dataSource } from "@graphprotocol/graph-ts";
 import { AccessManager } from "../generated/AccessManager/AccessManager";
 import {
   Manager,
@@ -16,26 +16,47 @@ export const ADMIN_ROLE: BigInt = BigInt.zero();
 export const PUBLIC_ROLE: BigInt = BigInt.fromString("18446744073709551615");
 
 // ── ID builders (see docs/spec/main.md §1 keying conventions) ──────────────────
+//
+// Every AM-scoped id is prefixed with the lowercased manager address: the Dawn and Day AMs derive
+// role ids from the same keccak tag strings, so unprefixed ids would silently merge the two AMs.
+
+export function managerId(event: ethereum.Event): string {
+  return event.address.toHexString();
+}
 
 export function eventId(event: ethereum.Event): string {
   return event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
 }
 
-export function roleMemberId(roleId: BigInt, account: Address): string {
-  return roleId.toString() + "-" + account.toHexString();
+export function roleEntityId(am: string, roleId: BigInt): string {
+  return am + "-" + roleId.toString();
 }
 
-export function targetFnId(target: Address, selector: Bytes): string {
-  return target.toHexString() + "-" + selector.toHexString();
+export function roleMemberId(am: string, roleId: BigInt, account: Address): string {
+  return am + "-" + roleId.toString() + "-" + account.toHexString();
+}
+
+export function targetEntityId(am: string, target: Address): string {
+  return am + "-" + target.toHexString();
+}
+
+export function targetFnId(am: string, target: Address, selector: Bytes): string {
+  return am + "-" + target.toHexString() + "-" + selector.toHexString();
+}
+
+export function operationRowId(am: string, operationId: string, nonce: BigInt): string {
+  return am + "-" + operationId + "-" + nonce.toString();
 }
 
 // ── loadOrCreate helpers ───────────────────────────────────────────────────────
 
-export function loadOrCreateRole(roleId: BigInt): Role {
-  const id = roleId.toString();
+export function loadOrCreateRole(am: string, roleId: BigInt): Role {
+  const id = roleEntityId(am, roleId);
   let role = Role.load(id);
   if (role == null) {
     role = new Role(id);
+    role.manager = am;
+    role.roleId = roleId;
     role.adminRole = ADMIN_ROLE; // every role's admin defaults to ADMIN_ROLE in OZ AM
     role.guardianRole = ADMIN_ROLE;
     role.grantDelay = BigInt.zero();
@@ -54,27 +75,34 @@ export function loadOrCreateAccount(account: Address): Account {
   return a;
 }
 
-export function loadOrCreateTarget(target: Address): TargetContract {
-  const id = target.toHexString();
+export function loadOrCreateTarget(am: string, target: Address): TargetContract {
+  const id = targetEntityId(am, target);
   let t = TargetContract.load(id);
   if (t == null) {
     t = new TargetContract(id);
+    t.manager = am;
     t.address = target;
     t.closed = false;
     t.adminDelay = BigInt.zero();
+    t.everConfigured = false;
     t.save();
   }
   return t;
 }
 
-// The Manager singleton has no dedicated event; lazily create it on the first AM event,
-// reading expiration()/minSetback() from the contract once.
+// Managers have no dedicated creation event; lazily create the row on the first AM event, reading
+// expiration()/minSetback() from the contract once. Keyed by event.address — one row per AM.
 export function getOrInitManager(event: ethereum.Event): Manager {
-  // Singleton per subgraph — id is stable ("manager"); one deployment == one chain.
-  let mgr = Manager.load("manager");
+  const id = managerId(event);
+  let mgr = Manager.load(id);
   if (mgr == null) {
-    mgr = new Manager("manager");
+    mgr = new Manager(id);
     mgr.address = event.address;
+    // "dawn" | "day" from the data-source context set in subgraph.template.yaml; default to
+    // "dawn" when absent (matchstick mock events carry no context).
+    const ctx = dataSource.context();
+    const kind = ctx.isSet("kind") ? ctx.getString("kind") : "dawn";
+    mgr.kind = kind;
     const c = AccessManager.bind(event.address);
     const exp = c.try_expiration();
     mgr.expiration = exp.reverted ? BigInt.zero() : exp.value;
@@ -87,6 +115,7 @@ export function getOrInitManager(event: ethereum.Event): Manager {
 
 // Append an immutable RoleEvent row.
 export function appendRoleEvent(
+  am: string,
   event: ethereum.Event,
   roleId: BigInt,
   account: Bytes | null,
@@ -96,7 +125,8 @@ export function appendRoleEvent(
   effectiveAt: BigInt | null
 ): void {
   const e = new RoleEvent(eventId(event));
-  e.role = roleId.toString();
+  e.manager = am;
+  e.role = roleEntityId(am, roleId);
   if (account !== null) {
     e.account = (account as Bytes).toHexString();
   }

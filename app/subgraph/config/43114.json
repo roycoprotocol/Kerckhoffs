@@ -4,5 +4,17 @@
   "factory": "0x7cC6fB28eC7b5e7afC3cB3986141797ffc27253C",
   "factoryStartBlock": 80312789,
   "startBlocksResolved": true,
-  "vaults": []
+  "vaults": [],
+  "dayManager": {
+    "address": "0x82EecE4a736db0767370d2DfFdE9BDF6e38AaeB8",
+    "startBlock": 93024169
+  },
+  "dayFactory": {
+    "address": "0xaAAaaAAAaE46cA12Bf3810DF8C13c5E8A4400812",
+    "startBlock": 93024169
+  },
+  "graft": {
+    "base": "Qmc6Pj8g3d2WUSrGJCREN6BpcT6iSjT9rFR1nY5qbxityG",
+    "block": 93024168
+  }
 }

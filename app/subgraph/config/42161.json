@@ -3,6 +3,18 @@
   "chainId": 42161,
   "factory": "0x7cC6fB28eC7b5e7afC3cB3986141797ffc27253C",
   "factoryStartBlock": 441493793,
+  "dayManager": {
+    "address": "0x82EecE4a736db0767370d2DfFdE9BDF6e38AaeB8",
+    "startBlock": 494700000
+  },
+  "dayFactory": {
+    "address": "0xaAAaaAAAaE46cA12Bf3810DF8C13c5E8A4400812",
+    "startBlock": 494700000
+  },
   "startBlocksResolved": true,
-  "vaults": []
+  "vaults": [],
+  "graft": {
+    "base": "QmQRrPCSo6hg8dNs437wM8R6U8c5ksZvqGt83dqd2GpGLQ",
+    "block": 494699999
+  }
 }

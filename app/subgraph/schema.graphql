@@ -1,19 +1,29 @@
 """
-The AccessManager (RoycoFactory) for this chain. Singleton, id = chainId.
+An AccessManager indexed by this subgraph. id = lowercased AM address (event.address). One row per
+manager per chain: the Dawn RoycoFactory and — on chains where Royco Day is deployed — the Day
+RoycoAccessManager. `kind` ("dawn" | "day") comes from data-source context; the catalog is the
+authority for kind-by-address.
 """
 type Manager @entity(immutable: false) {
   id: ID!
   address: Bytes!
+  kind: String!
   expiration: BigInt!
   minSetback: BigInt!
+  roles: [Role!]! @derivedFrom(field: "manager")
+  targets: [TargetContract!]! @derivedFrom(field: "manager")
 }
 
 """
-An AccessManager role. id = uint64 role id rendered as a decimal string.
+An AccessManager role. id = "{manager}-{roleId}" (role ids collide across the Dawn and Day AMs —
+both derive them from the same keccak tag strings — so every role row is manager-scoped).
+`roleId` is the raw uint64 as a decimal; consumers must never parse the composite id.
 adminRole/guardianRole default to 0 (ADMIN_ROLE) until an explicit change event is seen.
 """
 type Role @entity(immutable: false) {
   id: ID!
+  manager: Manager!
+  roleId: BigInt!
   onChainLabel: String
   adminRole: BigInt!
   guardianRole: BigInt!
@@ -24,11 +34,12 @@ type Role @entity(immutable: false) {
 }
 
 """
-Current membership of (role, account). Rows are retained after revocation (active=false) so the
-holder set is `members(where: {active: true})`.
+Current membership of (manager, role, account). Rows are retained after revocation (active=false)
+so the holder set is `members(where: {active: true})`.
 """
 type RoleMember @entity(immutable: false) {
-  id: ID! # "{roleId}-{account}"
+  id: ID! # "{manager}-{roleId}-{account}"
+  manager: Manager!
   role: Role!
   account: Account!
   executionDelay: BigInt!
@@ -54,6 +65,7 @@ Immutable historical record of any role-level change. The membership timeline.
 """
 type RoleEvent @entity(immutable: true) {
   id: ID! # "{txHash}-{logIndex}"
+  manager: Manager!
   role: Role!
   account: Account
   kind: RoleEventKind!
@@ -66,21 +78,28 @@ type RoleEvent @entity(immutable: true) {
 }
 
 """
-A contract gated by the AccessManager.
+A contract gated by an AccessManager. id = "{manager}-{address}" — the same contract may be gated
+by both AMs (e.g. a vault mid-migration from Dawn to Day). `everConfigured` mirrors the Day AM's
+`wasEverConfigured` flag (event-sourced from TargetConfiguredAtGenesis; always false for Dawn).
 """
 type TargetContract @entity(immutable: false) {
-  id: ID! # address
+  id: ID!
+  manager: Manager!
   address: Bytes!
   closed: Boolean!
   adminDelay: BigInt!
+  everConfigured: Boolean!
+  firstConfiguredAt: BigInt
+  firstConfiguredTx: Bytes
   functions: [TargetFunction!]! @derivedFrom(field: "target")
 }
 
 """
-A (target, selector) -> role binding: the capability edge.
+A (manager, target, selector) -> role binding: the capability edge.
 """
 type TargetFunction @entity(immutable: false) {
-  id: ID! # "{target}-{selector}"
+  id: ID! # "{manager}-{target}-{selector}"
+  manager: Manager!
   target: TargetContract!
   selector: Bytes!
   role: Role!
@@ -95,13 +114,15 @@ enum OperationStatus {
 }
 
 """
-A scheduled (timelocked) operation. id = "{operationId}-{nonce}" where operationId =
-hashOperation(caller, target, data). The nonce is included so a re-scheduled op (same hash, new
-nonce) is a distinct row rather than overwriting the prior lifecycle; Executed/Canceled events carry
-the nonce, so the key is reconstructable.
+A scheduled (timelocked) operation. id = "{manager}-{operationId}-{nonce}" where operationId =
+hashOperation(caller, target, data) — hashed without the AM address, so the same call scheduled on
+both AMs would collide without the manager prefix. The nonce is included so a re-scheduled op
+(same hash, new nonce) is a distinct row rather than overwriting the prior lifecycle;
+Executed/Canceled events carry the nonce, so the key is reconstructable.
 """
 type Operation @entity(immutable: false) {
   id: ID!
+  manager: Manager!
   operationId: Bytes!
   nonce: BigInt!
   caller: Bytes!
@@ -118,12 +139,58 @@ type Operation @entity(immutable: false) {
 }
 
 """
-Any address that has ever held an AM role or a native vault role.
+Any address that has ever held an AM role or a native vault role. Global (id = address) — the
+cross-manager join point: an account's role rows span both AMs via `roles.manager`.
 """
 type Account @entity(immutable: false) {
   id: ID! # address
   roles: [RoleMember!]! @derivedFrom(field: "account")
   nativeRoles: [NativeRoleMember!]! @derivedFrom(field: "account")
+}
+
+# ── Royco markets (Dawn RoycoFactory MarketDeployed + Day factory MarketDeploymentCompleted) ────
+
+"""
+A Royco market: the contract set deployed atomically through a registered factory. Dawn markets
+come from the Dawn RoycoFactory's MarketDeployed (4 contracts; day-only fields zero, tranche
+names/symbols from the deployment params); Day markets from the Day factory's
+MarketDeploymentCompleted (7 components). id = kernel address, lowercased (unique per deployment).
+"""
+type Market @entity(immutable: true) {
+  id: ID!
+  kind: String! # "dawn" | "day"
+  factory: Bytes!
+  template: Bytes # Day only
+  deployer: Bytes # Day only (Dawn's event carries no deployer; the factory call is permissioned)
+  seniorTranche: Bytes!
+  juniorTranche: Bytes!
+  liquidityProviderTranche: Bytes! # zero for Dawn
+  kernel: Bytes!
+  accountant: Bytes!
+  ydm: Bytes! # zero for Dawn
+  lptYdm: Bytes! # zero for Dawn
+  extras: Bytes!
+  seniorTrancheName: String # Dawn only
+  seniorTrancheSymbol: String # Dawn only
+  juniorTrancheName: String # Dawn only
+  juniorTrancheSymbol: String # Dawn only
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  txHash: Bytes!
+  components: [MarketComponent!]! @derivedFrom(field: "market")
+}
+
+"""
+Reverse index address -> (market, componentType) so arbitrary AM targets can be labeled as market
+components. id = "{kernel}-{componentType}" — NOT the component address: YDM singletons are shared
+across markets, so an address key would collide on an immutable entity. Address lookups filter on
+`address` and may legitimately return multiple rows.
+"""
+type MarketComponent @entity(immutable: true) {
+  id: ID!
+  market: Market!
+  address: Bytes!
+  componentType: String! # seniorTranche|juniorTranche|liquidityProviderTranche|kernel|accountant|ydm|lptYdm
 }
 
 # ── Native OZ AccessControl on the Concrete vaults (bytes32 roles) ──────────────

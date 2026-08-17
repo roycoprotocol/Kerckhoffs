@@ -25,10 +25,19 @@ if (config.startBlocksResolved === false) {
 }
 
 // Mustache is logic-less and has no `../` parent access, so denormalize `network` onto each vault
-// entry (the vault data sources must share the top-level network).
+// entry and onto the optional Day sections (all data sources must share the top-level network).
+// Chains without Royco Day (Avalanche) simply omit `dayManager`/`dayFactory` and the falsy
+// sections render to nothing.
+// Grafting is a LOCAL-graph-node optimization: the graft base hashes in config/*.json exist only
+// on the local node's IPFS/store. Hosted deploys (Goldsky) must sync from scratch — strip the
+// graft with NO_GRAFT=1 (the deploy:* scripts set it).
+if (process.env.NO_GRAFT === "1") delete config.graft;
+
 const view = {
   ...config,
   vaults: (config.vaults || []).map((v) => ({ ...v, network: config.network })),
+  dayManager: config.dayManager ? { ...config.dayManager, network: config.network } : null,
+  dayFactory: config.dayFactory ? { ...config.dayFactory, network: config.network } : null,
 };
 
 const template = readFileSync(join(root, "subgraph.template.yaml"), "utf8");

@@ -627,6 +627,25 @@
     "stateMutability": "nonpayable"
   },
   {
+    "type": "function",
+    "name": "wasEverConfigured",
+    "inputs": [
+      {
+        "name": "_target",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
     "type": "event",
     "name": "OperationCanceled",
     "inputs": [
@@ -891,6 +910,19 @@
   },
   {
     "type": "event",
+    "name": "TargetConfiguredAtGenesis",
+    "inputs": [
+      {
+        "name": "target",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "TargetFunctionRoleUpdated",
     "inputs": [
       {
@@ -1058,150 +1090,5 @@
         "internalType": "address"
       }
     ]
-  },
-  {
-    "type": "event",
-    "name": "MarketDeployed",
-    "inputs": [
-      {
-        "name": "roycoMarket",
-        "type": "tuple",
-        "indexed": false,
-        "internalType": "struct IDawnFactory.RoycoMarket",
-        "components": [
-          {
-            "name": "seniorTranche",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "juniorTranche",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "kernel",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "accountant",
-            "type": "address",
-            "internalType": "address"
-          }
-        ]
-      },
-      {
-        "name": "params",
-        "type": "tuple",
-        "indexed": false,
-        "internalType": "struct IDawnFactory.MarketDeploymentParams",
-        "components": [
-          {
-            "name": "seniorTrancheName",
-            "type": "string",
-            "internalType": "string"
-          },
-          {
-            "name": "seniorTrancheSymbol",
-            "type": "string",
-            "internalType": "string"
-          },
-          {
-            "name": "juniorTrancheName",
-            "type": "string",
-            "internalType": "string"
-          },
-          {
-            "name": "juniorTrancheSymbol",
-            "type": "string",
-            "internalType": "string"
-          },
-          {
-            "name": "seniorTrancheImplementation",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "juniorTrancheImplementation",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "kernelImplementation",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "accountantImplementation",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "seniorTrancheInitializationData",
-            "type": "bytes",
-            "internalType": "bytes"
-          },
-          {
-            "name": "juniorTrancheInitializationData",
-            "type": "bytes",
-            "internalType": "bytes"
-          },
-          {
-            "name": "kernelInitializationData",
-            "type": "bytes",
-            "internalType": "bytes"
-          },
-          {
-            "name": "accountantInitializationData",
-            "type": "bytes",
-            "internalType": "bytes"
-          },
-          {
-            "name": "seniorTrancheProxyDeploymentSalt",
-            "type": "bytes32",
-            "internalType": "bytes32"
-          },
-          {
-            "name": "juniorTrancheProxyDeploymentSalt",
-            "type": "bytes32",
-            "internalType": "bytes32"
-          },
-          {
-            "name": "kernelProxyDeploymentSalt",
-            "type": "bytes32",
-            "internalType": "bytes32"
-          },
-          {
-            "name": "accountantProxyDeploymentSalt",
-            "type": "bytes32",
-            "internalType": "bytes32"
-          },
-          {
-            "name": "roles",
-            "type": "tuple[]",
-            "internalType": "struct IDawnFactory.RolesTargetConfiguration[]",
-            "components": [
-              {
-                "name": "target",
-                "type": "address",
-                "internalType": "address"
-              },
-              {
-                "name": "selectors",
-                "type": "bytes4[]",
-                "internalType": "bytes4[]"
-              },
-              {
-                "name": "roles",
-                "type": "uint64[]",
-                "internalType": "uint64[]"
-              }
-            ]
-          }
-        ]
-      }
-    ],
-    "anonymous": false
   }
 ]

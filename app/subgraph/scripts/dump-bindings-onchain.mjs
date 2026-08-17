@@ -18,13 +18,21 @@ if (!RPC) { console.error("no RPC url (arg or MAINNET_RPC_URL)"); process.exit(1
 
 const TFRU_TOPIC = "0x9ea6790c7dadfd01c9f8b9762b3682607af2c7e79e05a9f9fdf5580dde949151";
 const CREATION_BLOCK = { "1": 24650849, "43114": 80312789, "42161": 441493793, "8453": 48111449 };
+// Day RoycoAccessManager creation blocks — used when the factory arg is the Day AM.
+const DAY_AM = "0x87aed46566cb28c8375cfcc9971090882a0fb12e";
+const DAY_CREATION_BLOCK = { "1": 25734830, "42161": 493570035, "8453": 49849492 };
+const isDay = FACTORY === DAY_AM;
+const suffix = isDay ? ".day" : "";
 
 // optional enrichment maps
 function tryLoad(p) { try { return JSON.parse(readFileSync(p, "utf8")); } catch { return null; } }
 const names = tryLoad(join(root, "..", "metadata", "role-names.json")) ?? { roles: {} };
 const selectors = tryLoad(join(root, "..", "metadata", "selectors.json")) ?? {};
-const catalog = tryLoad(join(root, "..", "metadata", `catalog.${chainId}.json`)) ?? { targets: [] };
-const targetByAddr = new Map(catalog.targets.map((t) => [t.address.toLowerCase(), t]));
+const catalog = tryLoad(join(root, "..", "metadata", `catalog.${chainId}.json`)) ?? { managers: [] };
+// Catalog v2 nests targets per manager; merge across managers for name resolution.
+const targetByAddr = new Map(
+  (catalog.managers ?? []).flatMap((m) => m.targets).map((t) => [t.address.toLowerCase(), t]),
+);
 const roleName = (id) => (id === "0" ? "ADMIN_ROLE" : names.roles[id] ?? `role_${id}`);
 const fnName = (sel) => selectors[sel]?.name ?? sel;
 
@@ -42,7 +50,7 @@ async function rpc(method, params) {
 console.error(`[bindings] scanning TargetFunctionRoleUpdated on ${FACTORY} ...`);
 const head = Number(BigInt(await rpc("eth_blockNumber", [])));
 const latest = new Map(); // "target-selector" -> {target, selector, roleId, block, logIndex}
-let from = CREATION_BLOCK[chainId] ?? 0;
+let from = (isDay ? DAY_CREATION_BLOCK[chainId] : CREATION_BLOCK[chainId]) ?? 0;
 let step = 50000;
 while (from <= head) {
   const to = Math.min(from + step - 1, head);
@@ -83,7 +91,7 @@ const targetFunctions = bindings.map((b) => ({
 
 mkdirSync(join(root, "dumps"), { recursive: true });
 writeFileSync(
-  join(root, "dumps", `target-functions.${chainId}.json`),
+  join(root, "dumps", `target-functions.${chainId}${suffix}.json`),
   JSON.stringify({ chainId: Number(chainId), factory: FACTORY, atBlock: head, targetFunctions }, null, 2) + "\n",
 );
 
@@ -99,6 +107,6 @@ for (const [target, rows] of [...byTarget.entries()].sort((a, b) => (targetByAdd
   md += `\n## ${ti?.name ?? target} ${ti ? `(${ti.type})` : ""}\n\n| function | selector | role |\n|---|---|---|\n`;
   for (const b of rows) md += `| ${fnName(b.selector)} | ${b.selector} | ${roleName(b.roleId)} |\n`;
 }
-writeFileSync(join(root, "dumps", `target-functions.${chainId}.md`), md);
+writeFileSync(join(root, "dumps", `target-functions.${chainId}${suffix}.md`), md);
 
-console.error(`[bindings] wrote dumps/target-functions.${chainId}.json (+ .md)`);
+console.error(`[bindings] wrote dumps/target-functions.${chainId}${suffix}.json (+ .md)`);

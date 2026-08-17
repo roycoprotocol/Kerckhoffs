@@ -39,6 +39,8 @@ import {
 
 // Default address that newMockEvent() stamps as event.address (the AccessManager).
 const MANAGER = Address.fromString("0xA16081F360e3847006dB660bae1c6d1b2e17eC2A");
+// All AM-scoped entity ids are prefixed with the lowercased manager address.
+const AM = MANAGER.toHexString();
 const ACCOUNT = Address.fromString("0x84d37A25e46029CE161111420E07cEb78880119e");
 const TARGET = Address.fromString("0x0aE0978B868804929fd4C06B3B22D9197B8cd3c6");
 const ROLE = BigInt.fromI32(42);
@@ -200,7 +202,7 @@ describe("AccessManager mappings", () => {
 
   test("grant new member", () => {
     handleRoleGranted(roleGranted(ROLE, ACCOUNT, BigInt.fromI32(0), BigInt.fromI32(100), true));
-    const mid = "42-" + ACCOUNT.toHexString();
+    const mid = AM + "-42-" + ACCOUNT.toHexString();
     assert.fieldEquals("RoleMember", mid, "active", "true");
     assert.fieldEquals("RoleMember", mid, "executionDelay", "0");
     // grantTx is set for a new member.
@@ -213,7 +215,7 @@ describe("AccessManager mappings", () => {
 
   test("execution-delay change (newMember=false) keeps grantedAt", () => {
     handleRoleGranted(roleGranted(ROLE, ACCOUNT, BigInt.fromI32(0), BigInt.fromI32(100), true));
-    const mid = "42-" + ACCOUNT.toHexString();
+    const mid = AM + "-42-" + ACCOUNT.toHexString();
     const grantedAtBefore = RoleMember.load(mid)!.grantedAt!;
 
     handleRoleGranted(roleGranted(ROLE, ACCOUNT, BigInt.fromI32(216000), BigInt.fromI32(500), false));
@@ -227,7 +229,7 @@ describe("AccessManager mappings", () => {
   test("revoke deactivates member and retains row", () => {
     handleRoleGranted(roleGranted(ROLE, ACCOUNT, BigInt.fromI32(0), BigInt.fromI32(100), true));
     handleRoleRevoked(roleRevoked(ROLE, ACCOUNT));
-    const mid = "42-" + ACCOUNT.toHexString();
+    const mid = AM + "-42-" + ACCOUNT.toHexString();
     assert.fieldEquals("RoleMember", mid, "active", "false");
     assert.fieldEquals("RoleMember", mid, "executionDelay", "0");
     const m = RoleMember.load(mid)!;
@@ -237,36 +239,36 @@ describe("AccessManager mappings", () => {
 
   test("admin / guardian / grant-delay changes record old->new", () => {
     handleRoleAdminChanged(roleAdminChanged(ROLE, BigInt.fromI32(7)));
-    assert.fieldEquals("Role", "42", "adminRole", "7");
+    assert.fieldEquals("Role", AM + "-42", "adminRole", "7");
     handleRoleGuardianChanged(roleGuardianChanged(ROLE, BigInt.fromI32(9)));
-    assert.fieldEquals("Role", "42", "guardianRole", "9");
+    assert.fieldEquals("Role", AM + "-42", "guardianRole", "9");
     handleRoleGrantDelayChanged(roleGrantDelayChanged(ROLE, BigInt.fromI32(3600), BigInt.fromI32(1)));
-    assert.fieldEquals("Role", "42", "grantDelay", "3600");
+    assert.fieldEquals("Role", AM + "-42", "grantDelay", "3600");
     assert.entityCount("RoleEvent", 3);
   });
 
   test("target function binding upserts in place", () => {
     handleTargetFunctionRoleUpdated(targetFunctionRoleUpdated(TARGET, SELECTOR, ROLE));
-    const id = TARGET.toHexString() + "-" + SELECTOR.toHexString();
-    assert.fieldEquals("TargetFunction", id, "role", "42");
+    const id = AM + "-" + TARGET.toHexString() + "-" + SELECTOR.toHexString();
+    assert.fieldEquals("TargetFunction", id, "role", AM + "-42");
     // Re-bind to a different role — must update the same row, not create a second.
     handleTargetFunctionRoleUpdated(targetFunctionRoleUpdated(TARGET, SELECTOR, BigInt.fromI32(99)));
-    assert.fieldEquals("TargetFunction", id, "role", "99");
+    assert.fieldEquals("TargetFunction", id, "role", AM + "-99");
     assert.entityCount("TargetFunction", 1);
   });
 
   test("target closed / adminDelay set on TargetContract", () => {
     handleTargetClosed(targetClosed(TARGET, true));
-    assert.fieldEquals("TargetContract", TARGET.toHexString(), "closed", "true");
+    assert.fieldEquals("TargetContract", AM + "-" + TARGET.toHexString(), "closed", "true");
     handleTargetAdminDelayUpdated(targetAdminDelayUpdated(TARGET, BigInt.fromI32(216000), BigInt.fromI32(1)));
-    assert.fieldEquals("TargetContract", TARGET.toHexString(), "adminDelay", "216000");
+    assert.fieldEquals("TargetContract", AM + "-" + TARGET.toHexString(), "adminDelay", "216000");
   });
 
   test("operation lifecycle scheduled -> executed", () => {
     handleOperationScheduled(
       operationScheduled(OP_ID, BigInt.fromI32(1), BigInt.fromI32(1000), ACCOUNT, TARGET, Bytes.fromHexString("0xdeadbeef"))
     );
-    const id = OP_ID.toHexString() + "-1";
+    const id = AM + "-" + OP_ID.toHexString() + "-1";
     assert.fieldEquals("Operation", id, "status", "Scheduled");
     handleOperationExecuted(operationExecuted(OP_ID, BigInt.fromI32(1)));
     assert.fieldEquals("Operation", id, "status", "Executed");
@@ -277,7 +279,7 @@ describe("AccessManager mappings", () => {
     handleOperationScheduled(
       operationScheduled(OP_ID, BigInt.fromI32(2), BigInt.fromI32(1000), ACCOUNT, TARGET, Bytes.fromHexString("0xbeef"))
     );
-    const id = OP_ID.toHexString() + "-2";
+    const id = AM + "-" + OP_ID.toHexString() + "-2";
     handleOperationCanceled(operationCanceled(OP_ID, BigInt.fromI32(2)));
     assert.fieldEquals("Operation", id, "status", "Canceled");
   });
@@ -287,6 +289,37 @@ describe("AccessManager mappings", () => {
     handleRoleGranted(roleGranted(ROLE, ACCOUNT, BigInt.fromI32(10), BigInt.fromI32(200), false));
     // Two grants for the same (role, account) => still exactly one RoleMember row.
     assert.entityCount("RoleMember", 1);
-    assert.fieldEquals("RoleMember", "42-" + ACCOUNT.toHexString(), "executionDelay", "10");
+    assert.fieldEquals("RoleMember", AM + "-42-" + ACCOUNT.toHexString(), "executionDelay", "10");
+  });
+
+  test("two managers: same roleId from two AM addresses yields disjoint rows", () => {
+    // The Dawn and Day AMs derive role ids from the same keccak tags, so the same uint64 fired
+    // from a second event.address must land in separate Role/RoleMember/Manager rows.
+    const OTHER = Address.fromString("0x87aED46566cb28c8375cfcC9971090882A0fB12e");
+    createMockedFunction(OTHER, "expiration", "expiration():(uint32)").returns([
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(604800)),
+    ]);
+    createMockedFunction(OTHER, "minSetback", "minSetback():(uint32)").returns([
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(0)),
+    ]);
+
+    handleRoleGranted(roleGranted(ROLE, ACCOUNT, BigInt.fromI32(0), BigInt.fromI32(100), true));
+    const e = roleGranted(ROLE, ACCOUNT, BigInt.fromI32(7), BigInt.fromI32(100), true);
+    e.address = OTHER;
+    handleRoleGranted(e);
+
+    assert.entityCount("Manager", 2);
+    assert.entityCount("Role", 2);
+    assert.entityCount("RoleMember", 2);
+    assert.entityCount("Account", 1); // Account stays global — the cross-AM join point
+    assert.fieldEquals("RoleMember", AM + "-42-" + ACCOUNT.toHexString(), "executionDelay", "0");
+    assert.fieldEquals(
+      "RoleMember",
+      OTHER.toHexString() + "-42-" + ACCOUNT.toHexString(),
+      "executionDelay",
+      "7"
+    );
+    assert.fieldEquals("Role", AM + "-42", "manager", AM);
+    assert.fieldEquals("Role", OTHER.toHexString() + "-42", "manager", OTHER.toHexString());
   });
 });

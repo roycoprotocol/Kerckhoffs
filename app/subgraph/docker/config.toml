@@ -1,0 +1,30 @@
+# graph-node multi-chain config. RPC URLs are injected via environment expansion
+# (graph-node expands ${VAR} in this file at startup).
+[store]
+[store.primary]
+connection = "postgresql://graph-node:let-me-in@postgres:5432/graph-node"
+pool_size = 10
+
+[deployment]
+[[deployment.rule]]
+shard = "primary"
+indexers = ["default"]
+
+[chains]
+ingestor = "default"
+
+[chains.mainnet]
+shard = "primary"
+provider = [{ label = "mainnet", url = "${MAINNET_RPC_URL}", features = ["archive"] }]
+
+[chains.avalanche]
+shard = "primary"
+provider = [{ label = "avalanche", url = "${AVALANCHE_RPC_URL}", features = ["archive"] }]
+
+[chains.arbitrum-one]
+shard = "primary"
+provider = [{ label = "arbitrum", url = "${ARBITRUM_RPC_URL}", features = ["archive"] }]
+
+[chains.base]
+shard = "primary"
+provider = [{ label = "base", url = "${BASE_RPC_URL}", features = ["archive"] }]

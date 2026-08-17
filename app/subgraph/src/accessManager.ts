@@ -20,30 +20,38 @@ import {
   loadOrCreateAccount,
   loadOrCreateRole,
   loadOrCreateTarget,
+  roleEntityId,
   roleMemberId,
+  targetEntityId,
   targetFnId,
+  operationRowId,
 } from "./helpers";
 
-function operationRowId(operationId: string, nonce: BigInt): string {
-  return operationId + "-" + nonce.toString();
-}
+// Shared by every AccessManager data source (Dawn RoycoFactory + Day RoycoAccessManager — the Day
+// data source references this module via ./src/dayAccessManager.ts, which re-exports these
+// handlers). Each handler resolves its Manager from event.address, so the same code indexes both
+// AMs into disjoint, manager-prefixed entity rows.
+
+// The Dawn factory IS the Dawn AM address, so its MarketDeployed handler rides this data source.
+export { handleMarketDeployed } from "./dawnFactory";
 
 export function handleRoleGranted(event: RoleGranted): void {
-  getOrInitManager(event);
+  const am = getOrInitManager(event).id;
   const roleId = event.params.roleId;
   const account = event.params.account;
   const delay = event.params.delay; // uint32 -> BigInt
   const since = event.params.since; // uint48 -> BigInt
   const newMember = event.params.newMember;
 
-  loadOrCreateRole(roleId);
+  loadOrCreateRole(am, roleId);
   loadOrCreateAccount(account);
 
-  const mid = roleMemberId(roleId, account);
+  const mid = roleMemberId(am, roleId, account);
   let m = RoleMember.load(mid);
   if (m == null) {
     m = new RoleMember(mid);
-    m.role = roleId.toString();
+    m.manager = am;
+    m.role = roleEntityId(am, roleId);
     m.account = account.toHexString();
   }
   m.active = true;
@@ -60,6 +68,7 @@ export function handleRoleGranted(event: RoleGranted): void {
   m.save();
 
   appendRoleEvent(
+    am,
     event,
     roleId,
     account,
@@ -71,18 +80,19 @@ export function handleRoleGranted(event: RoleGranted): void {
 }
 
 export function handleRoleRevoked(event: RoleRevoked): void {
-  getOrInitManager(event);
+  const am = getOrInitManager(event).id;
   const roleId = event.params.roleId;
   const account = event.params.account;
 
-  loadOrCreateRole(roleId);
+  loadOrCreateRole(am, roleId);
   loadOrCreateAccount(account);
 
-  const mid = roleMemberId(roleId, account);
+  const mid = roleMemberId(am, roleId, account);
   let m = RoleMember.load(mid);
   if (m == null) {
     m = new RoleMember(mid);
-    m.role = roleId.toString();
+    m.manager = am;
+    m.role = roleEntityId(am, roleId);
     m.account = account.toHexString();
     m.executionDelay = BigInt.zero();
   }
@@ -91,34 +101,38 @@ export function handleRoleRevoked(event: RoleRevoked): void {
   m.executionDelay = BigInt.zero();
   m.save();
 
-  appendRoleEvent(event, roleId, account, "Revoked", null, null, null);
+  appendRoleEvent(am, event, roleId, account, "Revoked", null, null, null);
 }
 
 export function handleRoleAdminChanged(event: RoleAdminChanged): void {
+  const am = getOrInitManager(event).id;
   const roleId = event.params.roleId;
-  const role = loadOrCreateRole(roleId);
+  const role = loadOrCreateRole(am, roleId);
   const oldValue = role.adminRole.toString();
   role.adminRole = event.params.admin;
   role.save();
-  appendRoleEvent(event, roleId, null, "AdminChanged", oldValue, event.params.admin.toString(), null);
+  appendRoleEvent(am, event, roleId, null, "AdminChanged", oldValue, event.params.admin.toString(), null);
 }
 
 export function handleRoleGuardianChanged(event: RoleGuardianChanged): void {
+  const am = getOrInitManager(event).id;
   const roleId = event.params.roleId;
-  const role = loadOrCreateRole(roleId);
+  const role = loadOrCreateRole(am, roleId);
   const oldValue = role.guardianRole.toString();
   role.guardianRole = event.params.guardian;
   role.save();
-  appendRoleEvent(event, roleId, null, "GuardianChanged", oldValue, event.params.guardian.toString(), null);
+  appendRoleEvent(am, event, roleId, null, "GuardianChanged", oldValue, event.params.guardian.toString(), null);
 }
 
 export function handleRoleGrantDelayChanged(event: RoleGrantDelayChanged): void {
+  const am = getOrInitManager(event).id;
   const roleId = event.params.roleId;
-  const role = loadOrCreateRole(roleId);
+  const role = loadOrCreateRole(am, roleId);
   const oldValue = role.grantDelay.toString();
   role.grantDelay = event.params.delay;
   role.save();
   appendRoleEvent(
+    am,
     event,
     roleId,
     null,
@@ -130,52 +144,59 @@ export function handleRoleGrantDelayChanged(event: RoleGrantDelayChanged): void 
 }
 
 export function handleRoleLabel(event: RoleLabel): void {
+  const am = getOrInitManager(event).id;
   const roleId = event.params.roleId;
-  const role = loadOrCreateRole(roleId);
+  const role = loadOrCreateRole(am, roleId);
   role.onChainLabel = event.params.label;
   role.save();
-  appendRoleEvent(event, roleId, null, "Labeled", null, event.params.label, null);
+  appendRoleEvent(am, event, roleId, null, "Labeled", null, event.params.label, null);
 }
 
 export function handleTargetFunctionRoleUpdated(event: TargetFunctionRoleUpdated): void {
+  const am = getOrInitManager(event).id;
   const target = event.params.target;
   const selector = event.params.selector; // NOTE: non-indexed; read from event data
   const roleId = event.params.roleId;
 
-  loadOrCreateTarget(target);
-  loadOrCreateRole(roleId);
+  loadOrCreateTarget(am, target);
+  loadOrCreateRole(am, roleId);
 
-  const id = targetFnId(target, selector);
+  const id = targetFnId(am, target, selector);
   let tf = TargetFunction.load(id);
   if (tf == null) {
     tf = new TargetFunction(id);
-    tf.target = target.toHexString();
+    tf.manager = am;
+    tf.target = targetEntityId(am, target);
     tf.selector = selector;
   }
-  tf.role = roleId.toString();
+  tf.role = roleEntityId(am, roleId);
   tf.updatedAt = event.block.timestamp;
   tf.txHash = event.transaction.hash;
   tf.save();
 }
 
 export function handleTargetAdminDelayUpdated(event: TargetAdminDelayUpdated): void {
-  const t = loadOrCreateTarget(event.params.target);
+  const am = getOrInitManager(event).id;
+  const t = loadOrCreateTarget(am, event.params.target);
   t.adminDelay = event.params.delay;
   t.save();
 }
 
 export function handleTargetClosed(event: TargetClosed): void {
-  const t = loadOrCreateTarget(event.params.target);
+  const am = getOrInitManager(event).id;
+  const t = loadOrCreateTarget(am, event.params.target);
   t.closed = event.params.closed;
   t.save();
 }
 
 export function handleOperationScheduled(event: OperationScheduled): void {
+  const am = getOrInitManager(event).id;
   const opHash = event.params.operationId.toHexString();
-  const id = operationRowId(opHash, event.params.nonce);
+  const id = operationRowId(am, opHash, event.params.nonce);
   let op = Operation.load(id);
   if (op == null) {
     op = new Operation(id);
+    op.manager = am;
   }
   op.operationId = event.params.operationId;
   op.nonce = event.params.nonce;
@@ -190,7 +211,8 @@ export function handleOperationScheduled(event: OperationScheduled): void {
 }
 
 export function handleOperationExecuted(event: OperationExecuted): void {
-  const id = operationRowId(event.params.operationId.toHexString(), event.params.nonce);
+  const am = getOrInitManager(event).id;
+  const id = operationRowId(am, event.params.operationId.toHexString(), event.params.nonce);
   const op = Operation.load(id);
   if (op == null) {
     return;
@@ -202,7 +224,8 @@ export function handleOperationExecuted(event: OperationExecuted): void {
 }
 
 export function handleOperationCanceled(event: OperationCanceled): void {
-  const id = operationRowId(event.params.operationId.toHexString(), event.params.nonce);
+  const am = getOrInitManager(event).id;
+  const id = operationRowId(am, event.params.operationId.toHexString(), event.params.nonce);
   const op = Operation.load(id);
   if (op == null) {
     return;

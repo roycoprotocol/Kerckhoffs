@@ -1,0 +1,367 @@
+{
+  "chainId": 42161,
+  "factory": "0x87aed46566cb28c8375cfcc9971090882a0fb12e",
+  "atBlock": 494133090,
+  "targetFunctions": [
+    {
+      "id": "0x2749eca098e41d30780cf77141e3f8c45272b927-0x3659cfe6",
+      "selector": "0x3659cfe6",
+      "role": {
+        "id": "17817129721670429102"
+      },
+      "target": {
+        "id": "0x2749eca098e41d30780cf77141e3f8c45272b927"
+      }
+    },
+    {
+      "id": "0x30a4d4c600b043d3358b861ff690b3c1dd3fed02-0x18cbda4a",
+      "selector": "0x18cbda4a",
+      "role": {
+        "id": "18446744073709551615"
+      },
+      "target": {
+        "id": "0x30a4d4c600b043d3358b861ff690b3c1dd3fed02"
+      }
+    },
+    {
+      "id": "0x30a4d4c600b043d3358b861ff690b3c1dd3fed02-0x2165bd29",
+      "selector": "0x2165bd29",
+      "role": {
+        "id": "18446744073709551615"
+      },
+      "target": {
+        "id": "0x30a4d4c600b043d3358b861ff690b3c1dd3fed02"
+      }
+    },
+    {
+      "id": "0x30a4d4c600b043d3358b861ff690b3c1dd3fed02-0x3f4ba83a",
+      "selector": "0x3f4ba83a",
+      "role": {
+        "id": "10054419464311379566"
+      },
+      "target": {
+        "id": "0x30a4d4c600b043d3358b861ff690b3c1dd3fed02"
+      }
+    },
+    {
+      "id": "0x30a4d4c600b043d3358b861ff690b3c1dd3fed02-0x4295a78f",
+      "selector": "0x4295a78f",
+      "role": {
+        "id": "18446744073709551615"
+      },
+      "target": {
+        "id": "0x30a4d4c600b043d3358b861ff690b3c1dd3fed02"
+      }
+    },
+    {
+      "id": "0x30a4d4c600b043d3358b861ff690b3c1dd3fed02-0x4f1ef286",
+      "selector": "0x4f1ef286",
+      "role": {
+        "id": "17817129721670429102"
+      },
+      "target": {
+        "id": "0x30a4d4c600b043d3358b861ff690b3c1dd3fed02"
+      }
+    },
+    {
+      "id": "0x30a4d4c600b043d3358b861ff690b3c1dd3fed02-0x5004ae8b",
+      "selector": "0x5004ae8b",
+      "role": {
+        "id": "3947436291410369121"
+      },
+      "target": {
+        "id": "0x30a4d4c600b043d3358b861ff690b3c1dd3fed02"
+      }
+    },
+    {
+      "id": "0x30a4d4c600b043d3358b861ff690b3c1dd3fed02-0x74a630ce",
+      "selector": "0x74a630ce",
+      "role": {
+        "id": "18446744073709551615"
+      },
+      "target": {
+        "id": "0x30a4d4c600b043d3358b861ff690b3c1dd3fed02"
+      }
+    },
+    {
+      "id": "0x30a4d4c600b043d3358b861ff690b3c1dd3fed02-0x79ae4439",
+      "selector": "0x79ae4439",
+      "role": {
+        "id": "18446744073709551615"
+      },
+      "target": {
+        "id": "0x30a4d4c600b043d3358b861ff690b3c1dd3fed02"
+      }
+    },
+    {
+      "id": "0x30a4d4c600b043d3358b861ff690b3c1dd3fed02-0x7b1e6e5f",
+      "selector": "0x7b1e6e5f",
+      "role": {
+        "id": "18089890734229314815"
+      },
+      "target": {
+        "id": "0x30a4d4c600b043d3358b861ff690b3c1dd3fed02"
+      }
+    },
+    {
+      "id": "0x30a4d4c600b043d3358b861ff690b3c1dd3fed02-0x809ebe06",
+      "selector": "0x809ebe06",
+      "role": {
+        "id": "18446744073709551615"
+      },
+      "target": {
+        "id": "0x30a4d4c600b043d3358b861ff690b3c1dd3fed02"
+      }
+    },
+    {
+      "id": "0x30a4d4c600b043d3358b861ff690b3c1dd3fed02-0x8456cb59",
+      "selector": "0x8456cb59",
+      "role": {
+        "id": "7925626764789623619"
+      },
+      "target": {
+        "id": "0x30a4d4c600b043d3358b861ff690b3c1dd3fed02"
+      }
+    },
+    {
+      "id": "0x30a4d4c600b043d3358b861ff690b3c1dd3fed02-0xb9cf0634",
+      "selector": "0xb9cf0634",
+      "role": {
+        "id": "18446744073709551615"
+      },
+      "target": {
+        "id": "0x30a4d4c600b043d3358b861ff690b3c1dd3fed02"
+      }
+    },
+    {
+      "id": "0x30a4d4c600b043d3358b861ff690b3c1dd3fed02-0xbc765a7b",
+      "selector": "0xbc765a7b",
+      "role": {
+        "id": "18446744073709551615"
+      },
+      "target": {
+        "id": "0x30a4d4c600b043d3358b861ff690b3c1dd3fed02"
+      }
+    },
+    {
+      "id": "0x30a4d4c600b043d3358b861ff690b3c1dd3fed02-0xc790b56a",
+      "selector": "0xc790b56a",
+      "role": {
+        "id": "18446744073709551615"
+      },
+      "target": {
+        "id": "0x30a4d4c600b043d3358b861ff690b3c1dd3fed02"
+      }
+    },
+    {
+      "id": "0x355fbea45f9bf7f8c8d18e90919803a41ae22f6e-0x3659cfe6",
+      "selector": "0x3659cfe6",
+      "role": {
+        "id": "17817129721670429102"
+      },
+      "target": {
+        "id": "0x355fbea45f9bf7f8c8d18e90919803a41ae22f6e"
+      }
+    },
+    {
+      "id": "0x617f0784299747af622aeec50b80558680e5ce9b-0x3659cfe6",
+      "selector": "0x3659cfe6",
+      "role": {
+        "id": "17817129721670429102"
+      },
+      "target": {
+        "id": "0x617f0784299747af622aeec50b80558680e5ce9b"
+      }
+    },
+    {
+      "id": "0x6776ae9c857bad5d012d7e085579d0a2da504e7a-0x06c6a863",
+      "selector": "0x06c6a863",
+      "role": {
+        "id": "18089890734229314815"
+      },
+      "target": {
+        "id": "0x6776ae9c857bad5d012d7e085579d0a2da504e7a"
+      }
+    },
+    {
+      "id": "0x6776ae9c857bad5d012d7e085579d0a2da504e7a-0x0b3b4e1a",
+      "selector": "0x0b3b4e1a",
+      "role": {
+        "id": "18089890734229314815"
+      },
+      "target": {
+        "id": "0x6776ae9c857bad5d012d7e085579d0a2da504e7a"
+      }
+    },
+    {
+      "id": "0x6776ae9c857bad5d012d7e085579d0a2da504e7a-0x3f4ba83a",
+      "selector": "0x3f4ba83a",
+      "role": {
+        "id": "10054419464311379566"
+      },
+      "target": {
+        "id": "0x6776ae9c857bad5d012d7e085579d0a2da504e7a"
+      }
+    },
+    {
+      "id": "0x6776ae9c857bad5d012d7e085579d0a2da504e7a-0x44dcf00e",
+      "selector": "0x44dcf00e",
+      "role": {
+        "id": "18446744073709551615"
+      },
+      "target": {
+        "id": "0x6776ae9c857bad5d012d7e085579d0a2da504e7a"
+      }
+    },
+    {
+      "id": "0x6776ae9c857bad5d012d7e085579d0a2da504e7a-0x4f1ef286",
+      "selector": "0x4f1ef286",
+      "role": {
+        "id": "17817129721670429102"
+      },
+      "target": {
+        "id": "0x6776ae9c857bad5d012d7e085579d0a2da504e7a"
+      }
+    },
+    {
+      "id": "0x6776ae9c857bad5d012d7e085579d0a2da504e7a-0x53f43da0",
+      "selector": "0x53f43da0",
+      "role": {
+        "id": "18446744073709551615"
+      },
+      "target": {
+        "id": "0x6776ae9c857bad5d012d7e085579d0a2da504e7a"
+      }
+    },
+    {
+      "id": "0x6776ae9c857bad5d012d7e085579d0a2da504e7a-0x8456cb59",
+      "selector": "0x8456cb59",
+      "role": {
+        "id": "7925626764789623619"
+      },
+      "target": {
+        "id": "0x6776ae9c857bad5d012d7e085579d0a2da504e7a"
+      }
+    },
+    {
+      "id": "0xaaaaaaaa01af9426c2eb6febc61dcd7c302cc45f-0x3f4ba83a",
+      "selector": "0x3f4ba83a",
+      "role": {
+        "id": "10054419464311379566"
+      },
+      "target": {
+        "id": "0xaaaaaaaa01af9426c2eb6febc61dcd7c302cc45f"
+      }
+    },
+    {
+      "id": "0xaaaaaaaa01af9426c2eb6febc61dcd7c302cc45f-0x4f1ef286",
+      "selector": "0x4f1ef286",
+      "role": {
+        "id": "17817129721670429102"
+      },
+      "target": {
+        "id": "0xaaaaaaaa01af9426c2eb6febc61dcd7c302cc45f"
+      }
+    },
+    {
+      "id": "0xaaaaaaaa01af9426c2eb6febc61dcd7c302cc45f-0x539ac472",
+      "selector": "0x539ac472",
+      "role": {
+        "id": "11497104888763135614"
+      },
+      "target": {
+        "id": "0xaaaaaaaa01af9426c2eb6febc61dcd7c302cc45f"
+      }
+    },
+    {
+      "id": "0xaaaaaaaa01af9426c2eb6febc61dcd7c302cc45f-0x6c5e1b01",
+      "selector": "0x6c5e1b01",
+      "role": {
+        "id": "18446744073709551615"
+      },
+      "target": {
+        "id": "0xaaaaaaaa01af9426c2eb6febc61dcd7c302cc45f"
+      }
+    },
+    {
+      "id": "0xaaaaaaaa01af9426c2eb6febc61dcd7c302cc45f-0x8456cb59",
+      "selector": "0x8456cb59",
+      "role": {
+        "id": "7925626764789623619"
+      },
+      "target": {
+        "id": "0xaaaaaaaa01af9426c2eb6febc61dcd7c302cc45f"
+      }
+    },
+    {
+      "id": "0xaaaaaaaa01af9426c2eb6febc61dcd7c302cc45f-0xe0339678",
+      "selector": "0xe0339678",
+      "role": {
+        "id": "11497104888763135614"
+      },
+      "target": {
+        "id": "0xaaaaaaaa01af9426c2eb6febc61dcd7c302cc45f"
+      }
+    },
+    {
+      "id": "0xe1e5650c4336802174b3416f0e0c9784986b87a1-0x3659cfe6",
+      "selector": "0x3659cfe6",
+      "role": {
+        "id": "17817129721670429102"
+      },
+      "target": {
+        "id": "0xe1e5650c4336802174b3416f0e0c9784986b87a1"
+      }
+    },
+    {
+      "id": "0xe6b388da98ac91d1a0a6c67156d12458cff33443-0x01286bef",
+      "selector": "0x01286bef",
+      "role": {
+        "id": "11497104888763135614"
+      },
+      "target": {
+        "id": "0xe6b388da98ac91d1a0a6c67156d12458cff33443"
+      }
+    },
+    {
+      "id": "0xe6b388da98ac91d1a0a6c67156d12458cff33443-0x22c84ba7",
+      "selector": "0x22c84ba7",
+      "role": {
+        "id": "11497104888763135614"
+      },
+      "target": {
+        "id": "0xe6b388da98ac91d1a0a6c67156d12458cff33443"
+      }
+    },
+    {
+      "id": "0xe6b388da98ac91d1a0a6c67156d12458cff33443-0x4efb1516",
+      "selector": "0x4efb1516",
+      "role": {
+        "id": "14297485179608767180"
+      },
+      "target": {
+        "id": "0xe6b388da98ac91d1a0a6c67156d12458cff33443"
+      }
+    },
+    {
+      "id": "0xe6b388da98ac91d1a0a6c67156d12458cff33443-0xe521cb92",
+      "selector": "0xe521cb92",
+      "role": {
+        "id": "11497104888763135614"
+      },
+      "target": {
+        "id": "0xe6b388da98ac91d1a0a6c67156d12458cff33443"
+      }
+    },
+    {
+      "id": "0xf302840aca06c84350c123f3c98c0eff9004f6cd-0x3659cfe6",
+      "selector": "0x3659cfe6",
+      "role": {
+        "id": "17817129721670429102"
+      },
+      "target": {
+        "id": "0xf302840aca06c84350c123f3c98c0eff9004f6cd"
+      }
+    }
+  ]
+}

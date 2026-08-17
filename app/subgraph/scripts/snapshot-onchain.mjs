@@ -20,8 +20,13 @@ if (!RPC || !chainId) { console.error("usage: snapshot-onchain.mjs <rpc> <chainI
 const SEL = { admin: "0x530dd456", guardian: "0x0b0a93ba", grantDelay: "0x12be8727", hasRole: "0xd1f856ee" };
 const names = JSON.parse(readFileSync(join(root, "..", "metadata", "role-names.json"), "utf8"));
 const catalog = JSON.parse(readFileSync(join(root, "..", "metadata", `catalog.${chainId}.json`), "utf8"));
+// Catalog v2 nests roles/actors per manager; select the one matching the factory arg.
+const manager =
+  (catalog.managers ?? []).find((m) => m.address.toLowerCase() === FACTORY) ?? (catalog.managers ?? [])[0];
+if (!manager) { console.error(`[snapshot] catalog.${chainId}.json has no managers[]`); process.exit(1); }
+const suffix = manager.kind === "dawn" ? "" : `.${manager.kind}`;
 const roleName = (id) => (id === "0" ? "ADMIN_ROLE" : names.roles[id] ?? `role_${id}`);
-const actors = catalog.actors.filter((a) => a.address !== "0x0000000000000000000000000000000000000000");
+const actors = manager.actors.filter((a) => a.address !== "0x0000000000000000000000000000000000000000");
 
 let rpcId = 0;
 async function rpc(method, params) {
@@ -73,7 +78,7 @@ for (const id of roleIds) {
 
 const withHolders = roles.filter((r) => r.holders.length > 0);
 writeFileSync(
-  join(root, "dumps", `role-distribution.${chainId}.json`),
+  join(root, "dumps", `role-distribution.${chainId}${suffix}.json`),
   JSON.stringify({ chainId: Number(chainId), source: `onchain snapshot via ${new URL(RPC).host}`, factory: FACTORY, atBlock: head, roles: withHolders }, null, 2) + "\n",
 );
 console.error(`[snapshot ${chainId}] wrote dumps/role-distribution.${chainId}.json (${withHolders.length} roles with known holders)`);

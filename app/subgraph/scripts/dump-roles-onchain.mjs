@@ -22,6 +22,11 @@ const SEL = { admin: "0x530dd456", guardian: "0x0b0a93ba", grantDelay: "0x12be87
 const ROLE_GRANTED_TOPIC = "0xf98448b987f1428e0e230e1f3c6e2ce15b5693eaf31827fbd0b1ec4b424ae7cf";
 // Factory creation block per chain (see app/subgraph/config/<chainId>.json)
 const CREATION_BLOCK = { "1": 24650849, "43114": 80312789, "42161": 441493793, "8453": 48111449 };
+// Day RoycoAccessManager (0x87aE…B12e) creation blocks — used when the factory arg is the Day AM.
+const DAY_AM = "0x87aed46566cb28c8375cfcc9971090882a0fb12e";
+const DAY_CREATION_BLOCK = { "1": 25734830, "42161": 493570035, "8453": 49849492 };
+const isDay = FACTORY === DAY_AM;
+const suffix = isDay ? ".day" : "";
 
 let names = { roles: {}, actors: {} };
 try { names = JSON.parse(readFileSync(join(root, "..", "metadata", "role-names.json"), "utf8")); } catch {}
@@ -58,7 +63,7 @@ async function hasRole(id, account) {
 // Discover every (roleId, account) ever granted, via a chunked RoleGranted log scan.
 async function scanGrants() {
   const head = Number(BigInt(await rpc("eth_blockNumber", [])));
-  const from0 = CREATION_BLOCK[chainId] ?? 0;
+  const from0 = (isDay ? DAY_CREATION_BLOCK[chainId] : CREATION_BLOCK[chainId]) ?? 0;
   const pairs = new Map(); // "roleId-account" -> {roleId, account}
   let from = from0, step = 50000;
   while (from <= head) {
@@ -116,7 +121,7 @@ const out = {
   atBlock: head, generatedRoles: roles.length, roles,
 };
 mkdirSync(join(root, "dumps"), { recursive: true });
-const jsonPath = join(root, "dumps", `role-distribution.${chainId}.json`);
+const jsonPath = join(root, "dumps", `role-distribution.${chainId}${suffix}.json`);
 writeFileSync(jsonPath, JSON.stringify(out, null, 2) + "\n");
 
 const secs = (s) => (s === 0 ? "immediate" : s % 86400 === 0 ? `${s / 86400}d` : s % 3600 === 0 ? `${s / 3600}h` : `${s}s`);
@@ -127,7 +132,7 @@ for (const r of roles) {
   const h = r.holders.map((x) => `${x.actor || x.address.slice(0, 10)}${x.executionDelaySeconds ? ` @${secs(x.executionDelaySeconds)}` : ""}`).join(", ") || "— (none active)";
   md += `| ${r.name} | ${r.id} | ${r.adminRoleName} | ${r.guardianRoleName} | ${secs(r.grantDelaySeconds)} | ${h} |\n`;
 }
-writeFileSync(join(root, "dumps", `role-distribution.${chainId}.md`), md);
+writeFileSync(join(root, "dumps", `role-distribution.${chainId}${suffix}.md`), md);
 
 console.error(`[onchain] wrote ${jsonPath} (${roles.length} roles, block ${head})`);
 console.log(md);

@@ -1,0 +1,63 @@
+# Local graph-node for end-to-end testing against the real chains (no Goldsky needed).
+#
+#   set -a && source ../../../.env && set +a   # RPC URLs
+#   docker compose up -d
+#   npm run create-local && npm run deploy-local:mainnet   # from app/subgraph
+#
+# Endpoints: queries http://localhost:8000/subgraphs/name/<name>, admin :8020, ipfs :5001.
+# Sync starts at each data source's startBlock, so mainnet catches up in minutes; arbitrum's
+# high block numbers take the longest.
+services:
+  graph-node:
+    # Multi-arch image — on Apple Silicon this must run natively (arm64); under amd64
+    # emulation graph-node historically hangs/OOMs.
+    image: graphprotocol/graph-node:v0.36.0
+    ports:
+      - "8000:8000" # GraphQL HTTP
+      - "8020:8020" # admin JSON-RPC (deploy)
+      - "8030:8030" # index-node status
+      - "8040:8040" # metrics
+    depends_on:
+      - ipfs
+      - postgres
+    environment:
+      GRAPH_NODE_CONFIG: /etc/graph-node/config.toml
+      ipfs: "ipfs:5001"
+      node_id: default
+      MAINNET_RPC_URL: ${MAINNET_RPC_URL}
+      AVALANCHE_RPC_URL: ${AVALANCHE_RPC_URL}
+      ARBITRUM_RPC_URL: ${ARBITRUM_RPC_URL}
+      BASE_RPC_URL: ${BASE_RPC_URL}
+      GRAPH_LOG: info
+      # The provider handles filtered getLogs over 50k blocks (see dump scripts); larger ranges
+      # make the initial historical scan far faster.
+      GRAPH_ETHEREUM_MAX_BLOCK_RANGE_SIZE: "10000"
+      GRAPH_ETHEREUM_TARGET_TRIGGERS_PER_BLOCK_RANGE: "1000"
+      ETHEREUM_POLLING_INTERVAL: "5000"
+    volumes:
+      - ./config.toml:/etc/graph-node/config.toml:ro
+    restart: unless-stopped
+
+  ipfs:
+    image: ipfs/kubo:v0.29.0
+    ports:
+      - "5001:5001"
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16
+    ports:
+      - "5432:5432" # for a natively-built graph-node on the host
+    command: ["postgres", "-cshared_preload_libraries=pg_stat_statements", "-cmax_connections=200"]
+    environment:
+      POSTGRES_USER: graph-node
+      POSTGRES_PASSWORD: let-me-in
+      POSTGRES_DB: graph-node
+      # graph-node requires a C locale, UTF8 database.
+      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=C"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  pgdata:

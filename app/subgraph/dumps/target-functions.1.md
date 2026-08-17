@@ -1,6 +1,6 @@
-# Function bindings — chain 1 (on-chain read @ block 25502873)
+# Function bindings — chain 1 (on-chain read @ block 25546023)
 
-Factory `0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c` · 611 bindings across 62 contracts
+Factory `0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c` · 627 bindings across 62 contracts
 
 ## 0x08f850a48da10c062a38e6c39d8625c03f478aa4 
 
@@ -333,7 +333,7 @@ Factory `0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c` · 611 bindings across 62 c
 | setCoverageConfiguration | 0x30f32184 | ADMIN_ACCOUNTANT_ROLE |
 | setLiquidationUtilization | 0x31fe4bc0 | ADMIN_ACCOUNTANT_ROLE |
 | setJuniorTrancheDustTolerance | 0x3d3ba86c | ADMIN_ACCOUNTANT_ROLE |
-| unpause | 0x3f4ba83a | ADMIN_PAUSER_ROLE |
+| unpause | 0x3f4ba83a | ADMIN_UNPAUSER_ROLE |
 | setCoverage | 0x4804f610 | ADMIN_ACCOUNTANT_ROLE |
 | upgradeToAndCall | 0x4f1ef286 | ADMIN_UPGRADER_ROLE |
 | setBeta | 0x6780b8d9 | ADMIN_ACCOUNTANT_ROLE |
@@ -347,7 +347,7 @@ Factory `0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c` · 611 bindings across 62 c
 
 | function | selector | role |
 |---|---|---|
-| unpause | 0x3f4ba83a | ADMIN_PAUSER_ROLE |
+| unpause | 0x3f4ba83a | ADMIN_UNPAUSER_ROLE |
 | burn | 0x42966c68 | BURNER_ROLE |
 | upgradeToAndCall | 0x4f1ef286 | ADMIN_UPGRADER_ROLE |
 | deposit | 0x6e553f65 | PUBLIC_ROLE |
@@ -362,7 +362,7 @@ Factory `0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c` · 611 bindings across 62 c
 | function | selector | role |
 |---|---|---|
 | setBlacklistStatus | 0x1e433c0d | TRANSFER_AGENT_ROLE |
-| unpause | 0x3f4ba83a | ADMIN_PAUSER_ROLE |
+| unpause | 0x3f4ba83a | ADMIN_UNPAUSER_ROLE |
 | blacklistAccounts | 0x45a0b891 | TRANSFER_AGENT_ROLE |
 | upgradeToAndCall | 0x4f1ef286 | ADMIN_UPGRADER_ROLE |
 | unblacklistAccounts | 0x6d9311aa | TRANSFER_AGENT_ROLE |
@@ -377,14 +377,14 @@ Factory `0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c` · 611 bindings across 62 c
 
 | function | selector | role |
 |---|---|---|
-| unpause | 0x3f4ba83a | ADMIN_PAUSER_ROLE |
+| unpause | 0x3f4ba83a | ADMIN_UNPAUSER_ROLE |
 | burn | 0x42966c68 | BURNER_ROLE |
 | upgradeToAndCall | 0x4f1ef286 | ADMIN_UPGRADER_ROLE |
 | deposit | 0x6e553f65 | PUBLIC_ROLE |
 | burnFrom | 0x79cc6790 | BURNER_ROLE |
 | pause | 0x8456cb59 | ADMIN_PAUSER_ROLE |
 | seizeAndRedeemShares | 0xa68b1565 | TRANSFER_AGENT_ROLE |
-| redeem | 0xba087652 | JT_LP_ROLE |
+| redeem | 0xba087652 | ST_LP_ROLE |
 | seizeShares | 0xf0c73295 | TRANSFER_AGENT_ROLE |
 
 ## autoUSD.accountant (accountant)
@@ -396,7 +396,7 @@ Factory `0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c` · 611 bindings across 62 c
 | setCoverageConfiguration | 0x30f32184 | ADMIN_ACCOUNTANT_ROLE |
 | setLiquidationUtilization | 0x31fe4bc0 | ADMIN_ACCOUNTANT_ROLE |
 | setJuniorTrancheDustTolerance | 0x3d3ba86c | ADMIN_ACCOUNTANT_ROLE |
-| unpause | 0x3f4ba83a | ADMIN_PAUSER_ROLE |
+| unpause | 0x3f4ba83a | ADMIN_UNPAUSER_ROLE |
 | setCoverage | 0x4804f610 | ADMIN_ACCOUNTANT_ROLE |
 | upgradeToAndCall | 0x4f1ef286 | ADMIN_UPGRADER_ROLE |
 | setBeta | 0x6780b8d9 | ADMIN_ACCOUNTANT_ROLE |
@@ -410,9 +410,11 @@ Factory `0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c` · 611 bindings across 62 c
 
 | function | selector | role |
 |---|---|---|
-| unpause | 0x3f4ba83a | ADMIN_PAUSER_ROLE |
+| unpause | 0x3f4ba83a | ADMIN_UNPAUSER_ROLE |
+| burn | 0x42966c68 | BURNER_ROLE |
 | upgradeToAndCall | 0x4f1ef286 | ADMIN_UPGRADER_ROLE |
 | deposit | 0x6e553f65 | PUBLIC_ROLE |
+| burnFrom | 0x79cc6790 | BURNER_ROLE |
 | pause | 0x8456cb59 | ADMIN_PAUSER_ROLE |
 | seizeAndRedeemShares | 0xa68b1565 | TRANSFER_AGENT_ROLE |
 | redeem | 0xba087652 | JT_LP_ROLE |
@@ -423,7 +425,7 @@ Factory `0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c` · 611 bindings across 62 c
 | function | selector | role |
 |---|---|---|
 | setBlacklistStatus | 0x1e433c0d | TRANSFER_AGENT_ROLE |
-| unpause | 0x3f4ba83a | ADMIN_PAUSER_ROLE |
+| unpause | 0x3f4ba83a | ADMIN_UNPAUSER_ROLE |
 | blacklistAccounts | 0x45a0b891 | TRANSFER_AGENT_ROLE |
 | upgradeToAndCall | 0x4f1ef286 | ADMIN_UPGRADER_ROLE |
 | unblacklistAccounts | 0x6d9311aa | TRANSFER_AGENT_ROLE |
@@ -438,9 +440,11 @@ Factory `0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c` · 611 bindings across 62 c
 
 | function | selector | role |
 |---|---|---|
-| unpause | 0x3f4ba83a | ADMIN_PAUSER_ROLE |
+| unpause | 0x3f4ba83a | ADMIN_UNPAUSER_ROLE |
+| burn | 0x42966c68 | BURNER_ROLE |
 | upgradeToAndCall | 0x4f1ef286 | ADMIN_UPGRADER_ROLE |
 | deposit | 0x6e553f65 | PUBLIC_ROLE |
+| burnFrom | 0x79cc6790 | BURNER_ROLE |
 | pause | 0x8456cb59 | ADMIN_PAUSER_ROLE |
 | seizeAndRedeemShares | 0xa68b1565 | TRANSFER_AGENT_ROLE |
 | redeem | 0xba087652 | ST_LP_ROLE |
@@ -601,7 +605,7 @@ Factory `0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c` · 611 bindings across 62 c
 | setCoverageConfiguration | 0x30f32184 | ADMIN_ACCOUNTANT_ROLE |
 | setLiquidationUtilization | 0x31fe4bc0 | ADMIN_ACCOUNTANT_ROLE |
 | setJuniorTrancheDustTolerance | 0x3d3ba86c | ADMIN_ACCOUNTANT_ROLE |
-| unpause | 0x3f4ba83a | ADMIN_PAUSER_ROLE |
+| unpause | 0x3f4ba83a | ADMIN_UNPAUSER_ROLE |
 | setCoverage | 0x4804f610 | ADMIN_ACCOUNTANT_ROLE |
 | upgradeToAndCall | 0x4f1ef286 | ADMIN_UPGRADER_ROLE |
 | setBeta | 0x6780b8d9 | ADMIN_ACCOUNTANT_ROLE |
@@ -615,7 +619,7 @@ Factory `0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c` · 611 bindings across 62 c
 
 | function | selector | role |
 |---|---|---|
-| unpause | 0x3f4ba83a | ADMIN_PAUSER_ROLE |
+| unpause | 0x3f4ba83a | ADMIN_UNPAUSER_ROLE |
 | burn | 0x42966c68 | BURNER_ROLE |
 | upgradeToAndCall | 0x4f1ef286 | ADMIN_UPGRADER_ROLE |
 | deposit | 0x6e553f65 | PUBLIC_ROLE |
@@ -630,7 +634,7 @@ Factory `0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c` · 611 bindings across 62 c
 | function | selector | role |
 |---|---|---|
 | setBlacklistStatus | 0x1e433c0d | TRANSFER_AGENT_ROLE |
-| unpause | 0x3f4ba83a | ADMIN_PAUSER_ROLE |
+| unpause | 0x3f4ba83a | ADMIN_UNPAUSER_ROLE |
 | blacklistAccounts | 0x45a0b891 | TRANSFER_AGENT_ROLE |
 | upgradeToAndCall | 0x4f1ef286 | ADMIN_UPGRADER_ROLE |
 | unblacklistAccounts | 0x6d9311aa | TRANSFER_AGENT_ROLE |
@@ -645,7 +649,7 @@ Factory `0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c` · 611 bindings across 62 c
 
 | function | selector | role |
 |---|---|---|
-| unpause | 0x3f4ba83a | ADMIN_PAUSER_ROLE |
+| unpause | 0x3f4ba83a | ADMIN_UNPAUSER_ROLE |
 | burn | 0x42966c68 | BURNER_ROLE |
 | upgradeToAndCall | 0x4f1ef286 | ADMIN_UPGRADER_ROLE |
 | deposit | 0x6e553f65 | PUBLIC_ROLE |
@@ -672,7 +676,7 @@ Factory `0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c` · 611 bindings across 62 c
 | setCoverageConfiguration | 0x30f32184 | ADMIN_ACCOUNTANT_ROLE |
 | setLiquidationUtilization | 0x31fe4bc0 | ADMIN_ACCOUNTANT_ROLE |
 | setJuniorTrancheDustTolerance | 0x3d3ba86c | ADMIN_ACCOUNTANT_ROLE |
-| unpause | 0x3f4ba83a | ADMIN_PAUSER_ROLE |
+| unpause | 0x3f4ba83a | ADMIN_UNPAUSER_ROLE |
 | setCoverage | 0x4804f610 | ADMIN_ACCOUNTANT_ROLE |
 | upgradeToAndCall | 0x4f1ef286 | ADMIN_UPGRADER_ROLE |
 | setBeta | 0x6780b8d9 | ADMIN_ACCOUNTANT_ROLE |
@@ -686,9 +690,11 @@ Factory `0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c` · 611 bindings across 62 c
 
 | function | selector | role |
 |---|---|---|
-| unpause | 0x3f4ba83a | ADMIN_PAUSER_ROLE |
+| unpause | 0x3f4ba83a | ADMIN_UNPAUSER_ROLE |
+| burn | 0x42966c68 | BURNER_ROLE |
 | upgradeToAndCall | 0x4f1ef286 | ADMIN_UPGRADER_ROLE |
 | deposit | 0x6e553f65 | PUBLIC_ROLE |
+| burnFrom | 0x79cc6790 | BURNER_ROLE |
 | pause | 0x8456cb59 | ADMIN_PAUSER_ROLE |
 | seizeAndRedeemShares | 0xa68b1565 | TRANSFER_AGENT_ROLE |
 | redeem | 0xba087652 | JT_LP_ROLE |
@@ -699,7 +705,7 @@ Factory `0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c` · 611 bindings across 62 c
 | function | selector | role |
 |---|---|---|
 | setBlacklistStatus | 0x1e433c0d | TRANSFER_AGENT_ROLE |
-| unpause | 0x3f4ba83a | ADMIN_PAUSER_ROLE |
+| unpause | 0x3f4ba83a | ADMIN_UNPAUSER_ROLE |
 | blacklistAccounts | 0x45a0b891 | TRANSFER_AGENT_ROLE |
 | upgradeToAndCall | 0x4f1ef286 | ADMIN_UPGRADER_ROLE |
 | unblacklistAccounts | 0x6d9311aa | TRANSFER_AGENT_ROLE |
@@ -714,9 +720,11 @@ Factory `0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c` · 611 bindings across 62 c
 
 | function | selector | role |
 |---|---|---|
-| unpause | 0x3f4ba83a | ADMIN_PAUSER_ROLE |
+| unpause | 0x3f4ba83a | ADMIN_UNPAUSER_ROLE |
+| burn | 0x42966c68 | BURNER_ROLE |
 | upgradeToAndCall | 0x4f1ef286 | ADMIN_UPGRADER_ROLE |
 | deposit | 0x6e553f65 | PUBLIC_ROLE |
+| burnFrom | 0x79cc6790 | BURNER_ROLE |
 | pause | 0x8456cb59 | ADMIN_PAUSER_ROLE |
 | seizeAndRedeemShares | 0xa68b1565 | TRANSFER_AGENT_ROLE |
 | redeem | 0xba087652 | ST_LP_ROLE |
@@ -731,7 +739,7 @@ Factory `0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c` · 611 bindings across 62 c
 | setCoverageConfiguration | 0x30f32184 | ADMIN_ACCOUNTANT_ROLE |
 | setLiquidationUtilization | 0x31fe4bc0 | ADMIN_ACCOUNTANT_ROLE |
 | setJuniorTrancheDustTolerance | 0x3d3ba86c | ADMIN_ACCOUNTANT_ROLE |
-| unpause | 0x3f4ba83a | ADMIN_PAUSER_ROLE |
+| unpause | 0x3f4ba83a | ADMIN_UNPAUSER_ROLE |
 | setCoverage | 0x4804f610 | ADMIN_ACCOUNTANT_ROLE |
 | upgradeToAndCall | 0x4f1ef286 | ADMIN_UPGRADER_ROLE |
 | setBeta | 0x6780b8d9 | ADMIN_ACCOUNTANT_ROLE |
@@ -745,9 +753,11 @@ Factory `0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c` · 611 bindings across 62 c
 
 | function | selector | role |
 |---|---|---|
-| unpause | 0x3f4ba83a | ADMIN_PAUSER_ROLE |
+| unpause | 0x3f4ba83a | ADMIN_UNPAUSER_ROLE |
+| burn | 0x42966c68 | BURNER_ROLE |
 | upgradeToAndCall | 0x4f1ef286 | ADMIN_UPGRADER_ROLE |
 | deposit | 0x6e553f65 | PUBLIC_ROLE |
+| burnFrom | 0x79cc6790 | BURNER_ROLE |
 | pause | 0x8456cb59 | ADMIN_PAUSER_ROLE |
 | seizeAndRedeemShares | 0xa68b1565 | TRANSFER_AGENT_ROLE |
 | redeem | 0xba087652 | JT_LP_ROLE |
@@ -758,7 +768,7 @@ Factory `0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c` · 611 bindings across 62 c
 | function | selector | role |
 |---|---|---|
 | setBlacklistStatus | 0x1e433c0d | TRANSFER_AGENT_ROLE |
-| unpause | 0x3f4ba83a | ADMIN_PAUSER_ROLE |
+| unpause | 0x3f4ba83a | ADMIN_UNPAUSER_ROLE |
 | blacklistAccounts | 0x45a0b891 | TRANSFER_AGENT_ROLE |
 | upgradeToAndCall | 0x4f1ef286 | ADMIN_UPGRADER_ROLE |
 | unblacklistAccounts | 0x6d9311aa | TRANSFER_AGENT_ROLE |
@@ -773,9 +783,11 @@ Factory `0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c` · 611 bindings across 62 c
 
 | function | selector | role |
 |---|---|---|
-| unpause | 0x3f4ba83a | ADMIN_PAUSER_ROLE |
+| unpause | 0x3f4ba83a | ADMIN_UNPAUSER_ROLE |
+| burn | 0x42966c68 | BURNER_ROLE |
 | upgradeToAndCall | 0x4f1ef286 | ADMIN_UPGRADER_ROLE |
 | deposit | 0x6e553f65 | PUBLIC_ROLE |
+| burnFrom | 0x79cc6790 | BURNER_ROLE |
 | pause | 0x8456cb59 | ADMIN_PAUSER_ROLE |
 | seizeAndRedeemShares | 0xa68b1565 | TRANSFER_AGENT_ROLE |
 | redeem | 0xba087652 | ST_LP_ROLE |
@@ -798,7 +810,7 @@ Factory `0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c` · 611 bindings across 62 c
 | setCoverageConfiguration | 0x30f32184 | ADMIN_ACCOUNTANT_ROLE |
 | setLiquidationUtilization | 0x31fe4bc0 | ADMIN_ACCOUNTANT_ROLE |
 | setJuniorTrancheDustTolerance | 0x3d3ba86c | ADMIN_ACCOUNTANT_ROLE |
-| unpause | 0x3f4ba83a | ADMIN_PAUSER_ROLE |
+| unpause | 0x3f4ba83a | ADMIN_UNPAUSER_ROLE |
 | setCoverage | 0x4804f610 | ADMIN_ACCOUNTANT_ROLE |
 | upgradeToAndCall | 0x4f1ef286 | ADMIN_UPGRADER_ROLE |
 | setBeta | 0x6780b8d9 | ADMIN_ACCOUNTANT_ROLE |
@@ -812,7 +824,7 @@ Factory `0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c` · 611 bindings across 62 c
 
 | function | selector | role |
 |---|---|---|
-| unpause | 0x3f4ba83a | ADMIN_PAUSER_ROLE |
+| unpause | 0x3f4ba83a | ADMIN_UNPAUSER_ROLE |
 | burn | 0x42966c68 | BURNER_ROLE |
 | upgradeToAndCall | 0x4f1ef286 | ADMIN_UPGRADER_ROLE |
 | deposit | 0x6e553f65 | PUBLIC_ROLE |
@@ -827,7 +839,7 @@ Factory `0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c` · 611 bindings across 62 c
 | function | selector | role |
 |---|---|---|
 | setBlacklistStatus | 0x1e433c0d | TRANSFER_AGENT_ROLE |
-| unpause | 0x3f4ba83a | ADMIN_PAUSER_ROLE |
+| unpause | 0x3f4ba83a | ADMIN_UNPAUSER_ROLE |
 | blacklistAccounts | 0x45a0b891 | TRANSFER_AGENT_ROLE |
 | upgradeToAndCall | 0x4f1ef286 | ADMIN_UPGRADER_ROLE |
 | unblacklistAccounts | 0x6d9311aa | TRANSFER_AGENT_ROLE |
@@ -842,7 +854,7 @@ Factory `0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c` · 611 bindings across 62 c
 
 | function | selector | role |
 |---|---|---|
-| unpause | 0x3f4ba83a | ADMIN_PAUSER_ROLE |
+| unpause | 0x3f4ba83a | ADMIN_UNPAUSER_ROLE |
 | burn | 0x42966c68 | BURNER_ROLE |
 | upgradeToAndCall | 0x4f1ef286 | ADMIN_UPGRADER_ROLE |
 | deposit | 0x6e553f65 | PUBLIC_ROLE |
@@ -858,7 +870,7 @@ Factory `0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c` · 611 bindings across 62 c
 |---|---|---|
 | 0x06c6a863 | 0x06c6a863 | SYNC_ROLE |
 | 0x0b3b4e1a | 0x0b3b4e1a | SYNC_ROLE |
-| unpause | 0x3f4ba83a | ADMIN_PAUSER_ROLE |
+| unpause | 0x3f4ba83a | ADMIN_UNPAUSER_ROLE |
 | 0x44dcf00e | 0x44dcf00e | SYNC_ROLE |
 | upgradeToAndCall | 0x4f1ef286 | ADMIN_UPGRADER_ROLE |
 | 0x53f43da0 | 0x53f43da0 | SYNC_ROLE |
@@ -873,7 +885,7 @@ Factory `0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c` · 611 bindings across 62 c
 | setCoverageConfiguration | 0x30f32184 | ADMIN_ACCOUNTANT_ROLE |
 | setLiquidationUtilization | 0x31fe4bc0 | ADMIN_ACCOUNTANT_ROLE |
 | setJuniorTrancheDustTolerance | 0x3d3ba86c | ADMIN_ACCOUNTANT_ROLE |
-| unpause | 0x3f4ba83a | ADMIN_PAUSER_ROLE |
+| unpause | 0x3f4ba83a | ADMIN_UNPAUSER_ROLE |
 | setCoverage | 0x4804f610 | ADMIN_ACCOUNTANT_ROLE |
 | upgradeToAndCall | 0x4f1ef286 | ADMIN_UPGRADER_ROLE |
 | setBeta | 0x6780b8d9 | ADMIN_ACCOUNTANT_ROLE |
@@ -887,9 +899,11 @@ Factory `0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c` · 611 bindings across 62 c
 
 | function | selector | role |
 |---|---|---|
-| unpause | 0x3f4ba83a | ADMIN_PAUSER_ROLE |
+| unpause | 0x3f4ba83a | ADMIN_UNPAUSER_ROLE |
+| burn | 0x42966c68 | BURNER_ROLE |
 | upgradeToAndCall | 0x4f1ef286 | ADMIN_UPGRADER_ROLE |
 | deposit | 0x6e553f65 | PUBLIC_ROLE |
+| burnFrom | 0x79cc6790 | BURNER_ROLE |
 | pause | 0x8456cb59 | ADMIN_PAUSER_ROLE |
 | seizeAndRedeemShares | 0xa68b1565 | TRANSFER_AGENT_ROLE |
 | redeem | 0xba087652 | JT_LP_ROLE |
@@ -900,7 +914,7 @@ Factory `0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c` · 611 bindings across 62 c
 | function | selector | role |
 |---|---|---|
 | setBlacklistStatus | 0x1e433c0d | TRANSFER_AGENT_ROLE |
-| unpause | 0x3f4ba83a | ADMIN_PAUSER_ROLE |
+| unpause | 0x3f4ba83a | ADMIN_UNPAUSER_ROLE |
 | blacklistAccounts | 0x45a0b891 | TRANSFER_AGENT_ROLE |
 | upgradeToAndCall | 0x4f1ef286 | ADMIN_UPGRADER_ROLE |
 | unblacklistAccounts | 0x6d9311aa | TRANSFER_AGENT_ROLE |
@@ -915,9 +929,11 @@ Factory `0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c` · 611 bindings across 62 c
 
 | function | selector | role |
 |---|---|---|
-| unpause | 0x3f4ba83a | ADMIN_PAUSER_ROLE |
+| unpause | 0x3f4ba83a | ADMIN_UNPAUSER_ROLE |
+| burn | 0x42966c68 | BURNER_ROLE |
 | upgradeToAndCall | 0x4f1ef286 | ADMIN_UPGRADER_ROLE |
 | deposit | 0x6e553f65 | PUBLIC_ROLE |
+| burnFrom | 0x79cc6790 | BURNER_ROLE |
 | pause | 0x8456cb59 | ADMIN_PAUSER_ROLE |
 | seizeAndRedeemShares | 0xa68b1565 | TRANSFER_AGENT_ROLE |
 | redeem | 0xba087652 | ST_LP_ROLE |
