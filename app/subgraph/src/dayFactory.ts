@@ -1,5 +1,6 @@
 import { Address, Bytes } from "@graphprotocol/graph-ts";
 import { MarketDeploymentCompleted } from "../generated/DayFactory/DayFactory";
+import { ERC20 } from "../generated/DayFactory/ERC20";
 import { Market, MarketComponent } from "../generated/schema";
 
 // Royco Day markets are deployed permissionlessly through the Day RoycoFactory; this single event
@@ -35,6 +36,20 @@ export function handleMarketDeploymentCompleted(event: MarketDeploymentCompleted
   market.ydm = r.ydm;
   market.lptYdm = r.lptYdm;
   market.extras = r.extras;
+  // Day markets are named by their senior tranche; the deployment event carries no names (unlike
+  // Dawn's), so read them from the token at deployment time. Try-calls: a reverting token leaves
+  // the fields null and the UI falls back to the kernel address.
+  if (r.seniorTranche != Address.zero()) {
+    const st = ERC20.bind(r.seniorTranche);
+    const name = st.try_name();
+    if (!name.reverted) {
+      market.seniorTrancheName = name.value;
+    }
+    const symbol = st.try_symbol();
+    if (!symbol.reverted) {
+      market.seniorTrancheSymbol = symbol.value;
+    }
+  }
   market.blockNumber = event.block.number;
   market.timestamp = event.block.timestamp;
   market.txHash = event.transaction.hash;

@@ -1,4 +1,13 @@
-import { assert, describe, test, afterEach, clearStore, newMockEvent } from "matchstick-as/assembly/index";
+import {
+  assert,
+  describe,
+  test,
+  afterEach,
+  beforeEach,
+  clearStore,
+  createMockedFunction,
+  newMockEvent,
+} from "matchstick-as/assembly/index";
 import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import { MarketDeploymentCompleted } from "../generated/DayFactory/DayFactory";
 import { handleMarketDeploymentCompleted } from "../src/dayFactory";
@@ -35,6 +44,13 @@ function marketDeploymentCompleted(lptYdm: Address): MarketDeploymentCompleted {
 }
 
 describe("Day factory mappings", () => {
+  beforeEach(() => {
+    // The handler try-calls name()/symbol() on the senior tranche to name the market.
+    createMockedFunction(SENIOR, "name", "name():(string)").returns([
+      ethereum.Value.fromString("Royco Day Senior"),
+    ]);
+    createMockedFunction(SENIOR, "symbol", "symbol():(string)").returns([ethereum.Value.fromString("rdSR")]);
+  });
   afterEach(() => {
     clearStore();
   });
@@ -46,6 +62,8 @@ describe("Day factory mappings", () => {
     assert.fieldEquals("Market", id, "seniorTranche", SENIOR.toHexString());
     assert.fieldEquals("Market", id, "accountant", ACCOUNTANT.toHexString());
     assert.fieldEquals("Market", id, "deployer", DEPLOYER.toHexString());
+    assert.fieldEquals("Market", id, "seniorTrancheName", "Royco Day Senior");
+    assert.fieldEquals("Market", id, "seniorTrancheSymbol", "rdSR");
     assert.entityCount("Market", 1);
 
     // 7 component slots, all non-zero here.

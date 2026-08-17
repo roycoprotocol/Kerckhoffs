@@ -149,6 +149,8 @@ function resolve(query, vars) {
     return { targetContract: mgr?.targets.get(String(vars.id).toLowerCase()) ?? null };
   }
   if (query.includes("query Account(")) return { account: accounts.get(String(vars.id).toLowerCase()) ?? null };
+  if (query.includes("query Operation(")) return { operation: null }; // op detail page: no mock ops
+
   if (query.includes("targetFunctions(")) return { targetFunctions: byAm.get(am)?.fns ?? [] };
   if (query.includes("operations(")) return { operations: [] };
   if (query.includes("markets(")) return { markets: [] };

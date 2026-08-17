@@ -150,6 +150,9 @@ dataSources:
       abis:
         - name: DayFactory
           file: ./abis/DayFactory.json
+        # Senior-tranche name/symbol try-calls at deployment (Day markets are named by their ST).
+        - name: ERC20
+          file: ./abis/ERC20.json
       eventHandlers:
         - event: MarketDeploymentCompleted(indexed address,indexed address,(address,address,address,address,address,address,address,bytes))
           handler: handleMarketDeploymentCompleted
