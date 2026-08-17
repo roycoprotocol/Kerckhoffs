@@ -2,7 +2,7 @@
 // State is presented as-is: only roles that exist on-chain, no reference model.
 // All role views are AM-scoped: the same role id exists independently on the Dawn and Day AMs.
 import type { Address, AmKind, HolderView, RoleView } from "@/model";
-import { actor, actorName, managerFor, roleName, selectorName, shorten, targetInfo } from "@/lib/catalog";
+import { actor, actorDisplayName, actorName, managerFor, roleName, selectorName, shorten, targetInfo } from "@/lib/catalog";
 import {
   fetchAllRoles,
   fetchRole,
@@ -16,7 +16,7 @@ function holderView(chainId: number, m: SgMember): HolderView {
   const a = actor(chainId, address);
   return {
     address,
-    actor: a?.name ?? null,
+    actor: a ? actorDisplayName(a.name) : null,
     executionDelaySeconds: Number(m.executionDelay),
     pendingDeployment: a?.pendingDeployment,
     grantedAt: m.grantedAt ? Number(m.grantedAt) : null,

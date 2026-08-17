@@ -180,7 +180,9 @@ const ACTOR_DISPLAY: Record<string, string> = {
   AUTO: "SP",
 };
 export function actorDisplayName(name: string): string {
-  return ACTOR_DISPLAY[name] ?? name;
+  // Alias if mapped; otherwise split camelCase (DayEntryPoint → Day Entry Point) — actor names
+  // are never function names, so the no-camelCase display rule applies.
+  return ACTOR_DISPLAY[name] ?? name.replace(/([a-z0-9])([A-Z])/g, "$1 $2");
 }
 
 export function actorName(chainId: number, address: string): string | null {
