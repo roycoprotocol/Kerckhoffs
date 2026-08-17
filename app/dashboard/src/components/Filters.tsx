@@ -56,14 +56,14 @@ export function Filters({
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder={searchPlaceholder}
-        className="w-64 rounded border border-border bg-panel px-3 py-1.5 text-sm outline-none focus:border-muted"
+        className="w-64 rounded-md border border-border bg-panel px-3 py-1.5 text-[13px] outline-none focus:border-ok focus:shadow-[0_0_0_3px_rgba(60,194,123,0.11)]"
       />
       {selects.map((s) => (
         <select
           key={s.key}
           value={sp.get(s.key) ?? ""}
           onChange={(e) => setParam(s.key, e.target.value)}
-          className="rounded border border-border bg-panel px-2 py-1.5 text-sm"
+          className="rounded-md border border-border bg-panel px-2.5 py-1.5 text-[13px] text-body"
         >
           <option value="">{s.label}: all</option>
           {s.options.map((o) => (
@@ -79,14 +79,14 @@ export function Filters({
           <button
             key={t.key}
             onClick={() => setParam(t.key, on ? "" : "1")}
-            className={`rounded border px-2 py-1.5 text-sm ${on ? "border-ok text-ok" : "border-border text-muted hover:text-fg"}`}
+            className={`rounded-md px-2.5 py-1.5 text-xs font-medium ${on ? "bg-ok-tint text-ok" : "border border-border text-muted hover:text-fg"}`}
           >
             {t.label}
           </button>
         );
       })}
       {hasFilters && (
-        <button onClick={() => commit(new URLSearchParams())} className="px-2 py-1.5 text-sm text-muted hover:text-fg">
+        <button onClick={() => commit(new URLSearchParams())} className="px-2 py-1.5 text-xs text-muted hover:text-fg">
           clear
         </button>
       )}

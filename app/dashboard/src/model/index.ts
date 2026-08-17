@@ -1,22 +1,17 @@
-// MERGED view-models (main.md §6): ACTUAL (subgraph) ⊕ EXPECTED (catalog) + Makina RPC.
+// View-models (main.md §6): live on-chain state (subgraph) + catalog name resolution + Makina RPC.
+// State is presented AS-IS — there is no reference model or drift comparison.
 
 export type Address = `0x${string}`;
 export type RoleId = string; // uint64 decimal string
-export type Severity = "HIGH" | "MEDIUM" | "LOW";
 
-export interface Drift {
-  field: string;
-  expected: string;
-  actual: string;
-  severity: Severity;
-  note?: string;
-}
+// Which AccessManager an item belongs to: the Dawn RoycoFactory or the Day RoycoAccessManager.
+// Role ids collide across the two AMs, so every role-scoped lookup carries an AmKind.
+export type AmKind = "dawn" | "day";
 
 export interface HolderView {
   address: Address;
   actor: string | null;
   executionDelaySeconds: number;
-  expected: boolean; // present in the canonical expected-holder set
   pendingDeployment?: boolean;
   grantedAt?: number | null;
 }
@@ -49,16 +44,13 @@ export interface RoleConfig {
 
 export interface RoleView {
   chainId: number;
+  am: AmKind;
   id: RoleId;
   name: string;
-  description: string;
   config: RoleConfig;
-  expectedConfig?: Partial<RoleConfig>;
   holders: HolderView[];
   capabilities: CapabilityView[];
   history: RoleEventView[];
-  drift: Drift[];
-  presentOnChain: boolean; // false = catalog-known but never configured on-chain
 }
 
 export interface OperationView {
@@ -80,8 +72,6 @@ export interface MakinaSlotView {
   vault: string;
   slot: "riskManager" | "riskManagerTimelock";
   actual: Address | null;
-  expected: Address;
-  drift?: Drift;
 }
 
 export interface AccountView {
@@ -90,21 +80,6 @@ export interface AccountView {
   roles: { role: RoleView; executionDelaySeconds: number }[];
 }
 
-export interface ChainRoleCell {
-  chainId: number;
-  slug: string;
-  chainName: string;
-  present: boolean;
-  holderLabels: string[];
-  grantDelaySeconds: number;
-  guardianRoleName: string;
-  divergent: boolean;
-}
-export interface ChainRoleRow {
-  id: RoleId;
-  name: string;
-  cells: ChainRoleCell[];
-}
 
 // ── Address labeling / categorization ─────────────────────────────────────────
 
@@ -127,10 +102,33 @@ export interface Label {
   category: Category;
   subtype?: string; // fine-grained: kernel|accountant|seniorTranche|juniorTranche|caliber|machine…
   parent?: string; // market or vault name, for hierarchy
+  manager?: AmKind; // controlling AM, where statically known (catalog target hint)
+  kernel?: Address; // for market components: the market's kernel (detail-page link target)
   tags: string[];
   pendingDeployment?: boolean;
   isExternal: boolean; // not in the registries/catalog
   known: boolean; // has a real label (not just a shortened address)
+}
+
+// ── Day markets (subgraph Market entities) & vaults ───────────────────────────
+
+export interface MarketView {
+  kernel: Address;
+  name: string; // kernel label if known, else shortened kernel address
+  deployer: Address;
+  template: Address;
+  timestamp: number;
+  txHash: string;
+  components: { componentType: string; address: Address; name: string }[];
+}
+
+export type ControllingAm = AmKind | "migrating" | "unknown";
+
+export interface VaultView {
+  name: string; // parent name: srRoyUSDC, roywstETH
+  kind: "concrete" | "makina";
+  controlling: ControllingAm;
+  contracts: Label[];
 }
 
 // A directory entry, optionally with hierarchical children (market → contracts).

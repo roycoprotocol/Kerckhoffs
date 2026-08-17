@@ -2,31 +2,284 @@
   "_comment": "Hand-maintained address book for addresses NOT derived from the on-chain registries (external protocols, LPs, agents, and the AccessManager itself). Merged over the catalog-derived labels at resolve time. Keyed by chainId, then lowercased address. category: factory|multisig|external|agent|lp|protocol.",
   "1": {
     "0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c": {
-      "label": "RoycoFactory",
+      "label": "RoycoFactory (Dawn)",
       "category": "factory",
-      "tags": ["AccessManager"],
+      "tags": [
+        "AccessManager"
+      ],
       "note": "The OZ AccessManager / control plane. Target of every AM self-admin op."
+    },
+    "0xc678159179eea877608df50c26c048551a3b6a90": {
+      "label": "sroywstETH (out of scope)",
+      "category": "vault",
+      "tags": [
+        "out-of-scope",
+        "not-migrated"
+      ],
+      "note": "'Staked Royco ETH' — a staked wrapper whose asset is the roywstETH vault. AM-governed (authority = RoycoFactory) but deliberately NOT in src/registry, so MigrateVaults does not cover it. Accepted exception; see docs/roles/assignments.md §4."
+    },
+    "0x43c30666bab795bf567a142e9dd67c59083b86d2": {
+      "label": "sroywstETH.strategy (out of scope)",
+      "category": "strategy",
+      "tags": [
+        "out-of-scope",
+        "not-migrated"
+      ],
+      "note": "Strategy for sroywstETH (makina machine 0x6BE5ea96…aA7D). Its pause/unpause/rescueToken stay on the legacy pre-migration strategy admin role (FNDN @ immediate) rather than STRATEGY_PAUSER/UNPAUSER/RESCUE."
+    },
+    "0x35518d5e1fd8105fc325c5c171c329c3b10b254c": {
+      "label": "Royco Deployer (EOA)",
+      "category": "agent",
+      "tags": [
+        "EOA",
+        "deployer"
+      ],
+      "note": "Deployment EOA (royco-dawn MarketDeploymentConfig::DEPLOYER). Holds DEPLOYER_ROLE; acknowledged as intended. Left as drift on purpose — it is a hot key with factory deploy rights."
+    },
+    "0x82eece4a736db0767370d2dffde9bdf6e38aaeb8": {
+      "label": "RoycoAccessManager (Day)",
+      "category": "factory",
+      "tags": [
+        "AccessManager",
+        "day"
+      ],
+      "note": "The FINAL Royco Day OZ AccessManager (docs.royco.org/key-addresses). Controls all Day markets; vaults migrate here from the Dawn RoycoFactory."
+    },
+    "0xaaaaaaaaae46ca12bf3810df8c13c5e8a4400812": {
+      "label": "DayFactory",
+      "category": "factory",
+      "tags": [
+        "day"
+      ],
+      "note": "Royco Day RoycoFactory proxy (final). Permissionless executeMarketDeployment."
+    },
+    "0x716ffb13728aec2f376883d00689679a418537f6": {
+      "label": "DayGatekeeper",
+      "category": "factory",
+      "tags": [
+        "day"
+      ],
+      "note": "RoycoFactoryGatekeeper (final) — holds ADMIN_ROLE on the Day AM."
+    },
+    "0xaf55a0c251690d9322b5f94b7e50ee895750262c": {
+      "label": "DayEntryPoint",
+      "category": "entrypoint",
+      "tags": [
+        "day"
+      ],
+      "note": "RoycoDayEntryPoint proxy (final). Holds ST/JT/LPT LP roles."
+    },
+    "0x387e025306cb1c41fe7ab752d9c04607e03bb8ce": {
+      "label": "DayMarketSyncer",
+      "category": "syncer",
+      "tags": [
+        "day"
+      ],
+      "note": "RoycoMarketSyncer proxy (final)."
+    },
+    "0x87aed46566cb28c8375cfcc9971090882a0fb12e": {
+      "label": "Day AM (pre-prod, retired)",
+      "category": "factory",
+      "tags": [
+        "day",
+        "deprecated"
+      ],
+      "note": "Earlier pre-production Day deployment; superseded by 0x82Ee…AaeB8 (docs.royco.org/key-addresses). Not tracked."
+    },
+    "0xaaaaaaaa01af9426c2eb6febc61dcd7c302cc45f": {
+      "label": "DayFactory (pre-prod, retired)",
+      "category": "factory",
+      "tags": [
+        "day",
+        "deprecated"
+      ],
+      "note": "Earlier pre-production Day factory; superseded by 0xaAAa…0812."
     }
   },
   "43114": {
     "0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c": {
-      "label": "RoycoFactory",
+      "label": "RoycoFactory (Dawn)",
       "category": "factory",
-      "tags": ["AccessManager"]
+      "tags": [
+        "AccessManager"
+      ]
+    },
+    "0x82eece4a736db0767370d2dffde9bdf6e38aaeb8": {
+      "label": "RoycoAccessManager (Day)",
+      "category": "factory",
+      "tags": [
+        "AccessManager",
+        "day"
+      ],
+      "note": "The FINAL Royco Day OZ AccessManager (docs.royco.org/key-addresses)."
+    },
+    "0xaaaaaaaaae46ca12bf3810df8c13c5e8a4400812": {
+      "label": "DayFactory",
+      "category": "factory",
+      "tags": [
+        "day"
+      ],
+      "note": "Royco Day RoycoFactory proxy (final)."
+    },
+    "0x716ffb13728aec2f376883d00689679a418537f6": {
+      "label": "DayGatekeeper",
+      "category": "factory",
+      "tags": [
+        "day"
+      ],
+      "note": "RoycoFactoryGatekeeper (final) — holds ADMIN_ROLE on the Day AM."
+    },
+    "0xaf55a0c251690d9322b5f94b7e50ee895750262c": {
+      "label": "DayEntryPoint",
+      "category": "entrypoint",
+      "tags": [
+        "day"
+      ],
+      "note": "RoycoDayEntryPoint proxy (final)."
+    },
+    "0x387e025306cb1c41fe7ab752d9c04607e03bb8ce": {
+      "label": "DayMarketSyncer",
+      "category": "syncer",
+      "tags": [
+        "day"
+      ],
+      "note": "RoycoMarketSyncer proxy (final)."
     }
   },
   "42161": {
     "0x7cc6fb28ec7b5e7afc3cb3986141797ffc27253c": {
-      "label": "RoycoFactory",
+      "label": "RoycoFactory (Dawn)",
       "category": "factory",
-      "tags": ["AccessManager"]
+      "tags": [
+        "AccessManager"
+      ]
+    },
+    "0x82eece4a736db0767370d2dffde9bdf6e38aaeb8": {
+      "label": "RoycoAccessManager (Day)",
+      "category": "factory",
+      "tags": [
+        "AccessManager",
+        "day"
+      ],
+      "note": "The FINAL Royco Day OZ AccessManager (docs.royco.org/key-addresses). Controls all Day markets; vaults migrate here from the Dawn RoycoFactory."
+    },
+    "0xaaaaaaaaae46ca12bf3810df8c13c5e8a4400812": {
+      "label": "DayFactory",
+      "category": "factory",
+      "tags": [
+        "day"
+      ],
+      "note": "Royco Day RoycoFactory proxy (final). Permissionless executeMarketDeployment."
+    },
+    "0x716ffb13728aec2f376883d00689679a418537f6": {
+      "label": "DayGatekeeper",
+      "category": "factory",
+      "tags": [
+        "day"
+      ],
+      "note": "RoycoFactoryGatekeeper (final) — holds ADMIN_ROLE on the Day AM."
+    },
+    "0xaf55a0c251690d9322b5f94b7e50ee895750262c": {
+      "label": "DayEntryPoint",
+      "category": "entrypoint",
+      "tags": [
+        "day"
+      ],
+      "note": "RoycoDayEntryPoint proxy (final). Holds ST/JT/LPT LP roles."
+    },
+    "0x387e025306cb1c41fe7ab752d9c04607e03bb8ce": {
+      "label": "DayMarketSyncer",
+      "category": "syncer",
+      "tags": [
+        "day"
+      ],
+      "note": "RoycoMarketSyncer proxy (final)."
+    },
+    "0x87aed46566cb28c8375cfcc9971090882a0fb12e": {
+      "label": "Day AM (pre-prod, retired)",
+      "category": "factory",
+      "tags": [
+        "day",
+        "deprecated"
+      ],
+      "note": "Earlier pre-production Day deployment; superseded by 0x82Ee…AaeB8 (docs.royco.org/key-addresses). Not tracked."
+    },
+    "0xaaaaaaaa01af9426c2eb6febc61dcd7c302cc45f": {
+      "label": "DayFactory (pre-prod, retired)",
+      "category": "factory",
+      "tags": [
+        "day",
+        "deprecated"
+      ],
+      "note": "Earlier pre-production Day factory; superseded by 0xaAAa…0812."
     }
   },
   "8453": {
     "0x568c9709daa2f7b7cc66abc3e41da0f0a339551a": {
-      "label": "RoycoFactory (Base)",
+      "label": "RoycoFactory (Dawn, Base)",
       "category": "factory",
-      "tags": ["AccessManager"]
+      "tags": [
+        "AccessManager"
+      ]
+    },
+    "0x82eece4a736db0767370d2dffde9bdf6e38aaeb8": {
+      "label": "RoycoAccessManager (Day)",
+      "category": "factory",
+      "tags": [
+        "AccessManager",
+        "day"
+      ],
+      "note": "The FINAL Royco Day OZ AccessManager (docs.royco.org/key-addresses). Controls all Day markets; vaults migrate here from the Dawn RoycoFactory."
+    },
+    "0xaaaaaaaaae46ca12bf3810df8c13c5e8a4400812": {
+      "label": "DayFactory",
+      "category": "factory",
+      "tags": [
+        "day"
+      ],
+      "note": "Royco Day RoycoFactory proxy (final). Permissionless executeMarketDeployment."
+    },
+    "0x716ffb13728aec2f376883d00689679a418537f6": {
+      "label": "DayGatekeeper",
+      "category": "factory",
+      "tags": [
+        "day"
+      ],
+      "note": "RoycoFactoryGatekeeper (final) — holds ADMIN_ROLE on the Day AM."
+    },
+    "0xaf55a0c251690d9322b5f94b7e50ee895750262c": {
+      "label": "DayEntryPoint",
+      "category": "entrypoint",
+      "tags": [
+        "day"
+      ],
+      "note": "RoycoDayEntryPoint proxy (final). Holds ST/JT/LPT LP roles."
+    },
+    "0x387e025306cb1c41fe7ab752d9c04607e03bb8ce": {
+      "label": "DayMarketSyncer",
+      "category": "syncer",
+      "tags": [
+        "day"
+      ],
+      "note": "RoycoMarketSyncer proxy (final)."
+    },
+    "0x87aed46566cb28c8375cfcc9971090882a0fb12e": {
+      "label": "Day AM (pre-prod, retired)",
+      "category": "factory",
+      "tags": [
+        "day",
+        "deprecated"
+      ],
+      "note": "Earlier pre-production Day deployment; superseded by 0x82Ee…AaeB8 (docs.royco.org/key-addresses). Not tracked."
+    },
+    "0xaaaaaaaa01af9426c2eb6febc61dcd7c302cc45f": {
+      "label": "DayFactory (pre-prod, retired)",
+      "category": "factory",
+      "tags": [
+        "day",
+        "deprecated"
+      ],
+      "note": "Earlier pre-production Day factory; superseded by 0xaAAa…0812."
     }
   }
 }

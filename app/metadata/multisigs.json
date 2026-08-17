@@ -1,0 +1,26 @@
+{
+  "FNDN": {
+    "title": "Royco Foundation",
+    "description": "Root owner of the protocol. Manages roles and delays behind the 72-hour timelock, unpauses contracts, and handles emergency oracle actions and fee claims."
+  },
+  "WAY": {
+    "title": "Operations",
+    "description": "The proposer. Schedules every delayed parameter update and upgrade: core protocol changes at 72 hours, entry-point configuration at 24 hours."
+  },
+  "FNDN_VETO": {
+    "title": "Veto Council",
+    "description": "Dedicated fast-response guardian. Cancels any scheduled operation during its timelock window, with no delay."
+  },
+  "WAY_PAUSE": {
+    "title": "Pause Council",
+    "description": "Dedicated pause multisig. Can pause every protocol contract immediately; unpausing belongs to the Foundation."
+  },
+  "DIAL": {
+    "title": "Strategy Allocator",
+    "description": "Operations multisig for vault strategies. Allocates and deallocates funds between strategies and manages vault withdrawals."
+  },
+  "AUTO": {
+    "title": "Service Provider",
+    "description": "Contracted service provider. Grants and revokes tranche LP roles as an operational duty."
+  }
+}

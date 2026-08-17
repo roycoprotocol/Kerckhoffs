@@ -18,7 +18,7 @@ enumeration, so the dumper reads a point-in-time snapshot by iterating hardcoded
 
 Confirmed scope: cover OZ AccessManager (RoycoFactory, `uint64` roles) + native OZ AccessControl on
 Concrete vaults (`bytes32` roles) + Makina governance slots; hosted on Goldsky; first-class
-features = timelock-op tracking, drift detection, role→function capability map, multi-chain diff.
+features = timelock-op tracking, role→function capability map, market enumeration from factory events, multi-chain diff. (Drift detection against a reference model was removed 2026-08 — the dashboard presents on-chain state as-is; the hand-authored expectations files remain under app/metadata/ as documentation only.)
 
 This document specifies the **flows, shared data structures, and models**.
 
@@ -45,15 +45,16 @@ conforms.
 
 | Entity | Identity | Meaning |
 |---|---|---|
-| **Chain** | `chainId` | One of {1, 43114, 42161, 8453}; each has exactly one AccessManager. |
-| **Manager** | `chainId` (singleton per subgraph) | The AccessManager: `expiration`, `minSetback`, `address`. |
+| **Chain** | `chainId` | One of {1, 43114, 42161, 8453}. Every chain has the Dawn AccessManager (the RoycoFactory); all but Avalanche additionally have the Royco Day AccessManager. |
+| **Manager** | `address` (lowercased AM address) | An AccessManager: `kind` ("dawn" \| "day"), `expiration`, `minSetback`, `address`. One row per AM per chain. |
 | **Actor** | `address` | A known principal (FNDN, WAY, WAY_PAUSE, FNDN_VETO, DIAL, EntryPoint, Securitize). Catalog-only labels; joined to on-chain `Account`. |
-| **Role** | `roleId` (uint64) | An AM role. Config: `adminRole`, `guardianRole`, `grantDelay`, optional on-chain `label`. |
-| **RoleMember** | `(roleId, account)` | A current holder: `executionDelay`, `active`, grant/revoke timestamps. |
-| **RoleEvent** | `(txHash, logIndex)` | Immutable historical record of any role state change. The timeline. |
-| **TargetContract** | `address` | A contract gated by the AM: `closed`, `adminDelay`, its functions. |
-| **TargetFunction** | `(target, selector)` | A `(target, selector)` → `roleId` binding: the capability edge. |
-| **Operation** | `operationId` (bytes32) | A scheduled timelocked op: `caller`, `target`, `data`, `schedule`, lifecycle status. |
+| **Role** | `(manager, roleId)` | An AM role. Config: `adminRole`, `guardianRole`, `grantDelay`, optional on-chain `label`. Role ids collide across the Dawn and Day AMs (same keccak tags), so every role is manager-scoped. |
+| **RoleMember** | `(manager, roleId, account)` | A current holder: `executionDelay`, `active`, grant/revoke timestamps. |
+| **RoleEvent** | `(txHash, logIndex)` | Immutable historical record of any role state change (carries `manager`). The timeline. |
+| **TargetContract** | `(manager, address)` | A contract gated by an AM: `closed`, `adminDelay`, its functions. The same contract may be gated by both AMs mid-migration. |
+| **TargetFunction** | `(manager, target, selector)` | A `(target, selector)` → `roleId` binding: the capability edge. |
+| **Operation** | `(manager, operationId, nonce)` | A scheduled timelocked op: `caller`, `target`, `data`, `schedule`, lifecycle status. |
+| **Market** | `kernel` (address) | A Royco Day market: the 5 proxies + YDMs deployed atomically through the Day factory (`MarketDeploymentCompleted`). Dynamic enumeration — never a static registry. |
 | **Account** | `address` | Any address that has ever held a role; derived roll-up of its memberships. |
 | **NativeRole** | `(vault, roleHash)` | A native OZ AccessControl role on a Concrete vault (`bytes32`). |
 | **NativeRoleMember** | `(vault, roleHash, account)` | Holder of a native role. |
@@ -68,14 +69,21 @@ conforms.
 - `roleId`: uint64 rendered as a **decimal string** (GraphQL IDs are strings; avoids BigInt/JS
   precision loss). Catalog also carries the `0x…` hex form and the keccak `tag` for cross-checking.
 - `selector`: `0x` + 8 hex (`bytes4`).
-- `RoleMember.id = "{roleId}-{account}"`.
+- `manager`: the lowercased AM address. Every AM-scoped id below is prefixed with it — the Dawn
+  and Day AMs derive role ids from the same keccak tag strings, so unprefixed ids would silently
+  merge the two AMs.
+- `Role.id = "{manager}-{roleId}"` (plus a bare `roleId` field — consumers never parse composite ids).
+- `RoleMember.id = "{manager}-{roleId}-{account}"`.
 - `RoleEvent.id / NativeRoleEvent.id = "{txHash}-{logIndex}"` (globally unique, ordering-stable).
-- `TargetFunction.id = "{target}-{selector}"`.
-- `Operation.id = operationId` (bytes32 hex; equals `hashOperation(caller,target,data)`).
+- `TargetContract.id = "{manager}-{address}"`; `TargetFunction.id = "{manager}-{target}-{selector}"`.
+- `Operation.id = "{manager}-{operationId}-{nonce}"` (`operationId = hashOperation(caller,target,data)`
+  is hashed without the AM address, hence the prefix).
 - `NativeRole.id = "{vault}-{roleHash}"`; `NativeRoleMember.id = "{vault}-{roleHash}-{account}"`.
-- Cross-chain identity: the frontend keys on `(chainId, roleId)`. Roles are the **same numeric id
-  across chains** (keccak of the same tag), which is exactly what makes the multi-chain diff a
-  simple group-by `roleId`.
+- `Market.id = kernel` (lowercased); `MarketComponent.id = "{kernel}-{componentType}"` (never the
+  component address — YDM singletons are shared across markets).
+- Cross-chain identity: the frontend keys on `(chainId, AmKind, roleId)`. Roles are the **same
+  numeric id across chains** (keccak of the same tag), which is exactly what makes the multi-chain
+  diff a simple group-by `roleId` — one matrix per AM kind.
 
 ---
 

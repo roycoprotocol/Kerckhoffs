@@ -1,9 +1,11 @@
 import { chainBySlug } from "@/config/chains";
-import { fetchAllTargetFunctions, hasSubgraph } from "@/lib/subgraph";
-import { roleName, selectorName, shorten } from "@/lib/catalog";
+import { fetchAllRoles, fetchAllTargetFunctions, hasSubgraph } from "@/lib/subgraph";
+import { managerFor, parseAmKind, roleName, selectorName } from "@/lib/catalog";
 import { resolveLabel } from "@/lib/labels";
+import { warmMarketLabels } from "@/lib/markets";
 import { includesCI, param, type SearchParams } from "@/lib/searchParams";
-import { AddressLabel, CategoryBadge } from "@/components/AddressLabel";
+import { AddressLabel, AddrLink, CategoryBadge } from "@/components/AddressLabel";
+import { Callers, holdersByRole } from "@/components/Callers";
 import { Filters } from "@/components/Filters";
 import { Empty, Mono, PageTitle, Panel, RoleLink, SubgraphMissing, Table, Td, Th } from "@/components/ui";
 
@@ -15,12 +17,14 @@ export default async function FunctionsPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ chain: string }>;
+  params: Promise<{ chain: string; am: string }>;
   searchParams: Promise<SearchParams>;
 }) {
-  const { chain } = await params;
+  const { chain, am } = await params;
   const sp = await searchParams;
   const cfg = chainBySlug(chain)!;
+  const kind = parseAmKind(am)!;
+  const mgr = managerFor(cfg.chainId, kind)!;
   if (!hasSubgraph(cfg.chainId)) {
     return (
       <>
@@ -32,12 +36,17 @@ export default async function FunctionsPage({
 
   const q = param(sp, "q");
   const cat = param(sp, "category");
-  const fns = await fetchAllTargetFunctions(cfg.chainId);
+  const [fns, roles] = await Promise.all([
+    fetchAllTargetFunctions(cfg.chainId, mgr.address),
+    fetchAllRoles(cfg.chainId, mgr.address).catch(() => []),
+    warmMarketLabels(cfg.chainId).catch(() => {}),
+  ]);
+  const callersByRole = holdersByRole(roles);
 
   // Group by target, attach its label.
   const byTarget = new Map<string, { label: ReturnType<typeof resolveLabel>; rows: typeof fns }>();
   for (const f of fns) {
-    const t = f.target.id.toLowerCase();
+    const t = f.target.address.toLowerCase();
     if (!byTarget.has(t)) byTarget.set(t, { label: resolveLabel(cfg.chainId, t), rows: [] });
     byTarget.get(t)!.rows.push(f);
   }
@@ -74,9 +83,9 @@ export default async function FunctionsPage({
               <div className="flex items-center gap-2 border-b border-border px-3 py-2">
                 <AddressLabel chainId={cfg.chainId} slug={chain} address={g.addr} />
                 <CategoryBadge category={g.label.category} />
-                <Mono className="ml-auto text-[11px] text-muted">{shorten(g.addr)}</Mono>
+                <AddrLink chainId={cfg.chainId} address={g.addr} short className="ml-auto" />
               </div>
-              <Table head={<><Th>Function</Th><Th>Selector</Th><Th>Gated by role</Th></>}>
+              <Table head={<><Th className="w-72">Function</Th><Th className="w-28">Selector</Th><Th className="w-64">Gated by role</Th><Th>Callable by</Th></>}>
                 {g.rows
                   .sort((a, b) => selectorName(a.selector).localeCompare(selectorName(b.selector)))
                   .map((f) => (
@@ -88,7 +97,15 @@ export default async function FunctionsPage({
                         <Mono className="text-muted">{f.selector}</Mono>
                       </Td>
                       <Td>
-                        <RoleLink slug={chain} id={f.role.id} name={roleName(cfg.chainId, f.role.id)} />
+                        <RoleLink slug={chain} am={kind} id={f.role.roleId} name={roleName(cfg.chainId, kind, f.role.roleId)} />
+                      </Td>
+                      <Td>
+                        <Callers
+                          chainId={cfg.chainId}
+                          slug={chain}
+                          roleId={f.role.roleId}
+                          callers={callersByRole.get(f.role.roleId)}
+                        />
                       </Td>
                     </tr>
                   ))}

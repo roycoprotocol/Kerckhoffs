@@ -3,12 +3,16 @@
 @tailwind utilities;
 
 html {
-  color-scheme: dark;
+  color-scheme: light;
 }
 body {
-  @apply bg-bg text-fg;
+  @apply bg-bg text-fg font-sans;
   font-feature-settings: "tnum" 1;
+  font-size: 14px;
 }
 a {
   @apply text-fg no-underline;
+}
+::selection {
+  background: rgba(60, 194, 123, 0.2);
 }

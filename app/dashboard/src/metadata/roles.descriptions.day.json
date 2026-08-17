@@ -1,0 +1,168 @@
+{
+  "_comment": "Canonical EXPECTED model for the Royco DAY AccessManager (0x87aED46566cb28c8375cfcC9971090882A0fB12e on 1/42161/8453), keyed by role name. Authored from royco-day script/deploy/config/RoleGraphConfig.sol + DeployCore/DeployPeriphery grants; verified against mainnet on-chain state 2026-08-12. All grant delays are 0 in the Day graph. delaySeconds: Immediate=0, 24h=86400, 72h=259200. Actor names must match the day manager's actors[] in catalog.<chainId>.json.",
+  "ADMIN_ROLE": {
+    "description": "OZ AccessManager root admin. FNDN at the non-cancellable 72h delay ('kerchkoffs lockdown'); the RoycoFactoryGatekeeper co-holds at 0 so fresh-target configuration flows through it rather than the factory.",
+    "grantDelaySeconds": 0,
+    "admin": "ADMIN_ROLE",
+    "guardian": "ADMIN_ROLE",
+    "holders": [
+      { "actor": "FNDN", "executionDelaySeconds": 259200 },
+      { "actor": "Gatekeeper", "executionDelaySeconds": 0 }
+    ]
+  },
+  "PUBLIC_ROLE": {
+    "description": "Open role — every address is auto-member. Bound to permissionless surfaces: executeMarketDeployment on the Day factory, entry-point LP selectors, kernel sync/reinvest.",
+    "grantDelaySeconds": 0,
+    "admin": "ADMIN_ROLE",
+    "guardian": "ADMIN_ROLE",
+    "holders": []
+  },
+  "ADMIN_PAUSER_ROLE": {
+    "description": "Pauses every Day protocol contract and Balancer pool. Sole holder is the dedicated 1/4 WAY_PAUSE multisig, immediate.",
+    "grantDelaySeconds": 0,
+    "admin": "ADMIN_ROLE",
+    "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "WAY_PAUSE", "executionDelaySeconds": 0 }]
+  },
+  "ADMIN_UNPAUSER_ROLE": {
+    "description": "Unpauses Day protocol contracts and Balancer pools. FNDN-only, immediate.",
+    "grantDelaySeconds": 0,
+    "admin": "ADMIN_ROLE",
+    "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "FNDN", "executionDelaySeconds": 0 }]
+  },
+  "ADMIN_UPGRADER_ROLE": {
+    "description": "UUPS upgrades of the Day factory, entry point, and market syncer. WAY at 72h, GUARDIAN-cancellable.",
+    "grantDelaySeconds": 0,
+    "admin": "ADMIN_ROLE",
+    "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "WAY", "executionDelaySeconds": 259200 }]
+  },
+  "ST_LP_ROLE": {
+    "description": "Senior tranche LP ops (deposit, redeem) on Day markets.",
+    "grantDelaySeconds": 0,
+    "admin": "LP_ROLE_ADMIN_ROLE",
+    "guardian": "GUARDIAN_ROLE",
+    "holders": [
+      { "actor": "FNDN", "executionDelaySeconds": 0 },
+      { "actor": "DayEntryPoint", "executionDelaySeconds": 0 }
+    ]
+  },
+  "JT_LP_ROLE": {
+    "description": "Junior tranche LP ops (deposit, redeem) on Day markets.",
+    "grantDelaySeconds": 0,
+    "admin": "LP_ROLE_ADMIN_ROLE",
+    "guardian": "GUARDIAN_ROLE",
+    "holders": [
+      { "actor": "FNDN", "executionDelaySeconds": 0 },
+      { "actor": "DayEntryPoint", "executionDelaySeconds": 0 }
+    ]
+  },
+  "LPT_LP_ROLE": {
+    "description": "Liquidity-provider tranche LP ops (deposit, redeem, multi-asset variants) on Day markets. The Day factory co-holds so market deployment can seed the LP tranche.",
+    "grantDelaySeconds": 0,
+    "admin": "LP_ROLE_ADMIN_ROLE",
+    "guardian": "GUARDIAN_ROLE",
+    "holders": [
+      { "actor": "FNDN", "executionDelaySeconds": 0 },
+      { "actor": "DayEntryPoint", "executionDelaySeconds": 0 },
+      { "actor": "DayFactory", "executionDelaySeconds": 0 }
+    ]
+  },
+  "BURNER_ROLE": {
+    "description": "Bound to tranche burn/burnFrom but never granted — burning is reserved for a future authorized burner.",
+    "grantDelaySeconds": 0,
+    "admin": "ADMIN_ROLE",
+    "guardian": "GUARDIAN_ROLE",
+    "holders": []
+  },
+  "ADMIN_KERNEL_ROLE": {
+    "description": "Kernel parameter updates (protocol fee recipient, senior self-liquidation bonus). WAY at 72h.",
+    "grantDelaySeconds": 0,
+    "admin": "ADMIN_ROLE",
+    "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "WAY", "executionDelaySeconds": 259200 }]
+  },
+  "ADMIN_MARKET_OPS_ROLE": {
+    "description": "Market operations: kernel blacklist pointer, accountant dust tolerance. WAY at 72h.",
+    "grantDelaySeconds": 0,
+    "admin": "ADMIN_ROLE",
+    "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "WAY", "executionDelaySeconds": 259200 }]
+  },
+  "ADMIN_ACCOUNTANT_ROLE": {
+    "description": "Accountant parameter updates (YDMs, coverage, liquidity, yield shares, fixed-term duration). WAY at 72h.",
+    "grantDelaySeconds": 0,
+    "admin": "ADMIN_ROLE",
+    "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "WAY", "executionDelaySeconds": 259200 }]
+  },
+  "ADMIN_PROTOCOL_FEE_SETTER_ROLE": {
+    "description": "Accountant protocol-fee setters. WAY at 72h.",
+    "grantDelaySeconds": 0,
+    "admin": "ADMIN_ROLE",
+    "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "WAY", "executionDelaySeconds": 259200 }]
+  },
+  "ADMIN_ORACLE_ROLE": {
+    "description": "Kernel pricing config (BPT oracle, collateral oracle, reinvestment slippage, sequencer feed). WAY at 72h; FNDN co-holds at 0 as the emergency oracle path.",
+    "grantDelaySeconds": 0,
+    "admin": "ADMIN_ROLE",
+    "guardian": "GUARDIAN_ROLE",
+    "holders": [
+      { "actor": "WAY", "executionDelaySeconds": 259200 },
+      { "actor": "FNDN", "executionDelaySeconds": 0 }
+    ]
+  },
+  "ADMIN_ENTRY_POINT_ROLE": {
+    "description": "Entry-point tranche-config tuning and syncer kernel registration. WAY at the 24h tier; the Gatekeeper co-holds at 0 for market-periphery configuration during deployment.",
+    "grantDelaySeconds": 0,
+    "admin": "ADMIN_ROLE",
+    "guardian": "GUARDIAN_ROLE",
+    "holders": [
+      { "actor": "WAY", "executionDelaySeconds": 86400 },
+      { "actor": "Gatekeeper", "executionDelaySeconds": 0 }
+    ]
+  },
+  "ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE": {
+    "description": "Collects entry-point protocol fees. FNDN-only, immediate.",
+    "grantDelaySeconds": 0,
+    "admin": "ADMIN_ROLE",
+    "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "FNDN", "executionDelaySeconds": 0 }]
+  },
+  "ADMIN_BALANCER_POOL_MANAGER_ROLE": {
+    "description": "Balancer pool management: static swap fee, pool-creator fee percentages and withdrawal. WAY, immediate.",
+    "grantDelaySeconds": 0,
+    "admin": "ADMIN_ROLE",
+    "guardian": "GUARDIAN_ROLE",
+    "holders": [{ "actor": "WAY", "executionDelaySeconds": 0 }]
+  },
+  "ADMIN_FACTORY_ROLE": {
+    "description": "Template registration on the Day factory. Held by the deployer during bootstrap only and renounced afterwards (verified revoked on-chain); expected empty in steady state. Guardian stays at the OZ default (ADMIN_ROLE) — the role was never in ApplyRoleGraph's setRoleGuardian pass.",
+    "grantDelaySeconds": 0,
+    "admin": "ADMIN_ROLE",
+    "guardian": "ADMIN_ROLE",
+    "holders": []
+  },
+  "LP_ROLE_ADMIN_ROLE": {
+    "description": "Meta-role: admin of ST/JT/LPT LP roles, so LP allowlisting bypasses the 72h ADMIN_ROLE path. WAY and AUTO (Autonomous, contracted service provider) co-hold, immediate.",
+    "grantDelaySeconds": 0,
+    "admin": "ADMIN_ROLE",
+    "guardian": "GUARDIAN_ROLE",
+    "holders": [
+      { "actor": "WAY", "executionDelaySeconds": 0 },
+      { "actor": "AUTO", "executionDelaySeconds": 0 }
+    ]
+  },
+  "GUARDIAN_ROLE": {
+    "description": "Cancels delayed operations on every operational role. Co-held by FNDN (root) and FNDN_VETO (dedicated 1/4 fast-veto multisig).",
+    "grantDelaySeconds": 0,
+    "admin": "ADMIN_ROLE",
+    "guardian": "ADMIN_ROLE",
+    "holders": [
+      { "actor": "FNDN", "executionDelaySeconds": 0 },
+      { "actor": "FNDN_VETO", "executionDelaySeconds": 0 }
+    ]
+  }
+}

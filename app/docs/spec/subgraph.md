@@ -43,28 +43,44 @@ app/subgraph/
 ```json
 { "network": "mainnet", "factory": "0x7cC6fB28eC7b5e7afC3cB3986141797ffc27253C",
   "factoryStartBlock": 20000000,
+  "dayManager": { "address": "0x87aED46566cb28c8375cfcC9971090882A0fB12e", "startBlock": 25734830 },
+  "dayFactory": { "address": "0xaaAaaaaa01Af9426C2eB6FeBc61DcD7C302cc45F", "startBlock": 25734830 },
   "vaults": [ { "name": "srRoyUSDC", "address": "0x…", "startBlock": 20100000 },
               { "name": "roywstETH", "address": "0x…", "startBlock": 20100000 } ] }
 ```
-Goldsky network names: `mainnet`, `avalanche`, `arbitrum-one`, `base`. Start blocks = factory /
-vault deployment blocks (resolve via explorer or `cast code`/first-tx lookup) so first sync is
-bounded — **not** block 0.
+`dayManager` / `dayFactory` are present on every chain since the 2026-08-17 Avalanche Day
+deployment; the mustache sections still render to nothing if a future chain omits them. An
+optional `graft: {base, block}` (local graph-node only — stripped by `NO_GRAFT=1` for hosted
+deploys) grafts a new deployment onto an existing one to avoid full resyncs. Goldsky network names: `mainnet`, `avalanche`, `arbitrum-one`,
+`base`. Start blocks = deployment blocks (resolve via explorer or `cast code`/first-tx lookup) so
+first sync is bounded — **not** block 0.
 
 ## 10.3 ABIs
 
-`scripts/extract-abis.mjs` reads the compiled artifacts under repo `out/` (Foundry already builds
-`IAccessManager`, and the vault's `AccessControl`) and writes just the `abi` array to
-`abis/AccessManager.json` / `abis/AccessControl.json`. Keeps the subgraph ABI in lockstep with the
-audited Solidity rather than hand-copying. Run after `forge build`.
+`scripts/extract-abis.mjs` reads the compiled artifacts under repo `out/` (Foundry builds
+`IAccessManager`, the vault's `AccessControl`, and the thin Day mirrors in `src/interfaces/day/`)
+and writes just the `abi` array to `abis/AccessManager.json` / `abis/AccessControl.json` /
+`abis/RoycoAccessManager.json` (Day AM: OZ superset + `TargetConfiguredAtGenesis`) /
+`abis/DayFactory.json` (`MarketDeploymentCompleted` with named `DeploymentResult` tuple
+components — required for codegen accessors). Keeps the subgraph ABI in lockstep with the audited
+Solidity rather than hand-copying. Run after `forge build`.
 
 ## 10.4 Manifest (`subgraph.template.yaml`)
 
-- `dataSources[0]`: `AccessManager` at `{{factory}}`, `startBlock {{factoryStartBlock}}`, all 12
-  event handlers (main.md §3.2).
+- `dataSources[0]`: `AccessManager` (Dawn) at `{{factory}}`, `startBlock {{factoryStartBlock}}`,
+  all 12 event handlers (main.md §3.2), data-source `context` `kind: "dawn"`.
+- `{{#dayManager}}` → `DayAccessManager` data source: same 12 handlers (mapping module
+  `src/dayAccessManager.ts` re-exports them) plus `TargetConfiguredAtGenesis`, context `kind: "day"`.
+- `{{#dayFactory}}` → `DayFactory` data source: `MarketDeploymentCompleted` → `src/dayFactory.ts`
+  (`Market` / `MarketComponent` entities).
 - `{{#vaults}}` loop → one `AccessControl` data source per vault (Mainnet only; the array is empty
   for the other chains so the loop emits nothing).
-- `Manager` singleton has no dedicated event — lazily create it in the first AM handler via a bound
-  contract call (`AccessManager.bind(address).try_expiration()` / `try_minSetback()`), cached.
+- `Manager` rows have no dedicated event — lazily create them in every AM handler, keyed by
+  `event.address`, via a bound contract call (`AccessManager.bind(address).try_expiration()` /
+  `try_minSetback()`), cached. `kind` comes from the data-source context (default "dawn" for
+  contextless matchstick events).
+- Day-only mapping modules live in `src/dayAccessManager.ts` / `src/dayFactory.ts` so the
+  Avalanche render (no Day data sources → no generated Day types) still compiles.
 
 ## 10.5 Mappings (AssemblyScript)
 

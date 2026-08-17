@@ -1,17 +1,8 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getCatalog, shorten } from "@/lib/catalog";
-import { searchLabels } from "@/lib/labels";
+import { buildSearchResults, type SearchResult } from "@/lib/search";
 import { CategoryDot } from "@/components/AddressLabel";
-
-interface Result {
-  kind: "role" | "address";
-  href: string;
-  primary: string;
-  secondary: string;
-  category?: string;
-}
 
 export function CommandSearch({ chainId, slug }: { chainId: number; slug: string }) {
   const router = useRouter();
@@ -37,22 +28,7 @@ export function CommandSearch({ chainId, slug }: { chainId: number; slug: string
     else setQ("");
   }, [open]);
 
-  const results = useMemo<Result[]>(() => {
-    const needle = q.trim().toLowerCase();
-    if (!needle) return [];
-    const roles: Result[] = (getCatalog(chainId)?.roles ?? [])
-      .filter((r) => r.name.toLowerCase().includes(needle))
-      .slice(0, 6)
-      .map((r) => ({ kind: "role", href: `/${slug}/role/${r.id}`, primary: r.name, secondary: `role ${r.id}` }));
-    const addrs: Result[] = searchLabels(chainId, needle, 8).map((l) => ({
-      kind: "address",
-      href: `/${slug}/address/${l.address}`,
-      primary: l.name,
-      secondary: shorten(l.address),
-      category: l.category,
-    }));
-    return [...roles, ...addrs];
-  }, [q, chainId, slug]);
+  const results = useMemo<SearchResult[]>(() => buildSearchResults(chainId, slug, q), [q, chainId, slug]);
 
   function go(href: string) {
     setOpen(false);
@@ -63,14 +39,14 @@ export function CommandSearch({ chainId, slug }: { chainId: number; slug: string
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2 rounded border border-border bg-panel px-2 py-1 text-sm text-muted hover:text-fg"
+        className="flex items-center gap-2.5 rounded-md border border-border bg-panel px-3 py-1.5 text-xs text-muted hover:border-[#D9D5C9] hover:text-fg"
       >
         Search
-        <kbd className="rounded bg-border px-1 text-[10px]">⌘K</kbd>
+        <kbd className="rounded border border-border2 px-1.5 py-px font-mono text-[10px]">⌘K</kbd>
       </button>
       {open && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 pt-24" onClick={() => setOpen(false)}>
-          <div className="w-full max-w-xl rounded-lg border border-border bg-panel" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-[rgba(15,14,13,0.25)] pt-[14vh]" onClick={() => setOpen(false)}>
+          <div className="w-full max-w-xl overflow-hidden rounded-xl border border-border bg-panel shadow-[0_12px_40px_rgba(15,14,13,0.08)]" onClick={(e) => e.stopPropagation()}>
             <input
               ref={inputRef}
               value={q}
@@ -79,15 +55,15 @@ export function CommandSearch({ chainId, slug }: { chainId: number; slug: string
                 if (e.key === "Enter" && results[0]) go(results[0].href);
               }}
               placeholder="Search roles, contracts, addresses…"
-              className="w-full rounded-t-lg bg-transparent px-4 py-3 text-sm outline-none"
+              className="w-full border-b border-border2 bg-transparent px-4 py-3.5 text-sm outline-none"
             />
             {results.length > 0 && (
-              <ul className="max-h-80 overflow-y-auto border-t border-border">
+              <ul className="max-h-80 overflow-y-auto p-2">
                 {results.map((r, i) => (
                   <li key={i}>
                     <button
                       onClick={() => go(r.href)}
-                      className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm hover:bg-border/40"
+                      className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-sm hover:bg-ok-tint"
                     >
                       {r.kind === "address" ? <CategoryDot category={r.category ?? "external"} /> : <span className="text-muted">◆</span>}
                       <span>{r.primary}</span>

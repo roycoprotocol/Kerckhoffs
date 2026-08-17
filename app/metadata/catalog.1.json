@@ -1,47 +1,9 @@
 {
-  "actors": [
-    {
-      "address": "0x7c405bbD131e42af506d14e752f2e59B19D49997",
-      "category": "multisig",
-      "name": "FNDN",
-      "pendingDeployment": false
-    },
-    {
-      "address": "0x84d37A25e46029CE161111420E07cEb78880119e",
-      "category": "multisig",
-      "name": "WAY",
-      "pendingDeployment": false
-    },
-    {
-      "address": "0xe7E4FA51280eB212254458d62081587Acd2077eE",
-      "category": "multisig",
-      "name": "DIAL",
-      "pendingDeployment": false
-    },
-    {
-      "address": "0xC7605B1891B449B0051d55D083B49D6b46D164bb",
-      "category": "multisig",
-      "name": "WAY_PAUSE",
-      "pendingDeployment": false
-    },
-    {
-      "address": "0xc5Df006FA0647EFF1A55CCF5749ce17772F4d8CB",
-      "category": "multisig",
-      "name": "FNDN_VETO",
-      "pendingDeployment": false
-    },
-    {
-      "address": "0x63dA1229be88Fb4D20210147954a1a3e05f2581B",
-      "category": "entrypoint",
-      "name": "EntryPoint",
-      "pendingDeployment": false
-    }
-  ],
   "chainId": 1,
   "chainName": "Ethereum",
   "expiration": 604800,
   "factory": "0x7cC6fB28eC7b5e7afC3cB3986141797ffc27253C",
-  "generatedAtBlock": 25502986,
+  "generatedAtBlock": 25775040,
   "makinaSlots": [
     {
       "caliber": "0x5476F4E23dAA093Ce6700e1026013c55F7AF9083",
@@ -58,455 +20,677 @@
       "vault": "roywstETH"
     }
   ],
-  "minSetback": 432000,
-  "roles": [
+  "managers": [
     {
-      "id": "0",
-      "name": "ADMIN_ROLE"
+      "actors": [
+        {
+          "address": "0x7c405bbD131e42af506d14e752f2e59B19D49997",
+          "category": "multisig",
+          "name": "FNDN",
+          "pendingDeployment": false
+        },
+        {
+          "address": "0x84d37A25e46029CE161111420E07cEb78880119e",
+          "category": "multisig",
+          "name": "WAY",
+          "pendingDeployment": false
+        },
+        {
+          "address": "0xe7E4FA51280eB212254458d62081587Acd2077eE",
+          "category": "multisig",
+          "name": "DIAL",
+          "pendingDeployment": false
+        },
+        {
+          "address": "0xC7605B1891B449B0051d55D083B49D6b46D164bb",
+          "category": "multisig",
+          "name": "WAY_PAUSE",
+          "pendingDeployment": false
+        },
+        {
+          "address": "0xc5Df006FA0647EFF1A55CCF5749ce17772F4d8CB",
+          "category": "multisig",
+          "name": "FNDN_VETO",
+          "pendingDeployment": false
+        },
+        {
+          "address": "0x63dA1229be88Fb4D20210147954a1a3e05f2581B",
+          "category": "entrypoint",
+          "name": "EntryPoint",
+          "pendingDeployment": false
+        },
+        {
+          "address": "0xb2B80EBcb7EE285806ddcB26E84a444032D1c244",
+          "category": "multisig",
+          "name": "AUTO",
+          "pendingDeployment": false
+        }
+      ],
+      "address": "0x7cC6fB28eC7b5e7afC3cB3986141797ffc27253C",
+      "expiration": 604800,
+      "kind": "dawn",
+      "minSetback": 432000,
+      "name": "RoycoFactory (Dawn)",
+      "roles": [
+        {
+          "id": "0",
+          "name": "ADMIN_ROLE"
+        },
+        {
+          "id": "7925626764789623619",
+          "name": "ADMIN_PAUSER_ROLE"
+        },
+        {
+          "id": "10054419464311379566",
+          "name": "ADMIN_UNPAUSER_ROLE"
+        },
+        {
+          "id": "17817129721670429102",
+          "name": "ADMIN_UPGRADER_ROLE"
+        },
+        {
+          "id": "9623252227852051139",
+          "name": "ST_LP_ROLE"
+        },
+        {
+          "id": "16055754263579004741",
+          "name": "JT_LP_ROLE"
+        },
+        {
+          "id": "18208673593576913896",
+          "name": "BURNER_ROLE"
+        },
+        {
+          "id": "15053450870919821405",
+          "name": "SYNC_ROLE"
+        },
+        {
+          "id": "6805807443307967810",
+          "name": "ADMIN_KERNEL_ROLE"
+        },
+        {
+          "id": "6300902259487099312",
+          "name": "TRANSFER_AGENT_ROLE"
+        },
+        {
+          "id": "18089890734229314815",
+          "name": "ADMIN_ENTRY_POINT_ROLE"
+        },
+        {
+          "id": "3947436291410369121",
+          "name": "ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE"
+        },
+        {
+          "id": "1194442435508212435",
+          "name": "ADMIN_ACCOUNTANT_ROLE"
+        },
+        {
+          "id": "14297485179608767180",
+          "name": "ADMIN_PROTOCOL_FEE_SETTER_ROLE"
+        },
+        {
+          "id": "5790196268886763633",
+          "name": "ADMIN_ORACLE_QUOTER_ROLE"
+        },
+        {
+          "id": "6507856881284443453",
+          "name": "DEPLOYER_ROLE"
+        },
+        {
+          "id": "12118832287418532003",
+          "name": "LP_ROLE_ADMIN_ROLE"
+        },
+        {
+          "id": "11875770835546705225",
+          "name": "DEPLOYER_ROLE_ADMIN_ROLE"
+        },
+        {
+          "id": "3153718263372025530",
+          "name": "GUARDIAN_ROLE"
+        },
+        {
+          "id": "11452681425251394499",
+          "name": "STRATEGY_PAUSER"
+        },
+        {
+          "id": "5615552891458788855",
+          "name": "STRATEGY_UNPAUSER"
+        },
+        {
+          "id": "5085675420049522850",
+          "name": "STRATEGY_RESCUE"
+        },
+        {
+          "id": "15277387785437310784",
+          "name": "STRATEGY_ALLOCATOR"
+        },
+        {
+          "id": "6359708774850158159",
+          "name": "SRROYUSDC_RISK_MANAGER"
+        },
+        {
+          "id": "11474785291283288494",
+          "name": "SRROYUSDC_TIMELOCK_MANAGER"
+        },
+        {
+          "id": "12159166457409087352",
+          "name": "ROYWSTETH_RISK_MANAGER"
+        },
+        {
+          "id": "14149459376679876623",
+          "name": "ROYWSTETH_TIMELOCK_MANAGER"
+        },
+        {
+          "id": "15875865955164154843",
+          "name": "VAULT_MANAGER"
+        },
+        {
+          "id": "4487222393053400099",
+          "name": "STRATEGY_MANAGER"
+        },
+        {
+          "id": "14177249393595990130",
+          "name": "HOOK_MANAGER"
+        },
+        {
+          "id": "18446744073709551615",
+          "name": "PUBLIC_ROLE"
+        }
+      ],
+      "targets": [
+        {
+          "address": "0x0aE0978B868804929fd4C06B3B22D9197B8cd3c6",
+          "category": "market",
+          "name": "sNUSD.kernel",
+          "parent": "sNUSD",
+          "type": "kernel"
+        },
+        {
+          "address": "0xCaa3F221fCf3c2EC7b6a49B73BB810cca35e1085",
+          "category": "market",
+          "name": "sNUSD.accountant",
+          "parent": "sNUSD",
+          "type": "accountant"
+        },
+        {
+          "address": "0x2070Af1C865f5d764F673Baf5654822947e71243",
+          "category": "market",
+          "name": "sNUSD.seniorTranche",
+          "parent": "sNUSD",
+          "type": "seniorTranche"
+        },
+        {
+          "address": "0x3821eBea3BBbE23F3dea74f24082BD0f0b67f6c5",
+          "category": "market",
+          "name": "sNUSD.juniorTranche",
+          "parent": "sNUSD",
+          "type": "juniorTranche"
+        },
+        {
+          "address": "0x8748D1c21CC550B435487F473d9Aaf6C84dA46A6",
+          "category": "market",
+          "name": "autoUSD.kernel",
+          "parent": "autoUSD",
+          "type": "kernel"
+        },
+        {
+          "address": "0xB0166629D78E3876F570f18B154A60b99024b6f4",
+          "category": "market",
+          "name": "autoUSD.accountant",
+          "parent": "autoUSD",
+          "type": "accountant"
+        },
+        {
+          "address": "0x73C641fe41EB0270C7f473f3c3E4A40eb97fd8dE",
+          "category": "market",
+          "name": "autoUSD.seniorTranche",
+          "parent": "autoUSD",
+          "type": "seniorTranche"
+        },
+        {
+          "address": "0x6f0D6567099621deE3850C673d73c532071A888d",
+          "category": "market",
+          "name": "autoUSD.juniorTranche",
+          "parent": "autoUSD",
+          "type": "juniorTranche"
+        },
+        {
+          "address": "0x6dBdf6EBdF02F50ec6a7d6F782850996928176F9",
+          "category": "market",
+          "name": "SmokehouseUSDC.kernel",
+          "parent": "SmokehouseUSDC",
+          "type": "kernel"
+        },
+        {
+          "address": "0x955f8f7691a8908fA5a2798935Bda557A03aFb75",
+          "category": "market",
+          "name": "SmokehouseUSDC.accountant",
+          "parent": "SmokehouseUSDC",
+          "type": "accountant"
+        },
+        {
+          "address": "0xa225F24654b8995036606D5Cd0634133a4BE169c",
+          "category": "market",
+          "name": "SmokehouseUSDC.seniorTranche",
+          "parent": "SmokehouseUSDC",
+          "type": "seniorTranche"
+        },
+        {
+          "address": "0xC8fab124292cB792d15041292C2399910bD086d1",
+          "category": "market",
+          "name": "SmokehouseUSDC.juniorTranche",
+          "parent": "SmokehouseUSDC",
+          "type": "juniorTranche"
+        },
+        {
+          "address": "0xde1Ce2cF64808e50d000F93058784270E412B3A4",
+          "category": "market",
+          "name": "syrupUSDC.kernel",
+          "parent": "syrupUSDC",
+          "type": "kernel"
+        },
+        {
+          "address": "0x2995f615D0ec527eD43eBb22DE0DcB66084c98FE",
+          "category": "market",
+          "name": "syrupUSDC.accountant",
+          "parent": "syrupUSDC",
+          "type": "accountant"
+        },
+        {
+          "address": "0x66182442522D3049A941035190C315379c959250",
+          "category": "market",
+          "name": "syrupUSDC.seniorTranche",
+          "parent": "syrupUSDC",
+          "type": "seniorTranche"
+        },
+        {
+          "address": "0x5f340B400F892bBFDed2e5c316369Dcbf05C282A",
+          "category": "market",
+          "name": "syrupUSDC.juniorTranche",
+          "parent": "syrupUSDC",
+          "type": "juniorTranche"
+        },
+        {
+          "address": "0x9911F227E9428964D8A35B852513919C8DF92038",
+          "category": "market",
+          "name": "stcUSD.kernel",
+          "parent": "stcUSD",
+          "type": "kernel"
+        },
+        {
+          "address": "0x59609E6f6faD8b90C025E03a98ef44f7435B122d",
+          "category": "market",
+          "name": "stcUSD.accountant",
+          "parent": "stcUSD",
+          "type": "accountant"
+        },
+        {
+          "address": "0xa7Da92685ea436276B2e87aE12E5eE6DABaD5bB5",
+          "category": "market",
+          "name": "stcUSD.seniorTranche",
+          "parent": "stcUSD",
+          "type": "seniorTranche"
+        },
+        {
+          "address": "0xe4060E83ad26618c7Ed56A02ce099beBA4f73b29",
+          "category": "market",
+          "name": "stcUSD.juniorTranche",
+          "parent": "stcUSD",
+          "type": "juniorTranche"
+        },
+        {
+          "address": "0x15bb63C07740ff972F76716cAcC5766f0C641791",
+          "category": "market",
+          "name": "ParetoFalconX.kernel",
+          "parent": "ParetoFalconX",
+          "type": "kernel"
+        },
+        {
+          "address": "0x37543D7C1e0e5C4467398681180af00efB68D0Dd",
+          "category": "market",
+          "name": "ParetoFalconX.accountant",
+          "parent": "ParetoFalconX",
+          "type": "accountant"
+        },
+        {
+          "address": "0x694ADB3077BBecE31882B6d6A74fc4A4fA6a754b",
+          "category": "market",
+          "name": "ParetoFalconX.seniorTranche",
+          "parent": "ParetoFalconX",
+          "type": "seniorTranche"
+        },
+        {
+          "address": "0x8E0ec43E51B88AA2324102e1A3D667822be51A6d",
+          "category": "market",
+          "name": "ParetoFalconX.juniorTranche",
+          "parent": "ParetoFalconX",
+          "type": "juniorTranche"
+        },
+        {
+          "address": "0xcFbdEA0990F21b103c8D123d0D5273B4ea269cb4",
+          "category": "market",
+          "name": "ApyUSD.kernel",
+          "parent": "ApyUSD",
+          "type": "kernel"
+        },
+        {
+          "address": "0x5A42DD2e3C30b20663BB86D40DB0ea28689BbD0f",
+          "category": "market",
+          "name": "ApyUSD.accountant",
+          "parent": "ApyUSD",
+          "type": "accountant"
+        },
+        {
+          "address": "0xBd373c9D3D8976a4FECC504a93c768BBE8C3227C",
+          "category": "market",
+          "name": "ApyUSD.seniorTranche",
+          "parent": "ApyUSD",
+          "type": "seniorTranche"
+        },
+        {
+          "address": "0xAB2ab53E1e2E2c5D7202918EC8c873712bcc4a2D",
+          "category": "market",
+          "name": "ApyUSD.juniorTranche",
+          "parent": "ApyUSD",
+          "type": "juniorTranche"
+        },
+        {
+          "address": "0x36c1d7CaFa9A220fc1450fA070277aED69F8c9B2",
+          "category": "market",
+          "name": "eEARN.kernel",
+          "parent": "eEARN",
+          "type": "kernel"
+        },
+        {
+          "address": "0x0684a043e7b19f3325556A3cB5d074cfc601905D",
+          "category": "market",
+          "name": "eEARN.accountant",
+          "parent": "eEARN",
+          "type": "accountant"
+        },
+        {
+          "address": "0x1BA515a409DD702105415cDAAe439059aA0B402A",
+          "category": "market",
+          "name": "eEARN.seniorTranche",
+          "parent": "eEARN",
+          "type": "seniorTranche"
+        },
+        {
+          "address": "0x059bC7AA5000A26AAE2601CfbF060653Adf8Fd91",
+          "category": "market",
+          "name": "eEARN.juniorTranche",
+          "parent": "eEARN",
+          "type": "juniorTranche"
+        },
+        {
+          "address": "0x753fB559B67DcED89020ef222bF87099776d1676",
+          "category": "market",
+          "name": "DMG.kernel",
+          "parent": "DMG",
+          "type": "kernel"
+        },
+        {
+          "address": "0x27B93Db86CAef52ab3D3b446c81833d8C5097e9a",
+          "category": "market",
+          "name": "DMG.accountant",
+          "parent": "DMG",
+          "type": "accountant"
+        },
+        {
+          "address": "0xaC9CF7e8f83C471cA596F4371fF002cdaF9573e6",
+          "category": "market",
+          "name": "DMG.seniorTranche",
+          "parent": "DMG",
+          "type": "seniorTranche"
+        },
+        {
+          "address": "0xC0378C1eB87421FF42539Ea98Be2700fc8d44B23",
+          "category": "market",
+          "name": "DMG.juniorTranche",
+          "parent": "DMG",
+          "type": "juniorTranche"
+        },
+        {
+          "address": "0xc46367BBdbC62F1825a46549062a3A88D8668D52",
+          "category": "syncer",
+          "name": "syncer",
+          "parent": "",
+          "type": "syncer"
+        },
+        {
+          "address": "0x63dA1229be88Fb4D20210147954a1a3e05f2581B",
+          "category": "entrypoint",
+          "name": "entryPoint",
+          "parent": "",
+          "type": "entryPoint"
+        },
+        {
+          "address": "0xcD9f5907F92818bC06c9Ad70217f089E190d2a32",
+          "category": "vault",
+          "name": "srRoyUSDC",
+          "parent": "srRoyUSDC",
+          "type": "vault"
+        },
+        {
+          "address": "0xc5FeF644d59415cec65049e0653CA10eD9Cba778",
+          "category": "strategy",
+          "name": "srRoyUSDC.strategy",
+          "parent": "srRoyUSDC",
+          "type": "strategy"
+        },
+        {
+          "address": "0x5476F4E23dAA093Ce6700e1026013c55F7AF9083",
+          "category": "strategy",
+          "name": "srRoyUSDC.caliber",
+          "parent": "srRoyUSDC",
+          "type": "caliber"
+        },
+        {
+          "address": "0xFa097420f0e2C72456B361a1eD85172B9ccd8c38",
+          "category": "strategy",
+          "name": "srRoyUSDC.machine",
+          "parent": "srRoyUSDC",
+          "type": "machine"
+        },
+        {
+          "address": "0x41Ce72E04D349Eb957bdc373baA9c69207032c56",
+          "category": "vault",
+          "name": "roywstETH",
+          "parent": "roywstETH",
+          "type": "vault"
+        },
+        {
+          "address": "0x185313DBb1f3AA2b3fCc603f0EE4cbA753Ef1DD7",
+          "category": "strategy",
+          "name": "roywstETH.strategy",
+          "parent": "roywstETH",
+          "type": "strategy"
+        },
+        {
+          "address": "0x3d8E2497497a3e29Ad5391c08dB2a1b3C32598c0",
+          "category": "strategy",
+          "name": "roywstETH.caliber",
+          "parent": "roywstETH",
+          "type": "caliber"
+        },
+        {
+          "address": "0x0FDF9F1920e160ea8Ae267BdE13e725DeF81E5Ee",
+          "category": "strategy",
+          "name": "roywstETH.machine",
+          "parent": "roywstETH",
+          "type": "machine"
+        }
+      ]
     },
     {
-      "id": "7925626764789623619",
-      "name": "ADMIN_PAUSER_ROLE"
-    },
-    {
-      "id": "10054419464311379566",
-      "name": "ADMIN_UNPAUSER_ROLE"
-    },
-    {
-      "id": "17817129721670429102",
-      "name": "ADMIN_UPGRADER_ROLE"
-    },
-    {
-      "id": "9623252227852051139",
-      "name": "ST_LP_ROLE"
-    },
-    {
-      "id": "16055754263579004741",
-      "name": "JT_LP_ROLE"
-    },
-    {
-      "id": "18208673593576913896",
-      "name": "BURNER_ROLE"
-    },
-    {
-      "id": "15053450870919821405",
-      "name": "SYNC_ROLE"
-    },
-    {
-      "id": "6805807443307967810",
-      "name": "ADMIN_KERNEL_ROLE"
-    },
-    {
-      "id": "6300902259487099312",
-      "name": "TRANSFER_AGENT_ROLE"
-    },
-    {
-      "id": "18089890734229314815",
-      "name": "ADMIN_ENTRY_POINT_ROLE"
-    },
-    {
-      "id": "3947436291410369121",
-      "name": "ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE"
-    },
-    {
-      "id": "1194442435508212435",
-      "name": "ADMIN_ACCOUNTANT_ROLE"
-    },
-    {
-      "id": "14297485179608767180",
-      "name": "ADMIN_PROTOCOL_FEE_SETTER_ROLE"
-    },
-    {
-      "id": "5790196268886763633",
-      "name": "ADMIN_ORACLE_QUOTER_ROLE"
-    },
-    {
-      "id": "6507856881284443453",
-      "name": "DEPLOYER_ROLE"
-    },
-    {
-      "id": "12118832287418532003",
-      "name": "LP_ROLE_ADMIN_ROLE"
-    },
-    {
-      "id": "11875770835546705225",
-      "name": "DEPLOYER_ROLE_ADMIN_ROLE"
-    },
-    {
-      "id": "3153718263372025530",
-      "name": "GUARDIAN_ROLE"
-    },
-    {
-      "id": "11452681425251394499",
-      "name": "STRATEGY_PAUSER"
-    },
-    {
-      "id": "5615552891458788855",
-      "name": "STRATEGY_UNPAUSER"
-    },
-    {
-      "id": "5085675420049522850",
-      "name": "STRATEGY_RESCUE"
-    },
-    {
-      "id": "15277387785437310784",
-      "name": "STRATEGY_ALLOCATOR"
-    },
-    {
-      "id": "6359708774850158159",
-      "name": "SRROYUSDC_RISK_MANAGER"
-    },
-    {
-      "id": "11474785291283288494",
-      "name": "SRROYUSDC_TIMELOCK_MANAGER"
-    },
-    {
-      "id": "12159166457409087352",
-      "name": "ROYWSTETH_RISK_MANAGER"
-    },
-    {
-      "id": "14149459376679876623",
-      "name": "ROYWSTETH_TIMELOCK_MANAGER"
-    },
-    {
-      "id": "15875865955164154843",
-      "name": "VAULT_MANAGER"
-    },
-    {
-      "id": "4487222393053400099",
-      "name": "STRATEGY_MANAGER"
-    },
-    {
-      "id": "14177249393595990130",
-      "name": "HOOK_MANAGER"
-    },
-    {
-      "id": "18446744073709551615",
-      "name": "PUBLIC_ROLE"
+      "actors": [
+        {
+          "address": "0x7c405bbD131e42af506d14e752f2e59B19D49997",
+          "category": "multisig",
+          "name": "FNDN",
+          "pendingDeployment": false
+        },
+        {
+          "address": "0x84d37A25e46029CE161111420E07cEb78880119e",
+          "category": "multisig",
+          "name": "WAY",
+          "pendingDeployment": false
+        },
+        {
+          "address": "0xC7605B1891B449B0051d55D083B49D6b46D164bb",
+          "category": "multisig",
+          "name": "WAY_PAUSE",
+          "pendingDeployment": false
+        },
+        {
+          "address": "0xc5Df006FA0647EFF1A55CCF5749ce17772F4d8CB",
+          "category": "multisig",
+          "name": "FNDN_VETO",
+          "pendingDeployment": false
+        },
+        {
+          "address": "0xb2B80EBcb7EE285806ddcB26E84a444032D1c244",
+          "category": "multisig",
+          "name": "AUTO",
+          "pendingDeployment": false
+        },
+        {
+          "address": "0x716fFB13728Aec2F376883d00689679A418537f6",
+          "category": "factory",
+          "name": "Gatekeeper",
+          "pendingDeployment": false
+        },
+        {
+          "address": "0xaF55a0c251690d9322b5F94b7e50EE895750262c",
+          "category": "entrypoint",
+          "name": "DayEntryPoint",
+          "pendingDeployment": false
+        },
+        {
+          "address": "0xaAAaaAAAaE46cA12Bf3810DF8C13c5E8A4400812",
+          "category": "factory",
+          "name": "DayFactory",
+          "pendingDeployment": false
+        }
+      ],
+      "address": "0x82EecE4a736db0767370d2DfFdE9BDF6e38AaeB8",
+      "expiration": 604800,
+      "kind": "day",
+      "minSetback": 432000,
+      "name": "RoycoAccessManager (Day)",
+      "roles": [
+        {
+          "id": "0",
+          "name": "ADMIN_ROLE"
+        },
+        {
+          "id": "7925626764789623619",
+          "name": "ADMIN_PAUSER_ROLE"
+        },
+        {
+          "id": "10054419464311379566",
+          "name": "ADMIN_UNPAUSER_ROLE"
+        },
+        {
+          "id": "17817129721670429102",
+          "name": "ADMIN_UPGRADER_ROLE"
+        },
+        {
+          "id": "9623252227852051139",
+          "name": "ST_LP_ROLE"
+        },
+        {
+          "id": "16055754263579004741",
+          "name": "JT_LP_ROLE"
+        },
+        {
+          "id": "5114381868344194510",
+          "name": "LPT_LP_ROLE"
+        },
+        {
+          "id": "18208673593576913896",
+          "name": "BURNER_ROLE"
+        },
+        {
+          "id": "6805807443307967810",
+          "name": "ADMIN_KERNEL_ROLE"
+        },
+        {
+          "id": "10607463607985387890",
+          "name": "ADMIN_MARKET_OPS_ROLE"
+        },
+        {
+          "id": "1194442435508212435",
+          "name": "ADMIN_ACCOUNTANT_ROLE"
+        },
+        {
+          "id": "14297485179608767180",
+          "name": "ADMIN_PROTOCOL_FEE_SETTER_ROLE"
+        },
+        {
+          "id": "17717554041938053387",
+          "name": "ADMIN_ORACLE_ROLE"
+        },
+        {
+          "id": "18089890734229314815",
+          "name": "ADMIN_ENTRY_POINT_ROLE"
+        },
+        {
+          "id": "3947436291410369121",
+          "name": "ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE"
+        },
+        {
+          "id": "7441615267348890898",
+          "name": "ADMIN_BALANCER_POOL_MANAGER_ROLE"
+        },
+        {
+          "id": "11497104888763135614",
+          "name": "ADMIN_FACTORY_ROLE"
+        },
+        {
+          "id": "12118832287418532003",
+          "name": "LP_ROLE_ADMIN_ROLE"
+        },
+        {
+          "id": "3153718263372025530",
+          "name": "GUARDIAN_ROLE"
+        },
+        {
+          "id": "18446744073709551615",
+          "name": "PUBLIC_ROLE"
+        }
+      ],
+      "targets": [
+        {
+          "address": "0xaAAaaAAAaE46cA12Bf3810DF8C13c5E8A4400812",
+          "category": "factory",
+          "name": "dayFactory",
+          "parent": "",
+          "type": "factory"
+        },
+        {
+          "address": "0x716fFB13728Aec2F376883d00689679A418537f6",
+          "category": "factory",
+          "name": "dayGatekeeper",
+          "parent": "",
+          "type": "gatekeeper"
+        },
+        {
+          "address": "0xaF55a0c251690d9322b5F94b7e50EE895750262c",
+          "category": "entrypoint",
+          "name": "dayEntryPoint",
+          "parent": "",
+          "type": "entryPoint"
+        },
+        {
+          "address": "0x387e025306cb1C41fe7AB752D9C04607E03Bb8CE",
+          "category": "syncer",
+          "name": "dayMarketSyncer",
+          "parent": "",
+          "type": "syncer"
+        }
+      ]
     }
   ],
-  "targets": [
-    {
-      "address": "0x0aE0978B868804929fd4C06B3B22D9197B8cd3c6",
-      "category": "market",
-      "name": "sNUSD.kernel",
-      "parent": "sNUSD",
-      "type": "kernel"
-    },
-    {
-      "address": "0xCaa3F221fCf3c2EC7b6a49B73BB810cca35e1085",
-      "category": "market",
-      "name": "sNUSD.accountant",
-      "parent": "sNUSD",
-      "type": "accountant"
-    },
-    {
-      "address": "0x2070Af1C865f5d764F673Baf5654822947e71243",
-      "category": "market",
-      "name": "sNUSD.seniorTranche",
-      "parent": "sNUSD",
-      "type": "seniorTranche"
-    },
-    {
-      "address": "0x3821eBea3BBbE23F3dea74f24082BD0f0b67f6c5",
-      "category": "market",
-      "name": "sNUSD.juniorTranche",
-      "parent": "sNUSD",
-      "type": "juniorTranche"
-    },
-    {
-      "address": "0x8748D1c21CC550B435487F473d9Aaf6C84dA46A6",
-      "category": "market",
-      "name": "autoUSD.kernel",
-      "parent": "autoUSD",
-      "type": "kernel"
-    },
-    {
-      "address": "0xB0166629D78E3876F570f18B154A60b99024b6f4",
-      "category": "market",
-      "name": "autoUSD.accountant",
-      "parent": "autoUSD",
-      "type": "accountant"
-    },
-    {
-      "address": "0x73C641fe41EB0270C7f473f3c3E4A40eb97fd8dE",
-      "category": "market",
-      "name": "autoUSD.seniorTranche",
-      "parent": "autoUSD",
-      "type": "seniorTranche"
-    },
-    {
-      "address": "0x6f0D6567099621deE3850C673d73c532071A888d",
-      "category": "market",
-      "name": "autoUSD.juniorTranche",
-      "parent": "autoUSD",
-      "type": "juniorTranche"
-    },
-    {
-      "address": "0x6dBdf6EBdF02F50ec6a7d6F782850996928176F9",
-      "category": "market",
-      "name": "SmokehouseUSDC.kernel",
-      "parent": "SmokehouseUSDC",
-      "type": "kernel"
-    },
-    {
-      "address": "0x955f8f7691a8908fA5a2798935Bda557A03aFb75",
-      "category": "market",
-      "name": "SmokehouseUSDC.accountant",
-      "parent": "SmokehouseUSDC",
-      "type": "accountant"
-    },
-    {
-      "address": "0xa225F24654b8995036606D5Cd0634133a4BE169c",
-      "category": "market",
-      "name": "SmokehouseUSDC.seniorTranche",
-      "parent": "SmokehouseUSDC",
-      "type": "seniorTranche"
-    },
-    {
-      "address": "0xC8fab124292cB792d15041292C2399910bD086d1",
-      "category": "market",
-      "name": "SmokehouseUSDC.juniorTranche",
-      "parent": "SmokehouseUSDC",
-      "type": "juniorTranche"
-    },
-    {
-      "address": "0xde1Ce2cF64808e50d000F93058784270E412B3A4",
-      "category": "market",
-      "name": "syrupUSDC.kernel",
-      "parent": "syrupUSDC",
-      "type": "kernel"
-    },
-    {
-      "address": "0x2995f615D0ec527eD43eBb22DE0DcB66084c98FE",
-      "category": "market",
-      "name": "syrupUSDC.accountant",
-      "parent": "syrupUSDC",
-      "type": "accountant"
-    },
-    {
-      "address": "0x66182442522D3049A941035190C315379c959250",
-      "category": "market",
-      "name": "syrupUSDC.seniorTranche",
-      "parent": "syrupUSDC",
-      "type": "seniorTranche"
-    },
-    {
-      "address": "0x5f340B400F892bBFDed2e5c316369Dcbf05C282A",
-      "category": "market",
-      "name": "syrupUSDC.juniorTranche",
-      "parent": "syrupUSDC",
-      "type": "juniorTranche"
-    },
-    {
-      "address": "0x9911F227E9428964D8A35B852513919C8DF92038",
-      "category": "market",
-      "name": "stcUSD.kernel",
-      "parent": "stcUSD",
-      "type": "kernel"
-    },
-    {
-      "address": "0x59609E6f6faD8b90C025E03a98ef44f7435B122d",
-      "category": "market",
-      "name": "stcUSD.accountant",
-      "parent": "stcUSD",
-      "type": "accountant"
-    },
-    {
-      "address": "0xa7Da92685ea436276B2e87aE12E5eE6DABaD5bB5",
-      "category": "market",
-      "name": "stcUSD.seniorTranche",
-      "parent": "stcUSD",
-      "type": "seniorTranche"
-    },
-    {
-      "address": "0xe4060E83ad26618c7Ed56A02ce099beBA4f73b29",
-      "category": "market",
-      "name": "stcUSD.juniorTranche",
-      "parent": "stcUSD",
-      "type": "juniorTranche"
-    },
-    {
-      "address": "0x15bb63C07740ff972F76716cAcC5766f0C641791",
-      "category": "market",
-      "name": "ParetoFalconX.kernel",
-      "parent": "ParetoFalconX",
-      "type": "kernel"
-    },
-    {
-      "address": "0x37543D7C1e0e5C4467398681180af00efB68D0Dd",
-      "category": "market",
-      "name": "ParetoFalconX.accountant",
-      "parent": "ParetoFalconX",
-      "type": "accountant"
-    },
-    {
-      "address": "0x694ADB3077BBecE31882B6d6A74fc4A4fA6a754b",
-      "category": "market",
-      "name": "ParetoFalconX.seniorTranche",
-      "parent": "ParetoFalconX",
-      "type": "seniorTranche"
-    },
-    {
-      "address": "0x8E0ec43E51B88AA2324102e1A3D667822be51A6d",
-      "category": "market",
-      "name": "ParetoFalconX.juniorTranche",
-      "parent": "ParetoFalconX",
-      "type": "juniorTranche"
-    },
-    {
-      "address": "0xcFbdEA0990F21b103c8D123d0D5273B4ea269cb4",
-      "category": "market",
-      "name": "ApyUSD.kernel",
-      "parent": "ApyUSD",
-      "type": "kernel"
-    },
-    {
-      "address": "0x5A42DD2e3C30b20663BB86D40DB0ea28689BbD0f",
-      "category": "market",
-      "name": "ApyUSD.accountant",
-      "parent": "ApyUSD",
-      "type": "accountant"
-    },
-    {
-      "address": "0xBd373c9D3D8976a4FECC504a93c768BBE8C3227C",
-      "category": "market",
-      "name": "ApyUSD.seniorTranche",
-      "parent": "ApyUSD",
-      "type": "seniorTranche"
-    },
-    {
-      "address": "0xAB2ab53E1e2E2c5D7202918EC8c873712bcc4a2D",
-      "category": "market",
-      "name": "ApyUSD.juniorTranche",
-      "parent": "ApyUSD",
-      "type": "juniorTranche"
-    },
-    {
-      "address": "0x36c1d7CaFa9A220fc1450fA070277aED69F8c9B2",
-      "category": "market",
-      "name": "eEARN.kernel",
-      "parent": "eEARN",
-      "type": "kernel"
-    },
-    {
-      "address": "0x0684a043e7b19f3325556A3cB5d074cfc601905D",
-      "category": "market",
-      "name": "eEARN.accountant",
-      "parent": "eEARN",
-      "type": "accountant"
-    },
-    {
-      "address": "0x1BA515a409DD702105415cDAAe439059aA0B402A",
-      "category": "market",
-      "name": "eEARN.seniorTranche",
-      "parent": "eEARN",
-      "type": "seniorTranche"
-    },
-    {
-      "address": "0x059bC7AA5000A26AAE2601CfbF060653Adf8Fd91",
-      "category": "market",
-      "name": "eEARN.juniorTranche",
-      "parent": "eEARN",
-      "type": "juniorTranche"
-    },
-    {
-      "address": "0x753fB559B67DcED89020ef222bF87099776d1676",
-      "category": "market",
-      "name": "DMG.kernel",
-      "parent": "DMG",
-      "type": "kernel"
-    },
-    {
-      "address": "0x27B93Db86CAef52ab3D3b446c81833d8C5097e9a",
-      "category": "market",
-      "name": "DMG.accountant",
-      "parent": "DMG",
-      "type": "accountant"
-    },
-    {
-      "address": "0xaC9CF7e8f83C471cA596F4371fF002cdaF9573e6",
-      "category": "market",
-      "name": "DMG.seniorTranche",
-      "parent": "DMG",
-      "type": "seniorTranche"
-    },
-    {
-      "address": "0xC0378C1eB87421FF42539Ea98Be2700fc8d44B23",
-      "category": "market",
-      "name": "DMG.juniorTranche",
-      "parent": "DMG",
-      "type": "juniorTranche"
-    },
-    {
-      "address": "0xc46367BBdbC62F1825a46549062a3A88D8668D52",
-      "category": "syncer",
-      "name": "syncer",
-      "parent": "",
-      "type": "syncer"
-    },
-    {
-      "address": "0x63dA1229be88Fb4D20210147954a1a3e05f2581B",
-      "category": "entrypoint",
-      "name": "entryPoint",
-      "parent": "",
-      "type": "entryPoint"
-    },
-    {
-      "address": "0xcD9f5907F92818bC06c9Ad70217f089E190d2a32",
-      "category": "vault",
-      "name": "srRoyUSDC",
-      "parent": "srRoyUSDC",
-      "type": "vault"
-    },
-    {
-      "address": "0xc5FeF644d59415cec65049e0653CA10eD9Cba778",
-      "category": "strategy",
-      "name": "srRoyUSDC.strategy",
-      "parent": "srRoyUSDC",
-      "type": "strategy"
-    },
-    {
-      "address": "0x5476F4E23dAA093Ce6700e1026013c55F7AF9083",
-      "category": "strategy",
-      "name": "srRoyUSDC.caliber",
-      "parent": "srRoyUSDC",
-      "type": "caliber"
-    },
-    {
-      "address": "0xFa097420f0e2C72456B361a1eD85172B9ccd8c38",
-      "category": "strategy",
-      "name": "srRoyUSDC.machine",
-      "parent": "srRoyUSDC",
-      "type": "machine"
-    },
-    {
-      "address": "0x41Ce72E04D349Eb957bdc373baA9c69207032c56",
-      "category": "vault",
-      "name": "roywstETH",
-      "parent": "roywstETH",
-      "type": "vault"
-    },
-    {
-      "address": "0x185313DBb1f3AA2b3fCc603f0EE4cbA753Ef1DD7",
-      "category": "strategy",
-      "name": "roywstETH.strategy",
-      "parent": "roywstETH",
-      "type": "strategy"
-    },
-    {
-      "address": "0x3d8E2497497a3e29Ad5391c08dB2a1b3C32598c0",
-      "category": "strategy",
-      "name": "roywstETH.caliber",
-      "parent": "roywstETH",
-      "type": "caliber"
-    },
-    {
-      "address": "0x0FDF9F1920e160ea8Ae267BdE13e725DeF81E5Ee",
-      "category": "strategy",
-      "name": "roywstETH.machine",
-      "parent": "roywstETH",
-      "type": "machine"
-    }
-  ]
+  "minSetback": 432000
 }

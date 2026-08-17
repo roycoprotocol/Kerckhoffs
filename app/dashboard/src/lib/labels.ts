@@ -2,7 +2,8 @@
 // ExportCatalog) with the hand-maintained labels.json (external addresses), and exposes a directory
 // grouped by category with market/vault hierarchy.
 import type { Address, Category, DirectoryGroup, Label } from "@/model";
-import { actor, getCatalog, shorten, targetInfo } from "@/lib/catalog";
+import { actor, actorDisplayName, managersFor, shorten, targetInfo } from "@/lib/catalog";
+import { marketLabelFor } from "@/lib/markets";
 import labelsRaw from "@/metadata/labels.json";
 
 interface ExtLabel {
@@ -30,6 +31,7 @@ export function resolveLabel(chainId: number, address: string): Label {
       category: asCategory(t.category),
       subtype: t.type,
       parent: t.parent || undefined,
+      manager: t.manager,
       tags: [],
       isExternal: false,
       known: true,
@@ -39,7 +41,7 @@ export function resolveLabel(chainId: number, address: string): Label {
   if (a) {
     return {
       address: addr,
-      name: a.name,
+      name: actorDisplayName(a.name),
       category: asCategory(a.category),
       tags: [],
       pendingDeployment: a.pendingDeployment,
@@ -47,6 +49,10 @@ export function resolveLabel(chainId: number, address: string): Label {
       known: true,
     };
   }
+  // Dynamic market components (Day markets have no catalog entries) — from the subgraph-fed
+  // overlay, populated by warmMarketLabels() in pages that render addresses.
+  const mk = marketLabelFor(chainId, addr);
+  if (mk) return mk;
   const e = ext(chainId, addr);
   if (e) {
     return {
@@ -88,9 +94,8 @@ const CATEGORY_ORDER = [
   "external",
 ];
 
-// All labeled addresses on a chain (catalog targets + actors + labels.json).
+// All labeled addresses on a chain (catalog targets + actors across every manager + labels.json).
 export function allLabels(chainId: number): Label[] {
-  const cat = getCatalog(chainId);
   const out: Label[] = [];
   const seen = new Set<string>();
   const push = (l: Label) => {
@@ -98,10 +103,29 @@ export function allLabels(chainId: number): Label[] {
     seen.add(l.address);
     out.push(l);
   };
-  for (const t of cat?.targets ?? []) push(resolveLabel(chainId, t.address));
-  for (const a of cat?.actors ?? []) push(resolveLabel(chainId, a.address));
+  for (const mgr of managersFor(chainId)) {
+    for (const t of mgr.targets) push(resolveLabel(chainId, t.address));
+    for (const a of mgr.actors) push(resolveLabel(chainId, a.address));
+  }
   for (const addr of Object.keys(EXTERNAL[String(chainId)] ?? {})) push(resolveLabel(chainId, addr));
   return out;
+}
+
+// Group labels by their `parent` (market/vault name) — used by the Directory, the Dawn Markets
+// tab, and the Vaults tab.
+export function groupByParent(ls: Label[]): { parent: string; children: Label[] }[] {
+  const byParent = new Map<string, Label[]>();
+  for (const l of ls) {
+    const p = l.parent ?? l.name;
+    if (!byParent.has(p)) byParent.set(p, []);
+    byParent.get(p)!.push(l);
+  }
+  return [...byParent.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([parent, children]) => ({
+      parent,
+      children: children.sort((a, b) => (a.subtype ?? "").localeCompare(b.subtype ?? "")),
+    }));
 }
 
 // Directory grouped by category; market/vault categories nest children under their parent.
@@ -120,18 +144,10 @@ export function buildDirectory(chainId: number): DirectoryGroup[] {
     let entries;
     if (category === "market" || category === "vault" || category === "strategy") {
       // group by parent (market/vault name)
-      const byParent = new Map<string, Label[]>();
-      for (const l of ls) {
-        const p = l.parent ?? l.name;
-        if (!byParent.has(p)) byParent.set(p, []);
-        byParent.get(p)!.push(l);
-      }
-      entries = [...byParent.entries()]
-        .sort((a, b) => a[0].localeCompare(b[0]))
-        .map(([parent, children]) => ({
-          label: { address: "0x" as Address, name: parent, category: asCategory(category), tags: [], isExternal: false, known: true },
-          children: children.sort((a, b) => (a.subtype ?? "").localeCompare(b.subtype ?? "")),
-        }));
+      entries = groupByParent(ls).map(({ parent, children }) => ({
+        label: { address: "0x" as Address, name: parent, category: asCategory(category), tags: [], isExternal: false, known: true },
+        children,
+      }));
     } else {
       entries = ls.sort((a, b) => a.name.localeCompare(b.name)).map((label) => ({ label }));
     }

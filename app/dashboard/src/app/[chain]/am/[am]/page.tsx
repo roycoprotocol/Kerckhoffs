@@ -1,11 +1,11 @@
 import { chainBySlug } from "@/config/chains";
+import { parseAmKind } from "@/lib/catalog";
 import { fetchMeta, hasSubgraph } from "@/lib/subgraph";
 import { buildRoleViews } from "@/lib/merge";
-import { highestSeverity } from "@/lib/drift";
 import { fmtDelay } from "@/lib/format";
 import { includesCI, param, type SearchParams } from "@/lib/searchParams";
 import { Filters } from "@/components/Filters";
-import { DriftBadge, Empty, Mono, PageTitle, Panel, RoleLink, SubgraphMissing, Table, Td, Th } from "@/components/ui";
+import { Empty, Eyebrow, Mono, PageTitle, Panel, RoleLink, SubgraphMissing, Table, Td, Th } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -13,12 +13,13 @@ export default async function RolesPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ chain: string }>;
+  params: Promise<{ chain: string; am: string }>;
   searchParams: Promise<SearchParams>;
 }) {
-  const { chain } = await params;
+  const { chain, am } = await params;
   const sp = await searchParams;
   const cfg = chainBySlug(chain)!;
+  const kind = parseAmKind(am)!;
 
   if (!hasSubgraph(cfg.chainId)) {
     return (
@@ -31,7 +32,7 @@ export default async function RolesPage({
 
   let views, meta;
   try {
-    [views, meta] = await Promise.all([buildRoleViews(cfg.chainId), fetchMeta(cfg.chainId)]);
+    [views, meta] = await Promise.all([buildRoleViews(cfg.chainId, kind), fetchMeta(cfg.chainId)]);
   } catch (e) {
     return (
       <>
@@ -42,37 +43,19 @@ export default async function RolesPage({
   }
 
   const q = param(sp, "q");
-  const sev = param(sp, "sev");
-  const state = param(sp, "state");
-  const filtered = views.filter((v) => {
-    if (q && !(includesCI(v.name, q) || v.holders.some((h) => includesCI(h.actor ?? h.address, q)))) return false;
-    if (sev && highestSeverity(v.drift) !== sev) return false;
-    if (state === "configured" && !v.presentOnChain) return false;
-    if (state === "unconfigured" && v.presentOnChain) return false;
-    return true;
-  });
-
-  const configured = views.filter((v) => v.presentOnChain);
-  const drifting = configured.filter((v) => v.drift.length).length;
+  const filtered = views.filter(
+    (v) => !q || includesCI(v.name, q) || v.holders.some((h) => includesCI(h.actor ?? h.address, q)),
+  );
 
   return (
     <>
-      <PageTitle
-        title="Roles"
-        subtitle={
-          <>
-            {configured.length} configured · {drifting} with drift ·{" "}
-            {meta ? <>indexed block {meta.block.number}</> : "no index status"} · showing {filtered.length}
-          </>
-        }
-      />
-      <Filters
-        searchPlaceholder="Search role or holder…"
-        selects={[
-          { key: "sev", label: "drift", options: [{ value: "HIGH", label: "high" }, { value: "MEDIUM", label: "medium" }, { value: "LOW", label: "low" }] },
-          { key: "state", label: "state", options: [{ value: "configured", label: "configured" }, { value: "unconfigured", label: "not configured" }] },
-        ]}
-      />
+      <div className="mb-4 flex items-baseline justify-between">
+        <h2 className="font-serif text-[22px] font-semibold">Roles.</h2>
+        <Eyebrow>
+          {views.length} configured{meta ? ` · block ${meta.block.number}` : ""}
+        </Eyebrow>
+      </div>
+      <Filters searchPlaceholder="Search role or holder…" />
       <Panel>
         <Table
           head={
@@ -82,16 +65,14 @@ export default async function RolesPage({
               <Th>Admin</Th>
               <Th>Guardian</Th>
               <Th>Grant delay</Th>
-              <Th>Gated fns</Th>
-              <Th>Drift</Th>
+              <Th className="text-right">Gated fns</Th>
             </>
           }
         >
           {filtered.map((v) => (
-            <tr key={v.id} className={`border-b border-border/50 ${v.presentOnChain ? "" : "opacity-50"}`}>
+            <tr key={v.id} className="hover:bg-[rgba(15,14,13,0.015)]">
               <Td>
-                <RoleLink slug={chain} id={v.id} name={v.name} />
-                {!v.presentOnChain && <span className="ml-2 text-[11px] text-muted">not configured</span>}
+                <RoleLink slug={chain} am={kind} id={v.id} name={v.name} />
               </Td>
               <Td>
                 {v.holders.length === 0 ? (
@@ -106,15 +87,12 @@ export default async function RolesPage({
                   </span>
                 )}
               </Td>
-              <Td className="text-muted">{v.config.adminRoleName}</Td>
-              <Td className="text-muted">{v.config.guardianRoleName}</Td>
+              <Td className="text-[13px] text-body">{v.config.adminRoleName}</Td>
+              <Td className="text-[13px] text-body">{v.config.guardianRoleName}</Td>
               <Td>
                 <Mono>{fmtDelay(v.config.grantDelaySeconds)}</Mono>
               </Td>
-              <Td className="text-muted">{v.capabilities.length || "—"}</Td>
-              <Td>
-                <DriftBadge drift={v.drift} />
-              </Td>
+              <Td className="text-right font-mono text-xs">{v.capabilities.length || "—"}</Td>
             </tr>
           ))}
           {filtered.length === 0 && (
