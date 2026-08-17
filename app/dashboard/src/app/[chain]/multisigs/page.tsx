@@ -1,7 +1,8 @@
 import { chainBySlug } from "@/config/chains";
 import type { AmKind } from "@/model";
 import { actorDisplayName, managersFor, roleName, type CatalogActor } from "@/lib/catalog";
-import { explorerAddress, fmtDelay } from "@/lib/format";
+import { fmtDelay } from "@/lib/format";
+import { AddrLink } from "@/components/AddressLabel";
 import { fetchSafeQuorum, safeAppUrl } from "@/lib/safe";
 import { fetchAccount, hasSubgraph } from "@/lib/subgraph";
 import { AmBadge, Eyebrow, Mono, PageTitle, Panel, RoleLink } from "@/components/ui";
@@ -78,16 +79,8 @@ export default async function MultisigsPage({ params }: { params: Promise<{ chai
                   {s.quorum ? `${s.quorum.threshold} of ${s.quorum.owners} signers · ` : ""}Safe ↗
                 </a>
               </div>
-              <div className="mt-1.5 flex items-center gap-2">
-                <Mono className="text-xs text-muted">{s.address}</Mono>
-                <a
-                  href={explorerAddress(cfg.chainId, s.address)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="font-mono text-[11px] !text-muted hover:!text-ok"
-                >
-                  ↗
-                </a>
+              <div className="mt-1.5">
+                <AddrLink chainId={cfg.chainId} address={s.address} />
               </div>
               {meta && <p className="mt-3 max-w-3xl text-[13.5px] leading-relaxed text-body">{meta.description}</p>}
               {s.roles.length > 0 && (

@@ -72,7 +72,7 @@ export default async function OperationsPage({
   return (
     <>
       <PageTitle title="Pending operations" subtitle={`${ops.length} scheduled timelock op(s) · showing ${shown.length}`} />
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <div className="flex-1">
           <Filters searchPlaceholder="Search target, action or scheduler…" />
         </div>

@@ -30,7 +30,7 @@ export default async function AmLayout({
         </h1>
         <AmBadge kind={kind} />
         <span className="text-[13px] text-body">{mgr.name}</span>
-        <Mono className="text-muted">{mgr.address}</Mono>
+        <Mono className="break-all text-muted">{mgr.address}</Mono>
       </div>
       <div className="mt-6">
         <AmSubNav slug={chain} am={kind} />

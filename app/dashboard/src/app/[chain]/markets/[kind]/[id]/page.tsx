@@ -57,13 +57,13 @@ export default async function MarketDetailPage({
       <Link href={`/${chain}/markets/${kind}`} className="text-xs !text-muted hover:!text-fg">
         ← All markets
       </Link>
-      <div className="mt-2.5 flex items-baseline justify-between">
-        <div className="flex items-center gap-3.5">
+      <div className="mt-2.5 flex flex-wrap items-baseline justify-between gap-y-1.5">
+        <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1.5">
           <span
             className="inline-block h-2.5 w-2.5 shrink-0 rounded-full"
             style={{ backgroundColor: AM_COLOR[kind] }}
           />
-          <h1 className="font-serif text-3xl font-semibold">{marketDisplay(cfg.chainId, m).title}.</h1>
+          <h1 className="font-serif text-2xl font-semibold md:text-3xl">{marketDisplay(cfg.chainId, m).title}.</h1>
           {marketDisplay(cfg.chainId, m).hint && (
             <Mono className="text-xs text-muted">{marketDisplay(cfg.chainId, m).hint}</Mono>
           )}
@@ -80,7 +80,7 @@ export default async function MarketDetailPage({
             </a>
           )}
         </div>
-        <div className="flex items-baseline gap-5">
+        <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1 max-md:w-full">
           <span className="text-xs text-muted">
             deployed <LocalTime unix={Number(m.timestamp)} />
           </span>
@@ -94,7 +94,7 @@ export default async function MarketDetailPage({
 
       {sections.map((s) => (
         <div key={s.address} className="mt-8">
-          <div className="mb-2.5 flex items-baseline gap-3.5">
+          <div className="mb-2.5 flex flex-wrap items-baseline gap-x-3.5 gap-y-1">
             <Eyebrow>{s.type}</Eyebrow>
             <AddrLink chainId={cfg.chainId} address={s.address} />
           </div>

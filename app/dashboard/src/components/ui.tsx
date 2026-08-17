@@ -35,8 +35,8 @@ export function PageTitle({
           <Eyebrow>{eyebrow}</Eyebrow>
         </div>
       )}
-      <div className="mt-1.5 flex items-baseline justify-between gap-6">
-        <h1 className="font-serif text-3xl font-semibold">
+      <div className="mt-1.5 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+        <h1 className="font-serif text-2xl font-semibold md:text-3xl">
           {accent && <span className="text-ok">{accent}</span>}
           {accent ? " " : ""}
           {title}
@@ -75,10 +75,20 @@ export function SubgraphMissing({ chainName }: { chainName: string }) {
   );
 }
 
-export function Table({ head, children }: { head?: ReactNode; children: ReactNode }) {
+// Wide tables scroll horizontally INSIDE their panel on small screens (min-w keeps columns from
+// crushing); pass minW="min-w-0" for genuinely narrow tables.
+export function Table({
+  head,
+  children,
+  minW = "min-w-[640px]",
+}: {
+  head?: ReactNode;
+  children: ReactNode;
+  minW?: string;
+}) {
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full border-collapse text-sm">
+    <div className="no-scrollbar overflow-x-auto">
+      <table className={`w-full ${minW} md:min-w-0 border-collapse text-sm`}>
         {head && (
           <thead>
             <tr className="bg-head-tint text-left font-mono text-[11px] uppercase tracking-[0.1em] text-muted">

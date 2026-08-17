@@ -24,14 +24,14 @@ export default async function ChainLayout({
   return (
     <div className="min-h-screen">
       <header className="border-b border-border">
-        <div className="mx-auto flex max-w-[1160px] items-center gap-3 px-6 pb-2.5 pt-3.5">
-          <Link href={`/${chain}`} className="flex items-baseline gap-2.5">
+        <div className="mx-auto flex max-w-[1160px] items-center gap-2 px-4 pb-2.5 pt-3.5 md:gap-3 md:px-6">
+          <Link href={`/${chain}`} className="flex items-baseline gap-2.5 whitespace-nowrap">
             <span className="text-[13px] font-semibold tracking-[0.22em]">ROYCO</span>
-            <span className="text-[13px] font-semibold text-body">Access Control</span>
+            <span className="text-[13px] font-semibold text-body max-sm:hidden">Access Control</span>
           </Link>
           <div className="flex-1" />
           {meta && (
-            <span className="mr-1.5 font-mono text-[11px] tracking-[0.08em] text-muted">
+            <span className="mr-1.5 whitespace-nowrap font-mono text-[11px] tracking-[0.08em] text-muted max-md:hidden">
               INDEXED BLOCK {meta.block.number}
             </span>
           )}
@@ -40,7 +40,7 @@ export default async function ChainLayout({
         </div>
         <Nav slug={chain} amKinds={amKinds} />
       </header>
-      <main className="mx-auto max-w-[1160px] px-6 pb-24 pt-9">{children}</main>
+      <main className="mx-auto max-w-[1160px] px-4 pb-24 pt-6 md:px-6 md:pt-9">{children}</main>
     </div>
   );
 }

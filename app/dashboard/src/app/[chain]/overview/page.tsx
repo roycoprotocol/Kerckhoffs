@@ -121,7 +121,7 @@ export default async function OverviewPage({
           </div>
         )}
       </div>
-      <h1 className="mt-2 max-w-2xl font-serif text-[34px] font-semibold leading-tight">
+      <h1 className="mt-2 max-w-2xl font-serif text-[26px] font-semibold leading-tight md:text-[34px]">
         Every privileged action, <span className="text-ok">gated</span> and timelocked.
       </h1>
       <p className="mt-2.5 max-w-xl text-sm text-body">
@@ -130,6 +130,17 @@ export default async function OverviewPage({
       </p>
 
       <Pipeline safeUrl={way ? safeAppUrl(cfg.chainId, way) : null} quorum={quorum ?? null} />
+
+      {/* compact pipeline summary — stands in for the diagram on phones */}
+      <div className="mt-5 rounded-xl border border-border bg-panel px-4 py-3 text-[13px] leading-relaxed text-body md:hidden">
+        Proposed <span className="text-muted">→</span>{' '}
+        <span className="font-medium text-fg">
+          {quorum ? `${quorum.threshold}-of-${quorum.owners} multisig` : 'multisig quorum'}
+        </span>{' '}
+        <span className="text-muted">→</span> <span className="font-medium text-ok">72h screened timelock</span>{' '}
+        <span className="text-muted">→</span> executed, or <span className="text-high">guardian-cancelled</span> at
+        any point in the window.
+      </div>
 
       {/* delay ladder — computed from live bindings × role holder delays */}
       <div className="mt-6 rounded-xl border border-border bg-panel">
@@ -143,9 +154,9 @@ export default async function OverviewPage({
         {ov.ladder.map((t) => (
           <div
             key={t.key}
-            className={`flex items-center gap-3.5 border-t border-border2 px-4 py-3 ${t.hero ? 'bg-[rgba(60,194,123,0.05)]' : ''}`}
+            className={`flex flex-wrap items-center gap-x-3.5 gap-y-1 border-t border-border2 px-4 py-3 ${t.hero ? 'bg-[rgba(60,194,123,0.05)]' : ''}`}
           >
-            <div className="w-[130px] shrink-0 font-mono text-[10px] tracking-[0.1em] text-muted">
+            <div className="w-[130px] shrink-0 font-mono text-[10px] tracking-[0.1em] text-muted max-md:order-first max-md:w-full">
               {t.tier}
             </div>
             <div
@@ -153,11 +164,11 @@ export default async function OverviewPage({
             >
               {t.delay}
             </div>
-            <div className="flex-1 text-[12.5px] text-body">
+            <div className="min-w-0 flex-1 text-[12.5px] text-body">
               {t.tip ? (
                 <span className="group relative cursor-help underline decoration-[#D6D2C6] decoration-dotted underline-offset-4">
                   {t.desc}
-                  <span className="pointer-events-none absolute left-0 top-full z-20 mt-2 w-[420px] max-w-[60vw] rounded-lg border border-border bg-panel p-3 text-xs leading-relaxed text-body opacity-0 shadow-[0_8px_24px_rgba(15,14,13,0.08)] transition-opacity duration-100 group-hover:opacity-100">
+                  <span className="pointer-events-none absolute left-0 top-full z-20 mt-2 w-[420px] max-w-[85vw] rounded-lg border border-border bg-panel p-3 text-xs leading-relaxed text-body opacity-0 shadow-[0_8px_24px_rgba(15,14,13,0.08)] transition-opacity duration-100 group-hover:opacity-100">
                     {t.tip}
                   </span>
                 </span>
@@ -171,7 +182,7 @@ export default async function OverviewPage({
       </div>
 
       {/* pending operations across every chain and both AMs */}
-      <div className="mb-3 mt-8 flex items-baseline gap-3">
+      <div className="mb-3 mt-8 flex flex-wrap items-baseline gap-x-3 gap-y-2">
         <Eyebrow>Pending operations · All chains</Eyebrow>
         <div className="ml-1 flex items-center gap-1.5">
           {opsChip('active', `Active (${activeOps.length})`)}
@@ -262,18 +273,18 @@ export default async function OverviewPage({
       </div>
 
       {/* stats — control-plane numbers left, inventory (markets / AMs) pushed right */}
-      <div className="mt-10 flex flex-wrap items-stretch border-y border-border">
+      <div className="mt-10 grid grid-cols-2 gap-y-5 border-y border-border py-4 md:flex md:flex-wrap md:items-stretch md:py-0">
         {stats.map((s, i) => (
           <div
             key={s.label}
-            className={`px-6 py-4 ${i === 0 ? 'pl-0' : 'border-l border-border'} ${
-              s.label === 'Markets' ? 'ml-auto' : ''
-            } ${s.right ? 'text-right' : ''}`}
+            className={`md:px-6 md:py-4 ${i === 0 ? 'md:pl-0' : 'md:border-l md:border-border'} ${
+              s.label === 'Markets' ? 'md:ml-auto' : ''
+            } ${s.right ? 'md:text-right' : ''}`}
           >
             <div className="whitespace-nowrap font-mono text-[11px] uppercase tracking-[0.1em] text-muted">
               {s.label}
             </div>
-            <div className="mt-0.5 whitespace-nowrap font-mono text-3xl text-fg">
+            <div className="mt-0.5 whitespace-nowrap font-mono text-2xl text-fg md:text-3xl">
               {s.value}
               {s.unit && <span className="text-[15px] text-muted"> {s.unit}</span>}
             </div>

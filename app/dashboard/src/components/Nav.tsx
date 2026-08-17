@@ -52,13 +52,17 @@ export function Nav({ slug, amKinds }: { slug: string; amKinds: AmKind[] }) {
     { seg: "am/dawn", label: "Dawn AM", show: true },
   ];
   return (
-    <nav className="mx-auto flex max-w-[1160px] items-center gap-0.5 px-6">
+    <nav className="no-scrollbar mx-auto flex max-w-[1160px] items-center gap-0.5 overflow-x-auto px-4 md:px-6">
       {tabs
         .filter((t) => t.show)
         .map((t) => {
           const href = `/${slug}/${t.seg}`;
           return (
-            <Link key={t.seg} href={href} className={tabClass(pathname.startsWith(href))}>
+            <Link
+              key={t.seg}
+              href={href}
+              className={`shrink-0 whitespace-nowrap ${tabClass(pathname.startsWith(href))}`}
+            >
               {t.label}
             </Link>
           );
@@ -78,7 +82,7 @@ export function AmSubNav({ slug, am }: { slug: string; am: AmKind }) {
     { seg: "operations", label: "Pending ops" },
   ];
   return (
-    <nav className="mb-7 flex items-center gap-0.5 border-b border-border text-[13px]">
+    <nav className="no-scrollbar mb-7 flex items-center gap-0.5 overflow-x-auto border-b border-border text-[13px]">
       {tabs.map((t) => {
         const href = t.seg ? `${base}/${t.seg}` : base;
         const active = t.seg ? pathname.startsWith(href) : pathname === base || pathname.startsWith(`${base}/role`);
@@ -86,7 +90,7 @@ export function AmSubNav({ slug, am }: { slug: string; am: AmKind }) {
           <Link
             key={t.seg}
             href={href}
-            className={`-mb-px border-b-2 px-3 py-2 ${
+            className={`-mb-px shrink-0 whitespace-nowrap border-b-2 px-3 py-2 ${
               active ? "border-ok font-medium text-fg" : "border-transparent text-muted hover:text-fg"
             }`}
           >

@@ -16,3 +16,12 @@ a {
 ::selection {
   background: rgba(60, 194, 123, 0.2);
 }
+
+/* Scrollable rows (nav tabs, table wrappers) without a visible scrollbar on touch screens. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

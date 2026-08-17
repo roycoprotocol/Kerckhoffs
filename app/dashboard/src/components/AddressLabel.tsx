@@ -105,7 +105,15 @@ export function AddrLink({
       rel="noreferrer"
       className={`whitespace-nowrap font-mono text-xs text-muted hover:!text-ok ${className}`}
     >
-      {short ? shorten(address) : address} ↗
+      {short ? (
+        <>{shorten(address)} ↗</>
+      ) : (
+        // Full addresses would widen the page past a phone viewport — shorten below md.
+        <>
+          <span className="md:hidden">{shorten(address)}</span>
+          <span className="max-md:hidden">{address}</span> ↗
+        </>
+      )}
     </a>
   );
 }
