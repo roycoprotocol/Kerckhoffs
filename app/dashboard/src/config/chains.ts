@@ -22,7 +22,7 @@ const PUBLIC_RPC: Record<number, string> = {
 
 export const CHAINS: ChainConfig[] = [
   { chainId: 1, slug: "ethereum", name: "Ethereum", explorerUrl: "https://etherscan.io" },
-  { chainId: 43114, slug: "avalanche", name: "Avalanche", explorerUrl: "https://snowtrace.io" },
+  { chainId: 43114, slug: "avalanche", name: "Avalanche", explorerUrl: "https://snowscan.xyz" },
   { chainId: 42161, slug: "arbitrum", name: "Arbitrum", explorerUrl: "https://arbiscan.io" },
   { chainId: 8453, slug: "base", name: "Base", explorerUrl: "https://basescan.org" },
 ].map((c) => ({
