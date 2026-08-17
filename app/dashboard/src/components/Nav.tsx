@@ -64,12 +64,6 @@ export function Nav({ slug, amKinds }: { slug: string; amKinds: AmKind[] }) {
           );
         })}
       <div className="flex-1" />
-      <Link
-        href={`/${slug}/contracts`}
-        className={tabClass(pathname.startsWith(`/${slug}/contracts`) || pathname.startsWith(`/${slug}/address`), true)}
-      >
-        Search
-      </Link>
     </nav>
   );
 }

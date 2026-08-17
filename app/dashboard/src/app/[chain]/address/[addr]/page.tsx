@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { chainBySlug } from "@/config/chains";
 import { fetchAccount, fetchTarget, hasSubgraph, type SgAccount, type SgTarget } from "@/lib/subgraph";
 import { amLabel, managersFor, roleName, selectorName } from "@/lib/catalog";
@@ -56,9 +55,6 @@ export default async function AddressPage({ params }: { params: Promise<{ chain:
         title={label.name}
         subtitle={
           <span className="inline-flex flex-wrap items-center gap-2">
-            <Link href={`/${chain}/contracts`} className="text-muted hover:text-fg">
-              ← directory
-            </Link>
             <CategoryBadge category={label.category} />
             {label.parent && <span className="text-muted">{label.parent} › {label.subtype}</span>}
             <AddrLink chainId={cfg.chainId} address={addr} />
