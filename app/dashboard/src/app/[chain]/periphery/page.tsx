@@ -22,7 +22,9 @@ export default async function PeripheryPage({ params }: { params: Promise<{ chai
   const { chain } = await params;
   const cfg = chainBySlug(chain)!;
 
-  const labels = allLabels(cfg.chainId);
+  // Out-of-scope legacy contracts stay labeled (address page, search) but are not part of the
+  // tracked periphery.
+  const labels = allLabels(cfg.chainId).filter((l) => !l.tags.includes("out-of-scope"));
   const groups = GROUPS.map((g) => ({
     ...g,
     entries: labels

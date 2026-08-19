@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { chainBySlug } from "@/config/chains";
-import { isVerifiedMarket, managerFor } from "@/lib/catalog";
+import { managerFor } from "@/lib/catalog";
+import { isVerifiedMarket } from "@/lib/verified";
 import { fetchCurrentMarkets, MARKET_COMPONENTS, marketDisplay, marketName, roycoMarketUrl, ZERO_ADDR } from "@/lib/markets";
 import { hasSubgraph } from "@/lib/subgraph";
 import { includesCI, param, type SearchParams } from "@/lib/searchParams";
@@ -94,13 +95,19 @@ export async function MarketsPage({
         <div className="flex-1">
           <Filters searchPlaceholder="Filter markets…" />
         </div>
-        {unverifiedCount > 0 && (
+        {unverifiedCount > 0 ? (
           <Link
             href={showAll ? "?" : "?all=1"}
             className="whitespace-nowrap rounded-md border border-border bg-panel px-2.5 py-1 text-xs text-body hover:border-ok hover:!text-ok"
           >
             {showAll ? `Verified only (${verifiedCount})` : `Show all (${markets.length})`}
           </Link>
+        ) : (
+          markets.length > 0 && (
+            <span className="whitespace-nowrap rounded-md border border-[rgba(22,163,74,0.25)] bg-ok-tint px-2.5 py-1 text-xs text-ok">
+              All verified ({verifiedCount})
+            </span>
+          )
         )}
       </div>
       {shown.length === 0 ? (

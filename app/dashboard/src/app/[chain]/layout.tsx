@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { CHAINS, chainBySlug } from "@/config/chains";
 import { amKindsFor } from "@/lib/catalog";
 import { fetchMeta, hasSubgraph } from "@/lib/subgraph";
+import { warmVerifiedMarkets } from "@/lib/verified";
 import { ChainSwitcher, Nav } from "@/components/Nav";
 import { CommandSearch } from "@/components/CommandSearch";
 
@@ -16,6 +17,10 @@ export default async function ChainLayout({
   const { chain } = await params;
   const cfg = chainBySlug(chain);
   if (!cfg) notFound();
+
+  // Refresh the verified-markets set in the background — reads stay synchronous and the
+  // render never waits on royco.org.
+  void warmVerifiedMarkets();
 
   const amKinds = amKindsFor(cfg.chainId);
   const daySlugs = CHAINS.filter((c) => amKindsFor(c.chainId).includes("day")).map((c) => c.slug);

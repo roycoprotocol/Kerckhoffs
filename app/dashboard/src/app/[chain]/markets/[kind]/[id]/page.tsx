@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { chainBySlug } from "@/config/chains";
-import { isVerifiedMarket, managerFor, parseAmKind, roleName, selectorName } from "@/lib/catalog";
+import { managerFor, parseAmKind, roleName, selectorName } from "@/lib/catalog";
+import { isVerifiedMarket } from "@/lib/verified";
 import { fetchAllRoles, fetchTarget, hasSubgraph } from "@/lib/subgraph";
 import { fetchCurrentMarkets, marketDisplay, MARKET_COMPONENTS, roycoMarketUrl, warmMarketLabels, ZERO_ADDR } from "@/lib/markets";
 import { AddressLabel, AddrLink, AM_COLOR } from "@/components/AddressLabel";

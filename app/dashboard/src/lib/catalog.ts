@@ -11,7 +11,6 @@ import catalog43114 from "@/metadata/catalog.43114.json";
 import catalog42161 from "@/metadata/catalog.42161.json";
 import catalog8453 from "@/metadata/catalog.8453.json";
 import selectorsRaw from "@/metadata/selectors.json";
-import verifiedRaw from "@/metadata/verified-markets.json";
 
 export interface CatalogRole {
   id: string;
@@ -210,13 +209,6 @@ export function kernelForParent(chainId: number, parent: string): string | undef
   return undefined;
 }
 
-// ── verified markets (hand-maintained allowlist of kernel addresses) ──────────
-
-const VERIFIED = verifiedRaw as Record<string, string[]>;
-
-export function isVerifiedMarket(chainId: number, kernel: string): boolean {
-  return (VERIFIED[String(chainId)] ?? []).includes(kernel.toLowerCase());
-}
 
 export function selectorName(selector: string): string {
   return SELECTORS[selector.toLowerCase()]?.name ?? selector;

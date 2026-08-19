@@ -56,5 +56,10 @@ jobs:
             echo "::endgroup::"
           done
 
+      # Tests import generated Day types (DayAccessManager / DayFactory), which only exist for a
+      # Day-bearing render — pin the manifest to mainnet instead of relying on loop order above.
       - name: Matchstick unit tests
-        run: npm test
+        run: |
+          node scripts/render.mjs 1
+          npm run codegen
+          npm test
