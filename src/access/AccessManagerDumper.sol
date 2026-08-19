@@ -404,4 +404,67 @@ abstract contract AccessManagerDumper is Roles, Multisigs, Markets, Vaults, Stra
         roles[26] = ROYWSTETH_TIMELOCK_MANAGER;
         labels[26] = "ROYWSTETH_TIMELOCK_MANAGER";
     }
+
+    /// @dev The Day AM role graph (mirrors royco-day `Roles.sol` + `RoleGraphConfig.sol`).
+    ///      `BURNER_ROLE` is included even though it is bound-but-never-granted on Day tranches.
+    function _allDayRoles() internal pure returns (uint64[] memory roles, string[] memory labels) {
+        roles = new uint64[](19);
+        labels = new string[](19);
+
+        // Built-ins
+        roles[0] = ADMIN_ROLE;
+        labels[0] = "ADMIN_ROLE";
+
+        // Common
+        roles[1] = ADMIN_PAUSER_ROLE;
+        labels[1] = "ADMIN_PAUSER_ROLE";
+        roles[2] = ADMIN_UNPAUSER_ROLE;
+        labels[2] = "ADMIN_UNPAUSER_ROLE";
+        roles[3] = ADMIN_UPGRADER_ROLE;
+        labels[3] = "ADMIN_UPGRADER_ROLE";
+
+        // Tranches
+        roles[4] = ST_LP_ROLE;
+        labels[4] = "ST_LP_ROLE";
+        roles[5] = JT_LP_ROLE;
+        labels[5] = "JT_LP_ROLE";
+        roles[6] = LPT_LP_ROLE;
+        labels[6] = "LPT_LP_ROLE";
+        roles[7] = BURNER_ROLE;
+        labels[7] = "BURNER_ROLE";
+
+        // Kernel
+        roles[8] = ADMIN_KERNEL_ROLE;
+        labels[8] = "ADMIN_KERNEL_ROLE";
+        roles[9] = ADMIN_MARKET_OPS_ROLE;
+        labels[9] = "ADMIN_MARKET_OPS_ROLE";
+
+        // Accountant
+        roles[10] = ADMIN_ACCOUNTANT_ROLE;
+        labels[10] = "ADMIN_ACCOUNTANT_ROLE";
+        roles[11] = ADMIN_PROTOCOL_FEE_SETTER_ROLE;
+        labels[11] = "ADMIN_PROTOCOL_FEE_SETTER_ROLE";
+
+        // Oracle
+        roles[12] = ADMIN_ORACLE_ROLE;
+        labels[12] = "ADMIN_ORACLE_ROLE";
+
+        // Entry point
+        roles[13] = ADMIN_ENTRY_POINT_ROLE;
+        labels[13] = "ADMIN_ENTRY_POINT_ROLE";
+        roles[14] = ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE;
+        labels[14] = "ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE";
+
+        // Balancer / factory
+        roles[15] = ADMIN_BALANCER_POOL_MANAGER_ROLE;
+        labels[15] = "ADMIN_BALANCER_POOL_MANAGER_ROLE";
+        roles[16] = ADMIN_FACTORY_ROLE;
+        labels[16] = "ADMIN_FACTORY_ROLE";
+
+        // Meta / guardian
+        roles[17] = LP_ROLE_ADMIN_ROLE;
+        labels[17] = "LP_ROLE_ADMIN_ROLE";
+        roles[18] = GUARDIAN_ROLE;
+        labels[18] = "GUARDIAN_ROLE";
+    }
 }

@@ -1,30 +1,35 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.28;
 
-import { Selectors } from "../../src/access/Selectors.sol";
+import { CaliberWiring } from "../../src/migration/CaliberWiring.sol";
 import { MigrationBase } from "../../src/migration/MigrationBase.sol";
 import { Script } from "forge-std/Script.sol";
 import { console2 } from "forge-std/console2.sol";
-import { ICaliber } from "makina-core/src/interfaces/ICaliber.sol";
-import { IMakinaGovernable } from "makina-core/src/interfaces/IMakinaGovernable.sol";
 
 /**
  * @title MigrateMakina
  * @notice Migrates the Makina/Caliber surface (Caliber setters) to AccessManager-routed
  *         authorization per `authorization/README.md` §2 Makina table.
  *
- * Per vault (`srRoyUSDC`, `roywstETH`), the script binds Caliber AND Machine setters
- * (everything currently gated by the on-chain `onlyRiskManagerTimelock` modifier) to two new
- * per-vault AM roles and grants those roles to WAY with the model's delays:
+ * Makina is hub-and-spoke, so this runs on multiple chains:
+ *   - **Hub (mainnet)** — both vaults (`srRoyUSDC`, `roywstETH`); each Caliber's endpoint is a
+ *     Machine. Binds Caliber setters + the Machine's risk-manager setters.
+ *   - **Spokes (Arbitrum, Base)** — only `srRoyUSDC` (its Caliber is deployed at the same address;
+ *     roywstETH has no spoke Caliber). The Caliber's endpoint is a local `CaliberMailbox` (no
+ *     Machine); binds Caliber setters + the CaliberMailbox's risk-manager setters.
  *
- *   `<VAULT>_RISK_MANAGER`     (72h) — routine risk parameters + base token mgmt + Machine fee/cooldown setters
+ * Per (chain, vault-with-Caliber), everything currently gated by `onlyRiskManager[Timelock]` is
+ * bound to two per-vault AM roles, granted to WAY with the model's delays:
+ *
+ *   `<VAULT>_RISK_MANAGER`     (72h) — routine risk parameters + base token mgmt + endpoint setters
  *   `<VAULT>_TIMELOCK_MANAGER` (72h) — `setTimelockDuration` only (meta-timelock on the Caliber)
  *
  * The Caliber's on-chain `_allowedInstrRoot` timelock is left untouched (see README §2 notes).
  *
  * **Out-of-band prerequisite (Makina governance).** BOTH the `_riskManager` (slot 2) AND the
- * `_riskManagerTimelock` (slot 3) slots on each Machine must point at `ROYCO_FACTORY` for the
- * AM-side bindings to take effect. Both are required because the migration binds
+ * `_riskManagerTimelock` (slot 3) slots on each Caliber endpoint (the Machine on the hub, the
+ * CaliberMailbox on a spoke) must point at that chain's RoycoFactory for the AM-side bindings to
+ * take effect. Both are required because the migration binds
  * `onlyRiskManager`-gated setters too: `Machine.setShareLimit` and `Caliber.scheduleAllowedInstrRootUpdate`
  * resolve against `_riskManager` (slot 2), while every other bound setter resolves against
  * `_riskManagerTimelock` (slot 3). Re-pointing only slot 3 would leave `setShareLimit` /
@@ -36,10 +41,10 @@ import { IMakinaGovernable } from "makina-core/src/interfaces/IMakinaGovernable.
  * that we can verify the post-state assuming Makina governance executes the change. Tracking this
  * with Makina is a separate workstream.
  *
- * The strategy contract (sits under the vault) is wired in `script/migrate/Vaults.s.sol`, since
- * the strategy lives under the concrete vault — Makina migration handles only Caliber + Machine.
+ * The strategy contract (sits under the concrete vault) is wired in `script/migrate/Vaults.s.sol`;
+ * Makina migration handles only the Caliber + its endpoint.
  *
- * Output: `output/migrate/makina/{chainId}_caliber.json` (combined batch for both vaults).
+ * Output: `output/migrate/makina/{chainId}_caliber_{vault}.json` — one batch per (chain, vault).
  *
  * ── ONE-TIME USE ────────────────────────────────────────────────────────────────────────────
  * The batch grants/wires roles via FNDN's ADMIN_ROLE directly, so this must run BEFORE Dawn's
@@ -47,10 +52,34 @@ import { IMakinaGovernable } from "makina-core/src/interfaces/IMakinaGovernable.
  * `_assertPreMigrationAdminState` and reverts (`MigrationAlreadyApplied`) if the lockdown has
  * already happened. One-shot bootstrap for the current state — not a reusable tool.
  */
-contract MigrateMakina is MigrationBase, Script {
+contract MigrateMakina is CaliberWiring, MigrationBase, Script {
+    /// @dev When set, `_buildBatch` emits ONLY this vault's 9 txs and `_outputPath` writes a
+    ///      per-vault file. `run()` sets it per vault so each vault gets its own signable JSON
+    ///      (the two vaults are independent: disjoint roles, targets and holders). Left empty by
+    ///      the `applyToFork` test path, which builds the combined batch.
+    string private _currentVault;
+
+    /// @dev Mainnet (hub) has both vaults' calibers; the spokes have only srRoyUSDC's caliber
+    ///      (roywstETH is hub-only). Per-chain vault sets come from `strategyVaultNames`.
     function _targetChains() internal pure override returns (uint256[] memory chains) {
-        chains = new uint256[](1);
+        chains = new uint256[](3);
         chains[0] = MAINNET;
+        chains[1] = ARBITRUM;
+        chains[2] = BASE;
+    }
+
+    /// @notice Emits ONE Safe batch per (chain, vault-with-caliber):
+    ///         `output/migrate/makina/{chainId}_caliber_{vault}.json`.
+    function run() external override {
+        _assertProductionMultisigs();
+        uint256[] memory chains = _targetChains();
+        for (uint256 i = 0; i < chains.length; i++) {
+            string[] memory vaults = strategyVaultNames(chains[i]);
+            for (uint256 j = 0; j < vaults.length; j++) {
+                _currentVault = vaults[j];
+                _processChain(chains[i]);
+            }
+        }
     }
 
     function _safeFor(
@@ -64,7 +93,10 @@ contract MigrateMakina is MigrationBase, Script {
         return FNDN;
     }
 
-    function _outputPath(uint256 _chainId) internal pure override returns (string memory) {
+    function _outputPath(uint256 _chainId) internal view override returns (string memory) {
+        if (bytes(_currentVault).length > 0) {
+            return string.concat("output/migrate/makina/", _toString(_chainId), "_caliber_", _currentVault);
+        }
         return string.concat("output/migrate/makina/", _toString(_chainId), "_caliber");
     }
 
@@ -72,13 +104,16 @@ contract MigrateMakina is MigrationBase, Script {
         uint256 /*_chainId*/
     )
         internal
-        pure
+        view
         override
         returns (string memory name, string memory description)
     {
-        name = "Royco Makina/Caliber AccessManager wiring";
-        description =
-            "Bind Caliber + Machine setters to per-vault RISK_MANAGER (72h) and TIMELOCK_MANAGER (72h) roles. Grant both to WAY; cancellable via GUARDIAN_ROLE (FNDN/FNDN_VETO). The on-chain _allowedInstrRoot timelock is unchanged.";
+        string memory scope = bytes(_currentVault).length > 0 ? string.concat(" - ", _currentVault) : "";
+        name = string.concat("Royco Makina/Caliber AccessManager wiring", scope);
+        description = string.concat(
+            "Bind Caliber + Machine setters to per-vault RISK_MANAGER (72h) and TIMELOCK_MANAGER (72h) roles. Grant both to WAY; cancellable via GUARDIAN_ROLE (FNDN/FNDN_VETO). The on-chain _allowedInstrRoot timelock is unchanged.",
+            bytes(_currentVault).length > 0 ? string.concat(" Scope: ", _currentVault, " only.") : ""
+        );
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -86,120 +121,41 @@ contract MigrateMakina is MigrationBase, Script {
     // ═══════════════════════════════════════════════════════════════════════════
 
     function _buildBatch(uint256 _chainId) internal view override returns (SafeTransaction[] memory) {
-        string[] memory vaults = vaultNames(_chainId);
-        // Resolve the AM per chain (Base has its own factory). Mainnet-only today, but never
-        // hardcode ROYCO_FACTORY here — that would silently target the wrong AM off mainnet.
-        address factory = roycoFactory(_chainId);
-
-        // Per vault: 2 labelRole + 3 setTargetFunctionRole + 2 setRoleGuardian + 2 grantRole = 9 txs
-        SafeTransaction[] memory txs = new SafeTransaction[](9 * vaults.length);
-        uint256 t;
-
-        for (uint256 i = 0; i < vaults.length; i++) {
-            (uint64 riskRole, uint64 tlRole, string memory riskLabel, string memory tlLabel) = _vaultRoleIds(vaults[i]);
-            StrategyStack memory s = getStrategyStack(_chainId, vaults[i]);
-
-            txs[t++] = buildLabelRole(factory, riskRole, riskLabel);
-            txs[t++] = buildLabelRole(factory, tlRole, tlLabel);
-
-            // Caliber: risk-manager-gated setters + meta-timelock setter
-            txs[t++] = buildSetTargetFunctionRole(factory, s.caliber, Selectors.caliberRiskManagerSelectors(), riskRole);
-            bytes4[] memory tlSel = new bytes4[](1);
-            tlSel[0] = ICaliber.setTimelockDuration.selector;
-            txs[t++] = buildSetTargetFunctionRole(factory, s.caliber, tlSel, tlRole);
-
-            // Machine: risk-manager-gated setters (all `onlyRiskManagerTimelock`)
-            txs[t++] = buildSetTargetFunctionRole(factory, s.machine, Selectors.machineRiskManagerSelectors(), riskRole);
-
-            // Guardian wiring — required so the guardian can cancel the 72h-delayed risk/timelock
-            // manager ops. Without this, getRoleGuardian defaults to ADMIN_ROLE and only an admin
-            // can cancel.
-            txs[t++] = buildSetRoleGuardian(factory, riskRole, GUARDIAN_ROLE);
-            txs[t++] = buildSetRoleGuardian(factory, tlRole, GUARDIAN_ROLE);
-
-            // Held by WAY (parameter-update authority). FNDN / FNDN_VETO cancel via GUARDIAN_ROLE.
-            txs[t++] = buildGrantRole(factory, riskRole, WAY, DELAY_MIN);
-            txs[t++] = buildGrantRole(factory, tlRole, WAY, DELAY_MIN);
+        // Scoped to one vault when `run()` set it; otherwise every caliber on the chain (the
+        // applyToFork test path).
+        string[] memory vaults;
+        if (bytes(_currentVault).length > 0) {
+            vaults = new string[](1);
+            vaults[0] = _currentVault;
+        } else {
+            vaults = strategyVaultNames(_chainId);
         }
 
-        require(t == txs.length, "Makina tx count mismatch");
-        return txs;
+        // Each vault's 9-tx batch is built by the shared `CaliberWiring` mixin (single source of
+        // truth with the consolidated srRoyUSDC generator). Concatenate them in registry order.
+        SafeTransaction[][] memory perVault = new SafeTransaction[][](vaults.length);
+        for (uint256 i = 0; i < vaults.length; i++) {
+            perVault[i] = _buildCaliberForVault(_chainId, vaults[i]);
+        }
+        return mergeBatches(perVault);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
     // PRE-SIMULATION (Makina-governance prerequisite, NOT in the emitted JSON)
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// @dev Two simulation-only prerequisites that depend on Makina governance and so are NOT
-    ///      included in the emitted Safe JSON:
-    ///
-    ///      1. **Re-point BOTH `_riskManager` (slot 2) and `_riskManagerTimelock` (slot 3) on each
-    ///         Machine to `ROYCO_FACTORY`** so the on-chain `onlyRiskManager` / `onlyRiskManagerTimelock`
-    ///         modifiers on both Machine and Caliber accept calls relayed via the Royco AM. Both slots
-    ///         are needed: `onlyRiskManager` setters (`Machine.setShareLimit`,
-    ///         `Caliber.scheduleAllowedInstrRootUpdate`) read slot 2; every other bound setter reads
-    ///         slot 3. Caliber doesn't inherit `MakinaGovernable` — its modifiers delegate to the
-    ///         Machine's slots (vendored
-    ///         `royco-vault-makina-strategy/lib/makina-core/src/caliber/Caliber.sol:109-121`), so a
-    ///         single Machine update per slot covers both contracts. Mocked via `vm.store`.
-    ///      2. **Add FNDN as an `instrRootGuardian` on each Caliber** so FNDN can call
-    ///         `cancelAllowedInstrRootUpdate` during the on-chain timelock window. This requires
-    ///         `Caliber.addInstrRootGuardian(FNDN)`, which is `restricted` (Makina AM). Mocked
-    ///         here via `vm.mockCall(caliber, isInstrRootGuardian(FNDN), true)`.
-    ///
-    ///      Both ops require Makina governance to actually execute. Tracking is a separate workstream.
+    /// @dev Runs the shared per-vault Makina-governance prerequisites (both governable slots ->
+    ///      RoycoFactory + FNDN mocked as instrRootGuardian) for every caliber on the chain. The
+    ///      mechanics + full rationale live in `CaliberWiring._preSimulateCaliberForVault`; these
+    ///      are simulation-only and NOT part of the emitted JSON.
     function _preSimulate(uint256 _chainId) internal override {
         console2.log("");
         console2.log(">>> Pre-simulating Makina governance prerequisites:");
 
-        string[] memory vaults = vaultNames(_chainId);
+        string[] memory vaults = strategyVaultNames(_chainId);
         for (uint256 i = 0; i < vaults.length; i++) {
-            StrategyStack memory s = getStrategyStack(_chainId, vaults[i]);
-            _writeMachineGovernableSlot(s.machine, _SLOT_RISK_MANAGER, roycoFactory(_chainId), string.concat(vaults[i], " machine.riskManager"));
-            _writeMachineGovernableSlot(
-                s.machine, _SLOT_RISK_MANAGER_TIMELOCK, roycoFactory(_chainId), string.concat(vaults[i], " machine.riskManagerTimelock")
-            );
-            _mockCaliberInstrRootGuardian(s.caliber, FNDN, string.concat(vaults[i], " caliber"));
+            _preSimulateCaliberForVault(_chainId, vaults[i]);
         }
-    }
-
-    function _mockCaliberInstrRootGuardian(address _caliber, address _guardian, string memory _label) internal {
-        vm.mockCall(_caliber, abi.encodeWithSignature("isInstrRootGuardian(address)", _guardian), abi.encode(true));
-        require(ICaliber(_caliber).isInstrRootGuardian(_guardian), string.concat(_label, ": isInstrRootGuardian mock did not stick"));
-        console2.log(string.concat("    [OK] ", _label, " FNDN recognised as instrRootGuardian (cancelAllowedInstrRootUpdate)"));
-    }
-
-    /// @dev MakinaGovernableStorage layout (vendored
-    ///      `royco-vault-makina-strategy/lib/makina-core/src/utils/MakinaGovernable.sol:14-22`):
-    ///      slot+0 _mechanic, +1 _securityCouncil, +2 _riskManager, +3 _riskManagerTimelock, ...
-    ///      ERC-7201 base slot:
-    ///      `keccak256(abi.encode(uint256(keccak256("makina.storage.MakinaGovernable")) - 1)) & ~bytes32(uint256(0xff))`
-    ///      = 0x7e702089668346e906996be6de3dfc0cb2b0c125fc09b3c0391871825913e000
-    bytes32 private constant _MAKINA_GOVERNABLE_STORAGE_BASE = 0x7e702089668346e906996be6de3dfc0cb2b0c125fc09b3c0391871825913e000;
-    uint256 private constant _SLOT_RISK_MANAGER = 2;
-    uint256 private constant _SLOT_RISK_MANAGER_TIMELOCK = 3;
-
-    /// @dev Writes either the riskManager (offset 2) or riskManagerTimelock (offset 3) slot
-    ///      and verifies the corresponding view returns the new value.
-    function _writeMachineGovernableSlot(address _machine, uint256 _offset, address _newAddr, string memory _label) internal {
-        bytes32 slot = bytes32(uint256(_MAKINA_GOVERNABLE_STORAGE_BASE) + _offset);
-        vm.store(_machine, slot, bytes32(uint256(uint160(_newAddr))));
-        address actual = _offset == _SLOT_RISK_MANAGER ? IMakinaGovernable(_machine).riskManager() : IMakinaGovernable(_machine).riskManagerTimelock();
-        require(actual == _newAddr, string.concat(_label, ": store did not stick (storage layout drifted?)"));
-        console2.log(string.concat("    [OK] ", _label, " -> ROYCO_FACTORY"));
-    }
-
-    function _vaultRoleIds(string memory _vault) internal pure returns (uint64 riskRole, uint64 tlRole, string memory riskLabel, string memory tlLabel) {
-        if (_str_eq(_vault, "srRoyUSDC")) {
-            return (SRROYUSDC_RISK_MANAGER, SRROYUSDC_TIMELOCK_MANAGER, "SRROYUSDC_RISK_MANAGER", "SRROYUSDC_TIMELOCK_MANAGER");
-        } else if (_str_eq(_vault, "roywstETH")) {
-            return (ROYWSTETH_RISK_MANAGER, ROYWSTETH_TIMELOCK_MANAGER, "ROYWSTETH_RISK_MANAGER", "ROYWSTETH_TIMELOCK_MANAGER");
-        }
-        revert("Unknown vault for Makina migration");
-    }
-
-    function _str_eq(string memory _a, string memory _b) internal pure returns (bool) {
-        return keccak256(bytes(_a)) == keccak256(bytes(_b));
     }
 
     // ═══════════════════════════════════════════════════════════════════════════

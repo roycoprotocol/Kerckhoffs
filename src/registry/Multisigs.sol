@@ -26,6 +26,10 @@ import { Factory } from "./Factory.sol";
  *   Dedicated fast-response veto multisig; can cancel any WAY-scheduled op.
  * - **DIAL** — operations role-holder for `STRATEGY_ALLOCATOR` (and natively for the vault's
  *   `ALLOCATOR` / `WITHDRAWAL_MANAGER`, which stay native and are not remapped).
+ * - **AUTO** (Autonomous) — contracted service provider. Co-holds `LP_ROLE_ADMIN_ROLE` with WAY
+ *   (Immediate) so it can grant/revoke `ST_LP_ROLE` / `JT_LP_ROLE` to LPs as an operational duty.
+ *   Deployed on Mainnet / Avalanche / Arbitrum only (not Base). The Dawn migration intentionally
+ *   does NOT revoke it — it is an expected holder, not stale state.
  */
 abstract contract Multisigs is Factory {
     /// @dev FNDN multisig (root admin / executor)
@@ -36,6 +40,10 @@ abstract contract Multisigs is Factory {
 
     /// @dev DIAL multisig (strategy allocator).
     address internal constant DIAL = 0xe7E4FA51280eB212254458d62081587Acd2077eE;
+
+    /// @dev AUTO (Autonomous) multisig — contracted service provider; co-holds LP_ROLE_ADMIN_ROLE
+    ///      with WAY (Immediate). Same address on Mainnet / Avalanche / Arbitrum; NOT on Base.
+    address internal constant AUTO = 0xb2B80EBcb7EE285806ddcB26E84a444032D1c244;
 
     // ─────────────────────────────────────────────────────────────────────────
     // Emergency fast-response multisigs (1/4 each)

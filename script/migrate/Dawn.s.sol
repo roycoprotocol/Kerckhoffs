@@ -55,6 +55,41 @@ contract MigrateDawn is MigrationBase, Script {
     uint256 internal constant _MAX_BATCH_SIZE = 256;
 
     // ═══════════════════════════════════════════════════════════════════════════
+    // ROLLOUT PHASING (deferred ADMIN_ROLE lockdown)
+    // ═══════════════════════════════════════════════════════════════════════════
+    //
+    // The ADMIN_ROLE delay flip (step 8) is the point of no return: once FNDN's ADMIN_ROLE
+    // execution delay is 72h, every further admin op needs schedule → wait 72h → execute. For a
+    // staged multi-chain rollout you usually apply steps 1–7 on each chain FIRST (keeping FNDN's
+    // fast admin access), then flip the lockdown on every chain LAST. These flags select which
+    // slice of the batch `_buildBatch` emits; they are set by the entry points below.
+    bool private _deferAdminLockdown; // emit steps 1–7 only (skip the ADMIN_ROLE flip)
+    bool private _onlyAdminLockdown; // emit ONLY the ADMIN_ROLE flip (the final lockdown)
+
+    /// @notice Steps 1–7 for `_chains`, EXCLUDING the ADMIN_ROLE delay flip. Run this as each
+    ///         chain goes live; apply the lockdown separately at the end via `runLockdown`.
+    ///         Usage: `forge script ... --sig "runDeferLockdown(uint256[])" "[1,43114,8453]"`
+    function runDeferLockdown(uint256[] calldata _chains) external {
+        _deferAdminLockdown = true;
+        _assertProductionMultisigs();
+        for (uint256 i = 0; i < _chains.length; i++) {
+            _processChain(_chains[i]);
+        }
+    }
+
+    /// @notice ONLY the ADMIN_ROLE delay flip (72h lockdown) for `_chains` — the FINAL step, run
+    ///         once every chain has had steps 1–7 applied. Writes a separate JSON
+    ///         (`{chainId}_admin_role_lockdown.json`) so it never clobbers the main batch.
+    ///         Usage: `forge script ... --sig "runLockdown(uint256[])" "[1,43114,42161,8453]"`
+    function runLockdown(uint256[] calldata _chains) external {
+        _onlyAdminLockdown = true;
+        _assertProductionMultisigs();
+        for (uint256 i = 0; i < _chains.length; i++) {
+            _processChain(_chains[i]);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
     // CHAIN SELECTION
     // ═══════════════════════════════════════════════════════════════════════════
 
@@ -87,6 +122,12 @@ contract MigrateDawn is MigrationBase, Script {
         SafeTransaction[] memory buf = new SafeTransaction[](_MAX_BATCH_SIZE);
         uint256 n;
 
+        // Lockdown-only phase (`runLockdown`): emit just the ADMIN_ROLE delay flip.
+        if (_onlyAdminLockdown) {
+            n = _diffAdminRoleDelay(buf, n, am);
+            return _trim(buf, n);
+        }
+
         n = _diffWAYRoleGrants(buf, n, am);
         n = _diffFNDNRoleGrants(buf, n, am);
         n = _diffEmergencyMultisigGrants(buf, n, am);
@@ -95,7 +136,10 @@ contract MigrateDawn is MigrationBase, Script {
         n = _diffTrancheBindings(buf, n, am, _chainId);
         n = _diffUnpauseRebind(buf, n, am, _chainId);
         n = _diffLabels(buf, n, am);
-        n = _diffAdminRoleDelay(buf, n, am);
+        // Step 8 (ADMIN_ROLE lockdown) is the point of no return — skip it when deferring.
+        if (!_deferAdminLockdown) {
+            n = _diffAdminRoleDelay(buf, n, am);
+        }
 
         return _trim(buf, n);
     }
@@ -367,6 +411,9 @@ contract MigrateDawn is MigrationBase, Script {
     }
 
     function _assertPostState(uint256 _chainId) internal view override {
+        // The lockdown-only batch just flips FNDN's ADMIN_ROLE delay; guardian wiring is the
+        // main batch's post-state concern (and isn't present until steps 1-7 are executed).
+        if (_onlyAdminLockdown) return;
         _assertGuardianWiring(IAccessManager(roycoFactory(_chainId)));
     }
 
@@ -448,7 +495,10 @@ contract MigrateDawn is MigrationBase, Script {
     // OUTPUT
     // ═══════════════════════════════════════════════════════════════════════════
 
-    function _outputPath(uint256 _chainId) internal pure override returns (string memory) {
+    function _outputPath(uint256 _chainId) internal view override returns (string memory) {
+        if (_onlyAdminLockdown) {
+            return string.concat("output/migrate/dawn/", _toString(_chainId), "_admin_role_lockdown");
+        }
         return string.concat("output/migrate/dawn/", _toString(_chainId), "_apply_security_migration");
     }
 
@@ -456,13 +506,23 @@ contract MigrateDawn is MigrationBase, Script {
         uint256 /*_chainId*/
     )
         internal
-        pure
+        view
         override
         returns (string memory name, string memory description)
     {
+        if (_onlyAdminLockdown) {
+            name = "Royco ADMIN_ROLE lockdown (Dawn surface - FINAL step)";
+            description =
+                "Sets FNDN's ADMIN_ROLE execution delay to 72h. This is the point of no return: after execution, every ADMIN_ROLE-gated op requires schedule -> wait 72h -> execute. Run once every chain has had the main migration (steps 1-7) applied.";
+            return (name, description);
+        }
         name = "Royco security migration (Dawn surface, WAY-centric)";
-        description =
-            "Diff-based: WAY holds parameter-update + pause + upgrade roles; FNDN holds ADMIN_ROLE (72h), GUARDIAN_ROLE, ADMIN_UNPAUSER_ROLE, ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE. Re-running against a fully-applied chain produces a 0-tx batch.";
+        description = string.concat(
+            "Diff-based: WAY holds parameter-update + pause + upgrade roles; FNDN holds ADMIN_ROLE, GUARDIAN_ROLE, ADMIN_UNPAUSER_ROLE, ADMIN_ENTRY_POINT_ROLE_CLAIM_FEE. Re-running against a fully-applied chain produces a 0-tx batch.",
+            _deferAdminLockdown
+                ? " NOTE: the ADMIN_ROLE delay flip (72h lockdown) is intentionally EXCLUDED from this batch - apply it at the end via runLockdown."
+                : ""
+        );
     }
 
     function _toString(uint256 _v) private pure returns (string memory s) {

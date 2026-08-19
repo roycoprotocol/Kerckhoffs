@@ -152,6 +152,34 @@ Authorities Royco doesn't control today and aren't part of any migration here.
 | ConcreteFactory `Ownable` owner | `lib/concrete-earn-v2-bug-bounty/src/factory/ConcreteFactory.sol:41` | Concrete | `approveImplementation`, `blockImplementation`, `registerVault`, `_authorizeUpgrade` (UUPS), `updateManagementFeeRecipient` / `updatePerformanceFeeRecipient` | Outside Royco's authority surface. |
 | Vault whitelist hook contract owner | per-vault hook contract | Concrete / vault deployer | Whitelist additions / removals | Out of scope; only the vault's `HOOK_MANAGER` is migrated. |
 | Securitize transfer agent | held via `TRANSFER_AGENT_ROLE` on AM | Securitize | Transfer-restriction logic per Securitize's compliance model | AM-tracked but doesn't fit Royco's delay tiers. |
+| `sroywstETH` vault + strategy | vault `0xc678…6a90` ("Staked Royco ETH", asset = the roywstETH vault); strategy `0x43c3…86d2` (makina machine `0x6BE5…aA7D`) | legacy pre-migration strategy admin role (id `13895792824689027911`), held by FNDN @ Immediate | `pause` / `unpause` / `rescueToken` on that strategy | **Deliberately out of migration scope.** AM-governed (`authority()` = RoycoFactory) but intentionally absent from `src/registry/{Vaults,Strategies}.sol`, so `MigrateVaults` skips it. Consequence: WAY_PAUSE cannot pause it and `rescueToken` keeps no timelock/veto window (stays FNDN @ Immediate rather than `STRATEGY_RESCUE` @ 72h). Revisit if it is ever brought in-scope. |
+
+---
+
+## 5. Royco Day AccessManager
+
+A second, independent OZ `AccessManager` — royco-day's `RoycoAccessManager` at
+`0x82EecE4a736db0767370d2DfFdE9BDF6e38AaeB8` (all four chains since 2026-08-17; the FINAL
+deployment per docs.royco.org/key-addresses — an earlier pre-production AM `0x87aED465…` is
+retired and untracked). It
+controls every Royco Day market (deployed permissionlessly through the Day `RoycoFactory`
+`0xaaAaaaaa01Af9426C2eB6FeBc61DcD7C302cc45F`), and the Concrete vaults + Makina stacks above will
+migrate to it from the Dawn AM (srRoyUSDC, roywstETH, and their Calibers/Machines).
+
+Key structural differences from the Dawn AM:
+
+- `ADMIN_ROLE` is co-held by the `RoycoFactoryGatekeeper` (`0x716fFB13…37f6` @ 0) alongside FNDN
+  (@ 72h) — the gatekeeper enforces fresh-target-only configuration so market deployment can bind
+  selectors without factory-held root authority.
+- Role ids reuse the same keccak tags as Dawn (identical uint64 values) plus Day-only roles:
+  `LPT_LP_ROLE`, `ADMIN_MARKET_OPS_ROLE`, `ADMIN_ORACLE_ROLE`, `ADMIN_FACTORY_ROLE`,
+  `ADMIN_BALANCER_POOL_MANAGER_ROLE`, `ADMIN_KERNEL_ROLE` variants for kernels/accountants.
+- All grant delays are 0; execution delays use the same 0 / 24h / 72h tiers.
+
+Canonical expected model: `app/metadata/roles.descriptions.day.json` (authored from royco-day
+`script/deploy/config/RoleGraphConfig.sol`; verified against mainnet on-chain state 2026-08-12).
+Registry constants: `src/registry/Day.sol`. Role graph source: the royco-day repo
+(`script/deploy/README.md` there cites this document as the canonical spec).
 
 ---
 

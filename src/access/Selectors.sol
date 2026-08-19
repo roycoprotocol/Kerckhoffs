@@ -112,6 +112,22 @@ library Selectors {
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
+    // CALIBER MAILBOX — spoke endpoint's onlyRiskManagerTimelock setters
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// @dev On a spoke chain the Caliber's `_hubMachineEndpoint` is a `CaliberMailbox` (no local
+    ///      Machine). Its `onlyRiskManagerTimelock` setters — the spoke analogue of the Machine's
+    ///      risk surface — map to `<VAULT>_RISK_MANAGER`. `resetBridgingState` is
+    ///      `onlySecurityCouncil`, so it is intentionally excluded. `setCooldownDuration(uint256)`
+    ///      shares the Caliber selector.
+    function mailboxRiskManagerSelectors() internal pure returns (bytes4[] memory s) {
+        s = new bytes4[](3);
+        s[0] = ICaliber.setCooldownDuration.selector;
+        s[1] = IBridgeController.setOutTransferEnabled.selector;
+        s[2] = IBridgeController.setMaxBridgeLossBps.selector;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
     // ROYCO MAKINA STRATEGY allocator selectors (IStrategyTemplate)
     // ═══════════════════════════════════════════════════════════════════════════
 

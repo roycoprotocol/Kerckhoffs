@@ -81,6 +81,16 @@ abstract contract MigrationBase is SafeBatchDecoder, SafeSimulator {
         }
     }
 
+    /// @notice Run the migration for a caller-specified SUBSET of chains (same guards as `run()`).
+    ///         Use when some chains are already live and must be skipped.
+    ///         Usage: `forge script ... --sig "runChains(uint256[])" "[1,43114,8453]"`
+    function runChains(uint256[] calldata _chains) external virtual {
+        _assertProductionMultisigs();
+        for (uint256 i = 0; i < _chains.length; i++) {
+            _processChain(_chains[i]);
+        }
+    }
+
     function _processChain(uint256 _chainId) internal {
         vm.createSelectFork(_getRpcUrl(_chainId));
 

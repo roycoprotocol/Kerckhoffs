@@ -57,7 +57,7 @@ contract MigrateVaults is SafeBatchDecoder, SafeSimulator, Script {
     // ENTRY POINT
     // ═══════════════════════════════════════════════════════════════════════════
 
-    function run() external {
+    function run() external virtual {
         _assertProductionMultisigs();
         // Vaults are Ethereum-only.
         _processChain(MAINNET);

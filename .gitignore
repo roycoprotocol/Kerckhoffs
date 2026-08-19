@@ -10,5 +10,8 @@ out/
 # Dotenv file
 .env
 
+# Local service logs (e.g. app/subgraph/docker/graph-node.log) — never commit
+*.log
+
 # Generated Safe transaction batches + dumps
 output/

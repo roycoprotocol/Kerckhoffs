@@ -382,17 +382,24 @@ abstract contract SafeBatchDecoder is AccessManagerDumper, SafeBatchUtils {
             if (_a == m.juniorTranche) return string.concat(markets[i], ".JT");
         }
 
-        // Vaults + strategy stacks
+        // Concrete vaults (hub only)
         string[] memory vaults = vaultNames(_chainId);
         for (uint256 i = 0; i < vaults.length; i++) {
             VaultAddresses memory v = getVaultAddresses(_chainId, vaults[i]);
             if (_a == v.vault) return string.concat(vaults[i], ".vault");
             if (_a == v.whitelistHook) return string.concat(vaults[i], ".hook");
-            StrategyStack memory s = getStrategyStack(_chainId, vaults[i]);
-            if (_a == s.strategy) return string.concat(vaults[i], ".strategy");
-            if (_a == s.machine) return string.concat(vaults[i], ".machine");
-            if (_a == s.caliber) return string.concat(vaults[i], ".caliber");
-            if (_a == s.shareToken) return string.concat(vaults[i], ".shareToken");
+        }
+
+        // Makina strategy stacks (hub + spokes) — caliber, endpoint, strategy, share token.
+        // strategy/shareToken are 0 on spokes; the address(0) early return above prevents a
+        // false match on those.
+        string[] memory stacks = strategyVaultNames(_chainId);
+        for (uint256 i = 0; i < stacks.length; i++) {
+            StrategyStack memory s = getStrategyStack(_chainId, stacks[i]);
+            if (_a == s.strategy) return string.concat(stacks[i], ".strategy");
+            if (_a == s.endpoint) return string.concat(stacks[i], s.spoke ? ".mailbox" : ".machine");
+            if (_a == s.caliber) return string.concat(stacks[i], ".caliber");
+            if (_a == s.shareToken) return string.concat(stacks[i], ".shareToken");
         }
         return vm.toString(_a);
     }

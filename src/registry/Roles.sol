@@ -97,6 +97,21 @@ abstract contract Roles {
     uint64 internal constant GUARDIAN_ROLE = uint64(uint256(keccak256(abi.encode("ROYCO_GUARDIAN_ROLE"))));
 
     // ═══════════════════════════════════════════════════════════════════════════
+    // DAY-ONLY ROLES (mirror royco-day/src/factory/Roles.sol)
+    // ═══════════════════════════════════════════════════════════════════════════
+    //
+    // The Day AM reuses the same keccak tag scheme, so every Dawn role id above is
+    // byte-identical on the Day AM. These five exist only in the Day role graph.
+    // NOTE: `ADMIN_ORACLE_ROLE` (Day) is a different role from `ADMIN_ORACLE_QUOTER_ROLE`
+    // (Dawn) — distinct tag strings, distinct ids.
+
+    uint64 internal constant LPT_LP_ROLE = uint64(uint256(keccak256(abi.encode("ROYCO_LPT_LP_ROLE"))));
+    uint64 internal constant ADMIN_MARKET_OPS_ROLE = uint64(uint256(keccak256(abi.encode("ROYCO_ADMIN_MARKET_OPS_ROLE"))));
+    uint64 internal constant ADMIN_ORACLE_ROLE = uint64(uint256(keccak256(abi.encode("ROYCO_ADMIN_ORACLE_ROLE"))));
+    uint64 internal constant ADMIN_FACTORY_ROLE = uint64(uint256(keccak256(abi.encode("ROYCO_ADMIN_FACTORY_ROLE"))));
+    uint64 internal constant ADMIN_BALANCER_POOL_MANAGER_ROLE = uint64(uint256(keccak256(abi.encode("ROYCO_ADMIN_BALANCER_POOL_MANAGER_ROLE"))));
+
+    // ═══════════════════════════════════════════════════════════════════════════
     // CONCRETE VAULT ROLES — one AM role per migrated concrete role
     // ═══════════════════════════════════════════════════════════════════════════
     //

@@ -26,6 +26,12 @@
       "rev": "f193bee0f6df50fc4f9779f70323ffaca3eace17"
     }
   },
+  "lib/royco-day": {
+    "tag": {
+      "name": "v1.2.0",
+      "rev": "92f05aed4f29dbb320aeb86f59be815fefda667f"
+    }
+  },
   "lib/royco-vault-makina-strategy": {
     "rev": "3ba424d368a996342b4ff24e9d258c989fe99023"
   }
