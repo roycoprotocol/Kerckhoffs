@@ -6,6 +6,7 @@ import { fetchMeta, hasSubgraph } from "@/lib/subgraph";
 import { warmVerifiedMarkets } from "@/lib/verified";
 import { ChainSwitcher, Nav } from "@/components/Nav";
 import { CommandSearch } from "@/components/CommandSearch";
+import { RoycoLogoIcon } from "@/components/RoycoLogo";
 
 export default async function ChainLayout({
   children,
@@ -30,9 +31,14 @@ export default async function ChainLayout({
     <div className="min-h-screen">
       <header className="border-b border-border">
         <div className="mx-auto flex max-w-[1160px] items-center gap-2 px-4 pb-2.5 pt-3.5 md:gap-3 md:px-6">
-          <Link href={`/${chain}`} className="flex items-baseline gap-2.5 whitespace-nowrap">
-            <span className="text-[13px] font-semibold tracking-[0.22em]">ROYCO</span>
-            <span className="text-[13px] font-semibold text-body max-sm:hidden">Access Control</span>
+          <Link
+            href={`/${chain}`}
+            aria-label="Royco Access Control home"
+            className="flex items-center gap-2.5 whitespace-nowrap transition-opacity hover:opacity-70"
+          >
+            <RoycoLogoIcon className="h-[15px] w-auto fill-fg" />
+            <span className="h-4 w-px rounded-full bg-border max-sm:hidden" />
+            <span className="text-[13px] font-medium text-body max-sm:hidden">Access Control</span>
           </Link>
           <div className="flex-1" />
           {meta && (

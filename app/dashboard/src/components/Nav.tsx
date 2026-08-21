@@ -32,10 +32,10 @@ export function ChainSwitcher({ slug, daySlugs }: { slug: string; daySlugs: stri
 }
 
 const tabClass = (active: boolean, secondary = false) =>
-  `border-b-2 px-3 py-2.5 text-[13px] ${
+  `rounded-t-md border-b-2 px-3 py-2.5 text-[13px] transition-colors ${
     active
       ? "border-fg font-medium text-fg"
-      : `border-transparent ${secondary ? "text-low" : "text-muted"} hover:text-fg`
+      : `border-transparent ${secondary ? "text-low" : "text-muted"} hover:bg-head-tint hover:text-fg`
   }`;
 
 export function Nav({ slug, amKinds }: { slug: string; amKinds: AmKind[] }) {
@@ -90,8 +90,10 @@ export function AmSubNav({ slug, am }: { slug: string; am: AmKind }) {
           <Link
             key={t.seg}
             href={href}
-            className={`-mb-px shrink-0 whitespace-nowrap border-b-2 px-3 py-2 ${
-              active ? "border-ok font-medium text-fg" : "border-transparent text-muted hover:text-fg"
+            className={`-mb-px shrink-0 whitespace-nowrap rounded-t-md border-b-2 px-3 py-2 transition-colors ${
+              active
+                ? "border-ok font-medium text-fg"
+                : "border-transparent text-muted hover:bg-head-tint hover:text-fg"
             }`}
           >
             {t.label}
